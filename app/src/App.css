@@ -1,0 +1,110 @@
+:root {
+  --bg: #1e1e2e;
+  --surface: #313244;
+  --mantle: #181825;
+  --crust: #11111b;
+  --text: #cdd6f4;
+  --text-dim: #6c7086;
+  --overlay0: #6c7086;
+  --overlay1: #7f849c;
+  --accent: #89b4fa;
+  --red: #f38ba8;
+  --green: #a6e3a1;
+  --yellow: #f9e2af;
+  --tab-height: 36px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --hover-overlay: rgba(255, 255, 255, 0.1);
+  --hover-overlay-subtle: rgba(255, 255, 255, 0.05);
+  --z-resize: 100;
+  --z-modal: 1000;
+  --text-xs: 10px;
+  --text-sm: 11px;
+  --text-base: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Cascadia Code", "JetBrains Mono", "Fira Code", "Consolas", monospace;
+  font-size: 13px;
+  color-scheme: dark;
+  line-height: 1.4;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 480px;
+  min-height: 320px;
+}
+
+.tab-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.tab-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease-out;
+}
+
+.tab-panel.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Terminal panels need display toggling for xterm layout;
+   we still fade them via opacity for visual smoothness. */
+.tab-panel.terminal-panel {
+  transition: none;
+}
+
+/* Resize handles for frameless window */
+.resize-handle {
+  position: fixed;
+  z-index: var(--z-resize);
+}
+
+/* Edge handles avoid tab bar (top) and status bar (bottom) */
+.resize-handle.top    { top: 0; left: 5px; right: 5px; height: 3px; cursor: n-resize; }
+.resize-handle.bottom { bottom: 0; left: 5px; right: 5px; height: 3px; cursor: s-resize; }
+.resize-handle.left   { left: 0; top: var(--tab-height); bottom: 28px; width: 4px; cursor: w-resize; }
+.resize-handle.right  { right: 0; top: var(--tab-height); bottom: 28px; width: 4px; cursor: e-resize; }
+.resize-handle.top-left     { top: 0; left: 0; width: 8px; height: 8px; cursor: nw-resize; }
+.resize-handle.top-right    { top: 0; right: 0; width: 8px; height: 8px; cursor: ne-resize; }
+.resize-handle.bottom-left  { bottom: 0; left: 0; width: 8px; height: 8px; cursor: sw-resize; }
+.resize-handle.bottom-right { bottom: 0; right: 0; width: 8px; height: 8px; cursor: se-resize; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

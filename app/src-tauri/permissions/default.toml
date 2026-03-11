@@ -1,0 +1,76 @@
+"$schema" = "schemas/desktop-schema.json"
+
+[[permission]]
+identifier = "allow-spawn-claude"
+description = "Allows spawning a Claude CLI session"
+commands.allow = ["spawn_claude"]
+
+[[permission]]
+identifier = "allow-write-pty"
+description = "Allows writing to a PTY session"
+commands.allow = ["write_pty"]
+
+[[permission]]
+identifier = "allow-resize-pty"
+description = "Allows resizing a PTY session"
+commands.allow = ["resize_pty"]
+
+[[permission]]
+identifier = "allow-kill-session"
+description = "Allows killing a PTY session"
+commands.allow = ["kill_session"]
+
+[[permission]]
+identifier = "allow-heartbeat"
+description = "Allows sending heartbeat to a session"
+commands.allow = ["heartbeat"]
+
+[[permission]]
+identifier = "allow-active-session-count"
+description = "Allows querying active session count"
+commands.allow = ["active_session_count"]
+
+[[permission]]
+identifier = "allow-scan-projects"
+description = "Allows scanning project directories"
+commands.allow = ["scan_projects"]
+
+[[permission]]
+identifier = "allow-load-settings"
+description = "Allows loading settings"
+commands.allow = ["load_settings"]
+
+[[permission]]
+identifier = "allow-save-settings"
+description = "Allows saving settings"
+commands.allow = ["save_settings"]
+
+[[permission]]
+identifier = "allow-load-usage"
+description = "Allows loading usage data"
+commands.allow = ["load_usage"]
+
+[[permission]]
+identifier = "allow-record-usage"
+description = "Allows recording usage data"
+commands.allow = ["record_usage"]
+
+[[permission]]
+identifier = "allow-open-in-explorer"
+description = "Allows opening a path in Windows Explorer"
+commands.allow = ["open_in_explorer"]
+
+[[permission]]
+identifier = "allow-create-project"
+description = "Allows creating a new project directory"
+commands.allow = ["create_project"]
+
+[[permission]]
+identifier = "allow-save-session"
+description = "Allows saving session state"
+commands.allow = ["save_session"]
+
+[[permission]]
+identifier = "allow-load-session"
+description = "Allows loading session state"
+commands.allow = ["load_session"]

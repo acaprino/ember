@@ -1,0 +1,99 @@
+.new-tab-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.new-tab-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.new-tab-header h2 {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}
+
+.shortcut-hints {
+  font-size: var(--text-sm);
+  color: var(--text-dim);
+  font-family: "Cascadia Code", "Consolas", monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.shortcut-hints kbd {
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: var(--text-xs);
+  font-family: "Cascadia Code", "Consolas", monospace;
+  margin-right: 2px;
+}
+
+/* Error state */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: var(--space-2);
+}
+
+.error-icon {
+  font-size: 32px;
+  opacity: 0.5;
+  margin-bottom: var(--space-2);
+}
+
+.error-title {
+  font-size: var(--text-md);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.error-message {
+  font-size: var(--text-sm);
+  color: var(--red);
+  margin-top: var(--space-2);
+}
+
+.retry-button {
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  cursor: pointer;
+  font-size: var(--text-base);
+  transition: background 0.15s ease-out, transform 0.1s ease-out, border-color 0.15s ease-out;
+}
+
+.retry-button:hover {
+  background: var(--hover-overlay);
+  border-color: var(--accent);
+}
+
+.retry-button:active {
+  transform: scale(0.97);
+}
+
+.retry-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

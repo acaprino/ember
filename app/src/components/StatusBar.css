@@ -1,0 +1,82 @@
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-1) var(--space-4);
+  background: var(--mantle);
+  border-top: 1px solid var(--surface);
+  font-size: var(--text-sm);
+  color: var(--text-dim);
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  min-height: 28px;
+}
+
+.status-left {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  min-width: 0;
+}
+
+.status-filter {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  padding: 1px var(--space-2);
+  border-radius: 9999px;
+  font-family: "Cascadia Code", "Consolas", monospace;
+  white-space: nowrap;
+}
+
+.status-right {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  overflow: hidden;
+  align-items: center;
+}
+
+.status-btn {
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  border: none;
+  background: none;
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  font-family: "Cascadia Code", "Consolas", monospace;
+  transition: background 0.15s ease-out, color 0.15s ease-out;
+}
+
+.status-btn:hover {
+  background: var(--hover-overlay);
+  color: var(--text);
+}
+
+.status-btn:active {
+  background: var(--surface);
+}
+
+.status-btn strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.status-btn.perms.on {
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+}
+
+.status-btn.perms.on strong {
+  color: var(--red);
+  animation: perms-pulse 2s ease-in-out infinite;
+}
+
+@keyframes perms-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.status-btn.perms.off strong {
+  color: var(--green);
+}

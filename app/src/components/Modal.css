@@ -1,0 +1,232 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+}
+
+.modal {
+  background: var(--bg);
+  border: 1px solid var(--surface);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  min-width: 400px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.modal-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--accent);
+  margin-bottom: var(--space-3);
+}
+
+.modal-field {
+  margin-bottom: var(--space-3);
+}
+
+.modal-field label {
+  display: block;
+  font-size: var(--text-sm);
+  color: var(--text-dim);
+  margin-bottom: var(--space-1);
+}
+
+.modal-input {
+  width: 100%;
+  padding: var(--space-2);
+  background: var(--surface);
+  border: 1px solid var(--overlay0);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: var(--text-base);
+  font-family: "Cascadia Code", "Consolas", monospace;
+  box-sizing: border-box;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.modal-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.modal-checkbox input {
+  accent-color: var(--accent);
+}
+
+.modal-checkbox label {
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.modal-btn {
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--surface);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-family: "Cascadia Code", "Consolas", monospace;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.modal-btn:hover {
+  background: var(--hover-overlay);
+}
+
+.modal-btn.primary {
+  background: var(--accent);
+  color: var(--crust);
+  border-color: var(--accent);
+}
+
+.modal-btn.primary:hover {
+  opacity: 0.9;
+}
+
+.modal-btn.danger {
+  color: var(--red);
+  border-color: var(--red);
+  background: transparent;
+}
+
+.modal-btn.danger:hover {
+  background: rgba(243, 139, 168, 0.1);
+}
+
+/* Directory list in manage dirs modal */
+.dir-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--space-3) 0;
+}
+
+.dir-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  font-family: "Cascadia Code", "Consolas", monospace;
+  color: var(--text);
+}
+
+.dir-item:hover {
+  background: var(--hover-overlay-subtle);
+}
+
+.dir-item .dir-path {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.dir-item .remove-btn {
+  color: var(--text-dim);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 6px;
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+}
+
+.dir-item .remove-btn:hover {
+  color: var(--red);
+  background: rgba(243, 139, 168, 0.1);
+}
+
+.add-dir-row {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.add-dir-row .modal-input {
+  flex: 1;
+}
+
+.modal-error {
+  color: var(--red);
+  font-size: var(--text-sm);
+  margin-top: var(--space-1);
+}
+
+/* Theme picker grid */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.theme-preview {
+  border: 2px solid var(--surface);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  cursor: pointer;
+  background: none;
+  padding: 0;
+  transition: border-color 0.15s;
+}
+
+.theme-preview:hover {
+  border-color: var(--overlay1);
+}
+
+.theme-preview.active {
+  border-color: var(--accent);
+}
+
+.theme-preview-colors {
+  padding: var(--space-2);
+  font-family: "Cascadia Code", "Consolas", monospace;
+  font-size: var(--text-xs);
+}
+
+.theme-swatch-row {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.theme-swatch-bar {
+  display: flex;
+  gap: 2px;
+  height: 4px;
+}
+
+.theme-swatch-bar span {
+  flex: 1;
+  border-radius: 2px;
+}
+
+.theme-preview-name {
+  padding: 4px;
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  text-align: center;
+  font-family: "Cascadia Code", "Consolas", monospace;
+}

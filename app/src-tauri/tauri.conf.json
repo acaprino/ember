@@ -1,0 +1,29 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicerapp/tauri/refs/heads/dev/crates/tauri-cli/config.schema.json",
+  "productName": "Claude Launcher",
+  "version": "1.0.0",
+  "identifier": "com.claude-launcher.app",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Claude Launcher",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 500,
+        "decorations": false
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'"
+    }
+  }
+}

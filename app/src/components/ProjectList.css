@@ -1,0 +1,180 @@
+.project-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-1) var(--space-4);
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface) transparent;
+  scroll-behavior: smooth;
+}
+
+.project-list-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  height: 100%;
+}
+
+.skeleton-row {
+  height: 48px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--surface) 25%,
+    color-mix(in srgb, var(--surface) 60%, var(--bg)) 50%,
+    var(--surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.project-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-dim);
+  gap: var(--space-2);
+}
+
+.empty-icon {
+  font-size: 32px;
+  opacity: 0.3;
+  margin-bottom: var(--space-2);
+}
+
+.empty-title {
+  font-size: var(--text-md);
+  font-weight: 500;
+  color: var(--text);
+}
+
+.empty-hint {
+  font-size: var(--text-sm);
+  color: var(--text-dim);
+}
+
+.empty-hint kbd {
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--text-dim);
+  font-family: inherit;
+  font-size: var(--text-xs);
+}
+
+.project-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.12s ease-out, box-shadow 0.12s ease-out;
+  min-width: 0;
+}
+
+.project-item:hover:not(.selected) {
+  background: var(--hover-overlay-subtle);
+  box-shadow: inset 2px 0 0 color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.project-item:active {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  transition-duration: 0.05s;
+}
+
+.project-item.selected {
+  background: var(--surface);
+  box-shadow: inset 2px 0 0 var(--accent);
+  will-change: background, box-shadow;
+}
+
+.project-item.launching {
+  position: relative;
+  pointer-events: none;
+}
+
+.project-item.launching::after {
+  content: "Launching...";
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--bg) 85%, transparent);
+  color: var(--accent);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-sm);
+  animation: fade-in 0.15s ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.project-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.project-name {
+  font-weight: 500;
+  font-size: var(--text-base);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.project-badge {
+  font-size: var(--text-xs);
+  padding: 1px 4px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.project-badge.claude {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--accent);
+}
+
+.project-meta {
+  display: flex;
+  gap: var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-dim);
+  min-width: 0;
+}
+
+.project-branch {
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.project-branch.dirty {
+  color: var(--yellow);
+}
+
+.project-path {
+  opacity: 0.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.project-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}

@@ -1,0 +1,17 @@
+.claude/
+
+# build artifacts
+build/
+dist/
+*.spec
+*.exe
+__pycache__/
+*.pyc
+.full-review/
+
+# launcher data files (local state)
+claude-launcher-settings.json
+claude-launcher-settings.json.bak
+claude-launcher-settings.json.tmp
+claude-launcher-usage.json
+claude-launcher-usage.json.tmp
