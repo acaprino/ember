@@ -106,7 +106,6 @@ html, body, #root {
 .retro {
   --radius-sm: 0px;
   --radius-md: 0px;
-  --z-scanline: 999;
   letter-spacing: 0.03em;
 }
 
@@ -156,8 +155,8 @@ html, body, #root {
 .retro .terminal-container,
 .retro .status-btn.perms.on strong { animation: none; }
 
-/* Terminal-style font — beats all component-level font-family declarations */
-.retro * { font-family: "Courier New", "Courier", monospace !important; }
+/* Terminal-style font — Matrix hacker aesthetic */
+.retro * { font-family: "Cascadia Mono", "Consolas", "Lucida Console", monospace !important; }
 
 /* Static skeleton loading in retro mode */
 .retro .skeleton-row { background: var(--surface); }
@@ -174,23 +173,6 @@ html, body, #root {
   box-shadow: inset 3px 0 0 color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
-/* CRT scanline overlay — below modals, above everything else.
-   Note: prefers-reduced-motion kills retro-blink; the retro aesthetic
-   still works through geometry (square corners, thick borders, scanlines). */
-.retro::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: var(--z-scanline);
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 3px,
-    rgba(0, 0, 0, 0.06) 3px,
-    rgba(0, 0, 0, 0.06) 6px
-  );
-}
 
 /* Blinking cursor + CRT glow on the app title */
 .retro .new-tab-header h2 {
