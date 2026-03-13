@@ -1,4 +1,4 @@
-# Claude Code Launcher
+# Ember
 
 A Windows-only Tauri 2 desktop app for selecting and launching Claude Code CLI sessions in tabbed terminals.
 
@@ -32,7 +32,7 @@ Run via `cargo tauri dev` (development) or build with `cargo tauri build`.
 - `Terminal.tsx` — xterm.js wrapper with WebGL, PTY communication via Tauri Channel, file drag-and-drop
 - `NewTabPage.tsx` — Project picker with keyboard navigation, settings cycling, modals
 - `ProjectList.tsx` — Scrollable project list with branch/dirty/CLAUDE.md indicators
-- `StatusBar.tsx` — Model, effort, sort, permissions, theme, font display + action buttons
+- `StatusBar.tsx` — Tool, model, effort, sort, permissions, theme, font display + action buttons
 - `Modal.tsx` — Reusable modal component
 - `ErrorBoundary.tsx` — Wraps Terminal components
 
@@ -48,14 +48,21 @@ Run via `cargo tauri dev` (development) or build with `cargo tauri build`.
 - Tab state is managed in App via `useTabManager` (useState-based)
 - Terminal uses refs for high-frequency PTY callbacks (not React state)
 
-## Models Available (Tab to cycle)
+## Tools Available (F1 to cycle)
+
+claude / gemini
+
+- `claude` — Claude Code CLI (`@anthropic-ai/claude-code`)
+- `gemini` — Gemini CLI (`@google/gemini-cli`); model/effort/perms hidden when selected
+
+## Models Available (Tab to cycle, Claude only)
 
 sonnet / opus / haiku / sonnet [1M] / opus [1M]
 
 Model IDs: `claude-sonnet-4-6`, `claude-opus-4-6`, `claude-haiku-4-5`,
 `claude-sonnet-4-6[1m]`, `claude-opus-4-6[1m]`
 
-## Effort Levels (F2 to cycle)
+## Effort Levels (F2 to cycle, Claude only)
 
 high / medium / low
 
@@ -68,8 +75,9 @@ alpha / last used / most used
 - **Ctrl+T**: New tab
 - **Ctrl+F4**: Close tab
 - **Ctrl+Tab / Ctrl+Shift+Tab**: Next/previous tab
-- **Tab**: Cycle model (in project picker)
-- **F2**: Cycle effort level
+- **F1**: Cycle tool (claude/gemini)
+- **Tab**: Cycle model (Claude only)
+- **F2**: Cycle effort level (Claude only)
 - **F3**: Cycle sort order
 - **F4**: Toggle skip-permissions
 - **F5**: Create new project

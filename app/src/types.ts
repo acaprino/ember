@@ -3,6 +3,7 @@ export interface Tab {
   type: "new-tab" | "terminal";
   projectPath?: string;
   projectName?: string;
+  toolIdx?: number;
   modelIdx?: number;
   effortIdx?: number;
   skipPerms?: boolean;
@@ -22,6 +23,7 @@ export interface ProjectInfo {
 
 export interface Settings {
   version?: number;
+  tool_idx: number;
   model_idx: number;
   effort_idx: number;
   sort_idx: number;
@@ -40,6 +42,8 @@ export interface UsageEntry {
 }
 
 export type UsageData = Record<string, UsageEntry>;
+
+export const TOOLS = ["claude", "gemini"] as const;
 
 export const MODELS = [
   { display: "sonnet", id: "claude-sonnet-4-6" },

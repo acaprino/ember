@@ -2,14 +2,15 @@ use std::sync::Arc;
 use tauri::ipc::Channel;
 use tauri::State;
 
-use crate::claude;
+use crate::tools;
 use crate::projects::{self, ProjectInfo, Settings, UsageData};
 use crate::session::{PtyEvent, SessionRegistry};
 
 #[tauri::command]
-pub async fn spawn_claude(
+pub async fn spawn_tool(
     registry: State<'_, Arc<SessionRegistry>>,
     project_path: String,
+    tool_idx: usize,
     model_idx: usize,
     effort_idx: usize,
     skip_perms: bool,
@@ -17,28 +18,44 @@ pub async fn spawn_claude(
     rows: i16,
     on_event: Channel<PtyEvent>,
 ) -> Result<String, String> {
-    log_info!("spawn_claude: project={project_path}, model={model_idx}, effort={effort_idx}, skip_perms={skip_perms}, cols={cols}, rows={rows}");
+    log_info!("spawn_tool: project={project_path}, tool={tool_idx}, model={model_idx}, effort={effort_idx}, skip_perms={skip_perms}, cols={cols}, rows={rows}");
 
     if projects::is_unc(&project_path) {
-        log_error!("spawn_claude: UNC paths not supported: {project_path}");
+        log_error!("spawn_tool: UNC paths not supported: {project_path}");
         return Err("UNC paths are not supported".to_string());
     }
     if !std::path::Path::new(&project_path).is_dir() {
-        log_error!("spawn_claude: path is not a directory: {project_path}");
+        log_error!("spawn_tool: path is not a directory: {project_path}");
         return Err("Project path does not exist or is not a directory".to_string());
     }
 
     if cols <= 0 || rows <= 0 || cols > 500 || rows > 200 {
-        log_error!("spawn_claude: invalid dimensions {cols}x{rows}");
+        log_error!("spawn_tool: invalid dimensions {cols}x{rows}");
         return Err("Invalid terminal dimensions".to_string());
     }
 
-    let claude_exe = claude::resolve_claude_exe().map_err(|e| {
-        log_error!("spawn_claude: failed to resolve claude exe: {e}");
-        e
-    })?;
-
-    let (program, args) = claude::build_command(&claude_exe, model_idx, effort_idx, skip_perms);
+    let (program, args, env) = match tool_idx {
+        0 => {
+            let claude_exe = tools::resolve_claude_exe().map_err(|e| {
+                log_error!("spawn_tool: failed to resolve claude exe: {e}");
+                e
+            })?;
+            let (p, a) = tools::build_claude_command(&claude_exe, model_idx, effort_idx, skip_perms);
+            (p, a, tools::claude_env())
+        }
+        1 => {
+            let gemini_exe = tools::resolve_gemini_exe().map_err(|e| {
+                log_error!("spawn_tool: failed to resolve gemini exe: {e}");
+                e
+            })?;
+            let (p, a) = tools::build_gemini_command(&gemini_exe);
+            (p, a, tools::gemini_env())
+        }
+        _ => {
+            log_error!("spawn_tool: invalid tool_idx={tool_idx}");
+            return Err(format!("Invalid tool index: {tool_idx}"));
+        }
+    };
 
     let mut cmd_parts = vec![program];
     cmd_parts.extend(args);
@@ -47,14 +64,12 @@ pub async fn spawn_claude(
         .map(|p| if p.contains(' ') && !p.starts_with('"') { format!("\"{}\"", p) } else { p.clone() })
         .collect::<Vec<_>>()
         .join(" ");
-    log_info!("spawn_claude: command_line={command_line}");
-
-    let env = claude::claude_env();
+    log_info!("spawn_tool: command_line={command_line}");
 
     let result = registry.spawn(&command_line, &project_path, &env, cols, rows, on_event);
     match &result {
-        Ok(id) => log_info!("spawn_claude: session created id={id}"),
-        Err(e) => log_error!("spawn_claude: failed: {e}"),
+        Ok(id) => log_info!("spawn_tool: session created id={id}"),
+        Err(e) => log_error!("spawn_tool: failed: {e}"),
     }
     result
 }

@@ -6,6 +6,7 @@ type PtyEvent =
 
 export async function spawnClaude(
   projectPath: string,
+  toolIdx: number,
   modelIdx: number,
   effortIdx: number,
   skipPerms: boolean,
@@ -24,8 +25,9 @@ export async function spawnClaude(
     }
   };
 
-  const sessionId = await invoke<string>("spawn_claude", {
+  const sessionId = await invoke<string>("spawn_tool", {
     projectPath,
+    toolIdx,
     modelIdx,
     effortIdx,
     skipPerms,

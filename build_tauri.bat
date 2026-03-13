@@ -2,7 +2,7 @@
 setlocal
 
 echo ============================================
-echo   Claude Launcher - Tauri App Build
+echo   Ember - Tauri App Build
 echo ============================================
 echo.
 
@@ -45,11 +45,11 @@ if exist "%DIST_DIR%" rd /s /q "%DIST_DIR%"
 mkdir "%DIST_DIR%"
 
 :: Copy standalone exe
-if exist "%RELEASE_DIR%\claude-launcher.exe" (
-    copy /Y "%RELEASE_DIR%\claude-launcher.exe" "%DIST_DIR%\" >nul
-    echo   - claude-launcher.exe
+if exist "%RELEASE_DIR%\ember.exe" (
+    copy /Y "%RELEASE_DIR%\ember.exe" "%DIST_DIR%\" >nul
+    echo   - ember.exe
 ) else (
-    echo ERROR: claude-launcher.exe not found in %RELEASE_DIR%
+    echo ERROR: ember.exe not found in %RELEASE_DIR%
     exit /b 1
 )
 

@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicerapp/tauri/refs/heads/dev/crates/tauri-cli/config.schema.json",
-  "productName": "Claude Launcher",
+  "productName": "Ember",
   "version": "1.0.0",
-  "identifier": "com.claude-launcher.app",
+  "identifier": "com.ember-app.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Claude Launcher",
+        "title": "Ember",
         "width": 1200,
         "height": 800,
         "minWidth": 800,

@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Tab } from "../types";
 
 const SESSION_SAVE_DEBOUNCE_MS = 500;
@@ -8,6 +7,7 @@ const SESSION_SAVE_DEBOUNCE_MS = 500;
 interface SavedTab {
   projectPath: string;
   projectName: string;
+  toolIdx: number;
   modelIdx: number;
   effortIdx: number;
   skipPerms: boolean;
@@ -28,6 +28,7 @@ function createRestoredTab(saved: SavedTab): Tab {
     type: "terminal",
     projectPath: saved.projectPath,
     projectName: saved.projectName,
+    toolIdx: saved.toolIdx,
     modelIdx: saved.modelIdx,
     effortIdx: saved.effortIdx,
     skipPerms: saved.skipPerms,
@@ -53,6 +54,7 @@ export function useTabManager() {
           .map((s: any) => createRestoredTab({
             projectPath: s.projectPath,
             projectName: typeof s.projectName === "string" ? s.projectName : "Terminal",
+            toolIdx: typeof s.toolIdx === "number" ? s.toolIdx : 0,
             modelIdx: typeof s.modelIdx === "number" ? s.modelIdx : 0,
             effortIdx: typeof s.effortIdx === "number" ? s.effortIdx : 0,
             skipPerms: s.skipPerms === true,
@@ -77,6 +79,7 @@ export function useTabManager() {
         .map((t) => ({
           projectPath: t.projectPath,
           projectName: t.projectName ?? "Terminal",
+          toolIdx: t.toolIdx ?? 0,
           modelIdx: t.modelIdx ?? 0,
           effortIdx: t.effortIdx ?? 0,
           skipPerms: t.skipPerms ?? false,
@@ -117,11 +120,11 @@ export function useTabManager() {
         const next = prev.filter((t) => t.id !== tabId);
 
         if (next.length === 0) {
-          // Schedule close outside the state updater
-          setTimeout(() => {
-            getCurrentWindow().destroy();
-          }, 0);
-          return prev;
+          // Never auto-close the window — open a new-tab page instead.
+          // destroy() bypasses CloseRequested and causes silent shutdown after standby.
+          const newTab = createNewTab();
+          setActiveTabId(newTab.id);
+          return [newTab];
         }
 
         if (tabId === activeTabIdRef.current) {

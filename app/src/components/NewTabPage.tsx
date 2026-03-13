@@ -4,7 +4,7 @@ import { useProjectsContext } from "../contexts/ProjectsContext";
 import ProjectList from "./ProjectList";
 import StatusBar, { StatusBarAction } from "./StatusBar";
 import Modal from "./Modal";
-import { ProjectInfo, Settings, MODELS, EFFORTS, SORT_ORDERS, THEMES } from "../types";
+import { ProjectInfo, Settings, TOOLS, MODELS, EFFORTS, SORT_ORDERS, THEMES } from "../types";
 import "./NewTabPage.css";
 
 interface NewTabPageProps {
@@ -13,6 +13,7 @@ interface NewTabPageProps {
     tabId: string,
     projectPath: string,
     projectName: string,
+    toolIdx: number,
     modelIdx: number,
     effortIdx: number,
     skipPerms: boolean,
@@ -80,6 +81,7 @@ function NewTabPage({ tabId, onLaunch, onRequestClose, isActive }: NewTabPagePro
         tabId,
         project.path,
         project.label ?? project.name,
+        currentSettings.tool_idx,
         currentSettings.model_idx,
         currentSettings.effort_idx,
         currentSettings.skip_perms,
@@ -144,17 +146,27 @@ function NewTabPage({ tabId, onLaunch, onRequestClose, isActive }: NewTabPagePro
             onRequestCloseRef.current(tabId);
           }
           break;
-        case "Tab":
+        case "F1":
           e.preventDefault();
           updateSettingsRef.current({
-            model_idx: (currentSettings.model_idx + 1) % MODELS.length,
+            tool_idx: (currentSettings.tool_idx + 1) % TOOLS.length,
           });
+          break;
+        case "Tab":
+          e.preventDefault();
+          if (currentSettings.tool_idx === 0) {
+            updateSettingsRef.current({
+              model_idx: (currentSettings.model_idx + 1) % MODELS.length,
+            });
+          }
           break;
         case "F2":
           e.preventDefault();
-          updateSettingsRef.current({
-            effort_idx: (currentSettings.effort_idx + 1) % EFFORTS.length,
-          });
+          if (currentSettings.tool_idx === 0) {
+            updateSettingsRef.current({
+              effort_idx: (currentSettings.effort_idx + 1) % EFFORTS.length,
+            });
+          }
           break;
         case "F3":
           e.preventDefault();
@@ -164,7 +176,9 @@ function NewTabPage({ tabId, onLaunch, onRequestClose, isActive }: NewTabPagePro
           break;
         case "F4":
           e.preventDefault();
-          updateSettingsRef.current({ skip_perms: !currentSettings.skip_perms });
+          if (currentSettings.tool_idx === 0) {
+            updateSettingsRef.current({ skip_perms: !currentSettings.skip_perms });
+          }
           break;
         case "F5":
           e.preventDefault();
@@ -246,8 +260,9 @@ function NewTabPage({ tabId, onLaunch, onRequestClose, isActive }: NewTabPagePro
   return (
     <div className="new-tab-page">
       <div className="new-tab-header">
-        <h2>Claude Launcher</h2>
+        <h2>Ember</h2>
         <span className="shortcut-hints">
+          <span><kbd>F1</kbd> tool</span>
           <span><kbd>Tab</kbd> model</span>
           <span><kbd>F2</kbd> effort</span>
           <span><kbd>F3</kbd> sort</span>
@@ -327,7 +342,7 @@ function NewTabPage({ tabId, onLaunch, onRequestClose, isActive }: NewTabPagePro
             }
             const name = dirPath.split(/[\\/]/).pop() ?? "Terminal";
             setActiveModal(null);
-            onLaunch(tabId, dirPath, name, settings.model_idx, settings.effort_idx, settings.skip_perms);
+            onLaunch(tabId, dirPath, name, settings.tool_idx, settings.model_idx, settings.effort_idx, settings.skip_perms);
           }}
         />
       )}

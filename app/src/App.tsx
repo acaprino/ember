@@ -35,9 +35,9 @@ function AppContent() {
 
     if (activeTab.type === "terminal" && activeTab.projectName) {
       const suffix = terminalCount > 1 ? ` (+${terminalCount - 1} tabs)` : "";
-      appWindow.setTitle(`Claude Launcher \u2014 ${activeTab.projectName}${suffix}`);
+      appWindow.setTitle(`Ember \u2014 ${activeTab.projectName}${suffix}`);
     } else {
-      appWindow.setTitle("Claude Launcher");
+      appWindow.setTitle("Ember");
     }
   }, [activeTab, tabs]);
 
@@ -64,11 +64,12 @@ function AppContent() {
   }, [addTab, closeTab, activeTabId, nextTab, prevTab]);
 
   const handleLaunch = useCallback(
-    (tabId: string, projectPath: string, projectName: string, modelIdx: number, effortIdx: number, skipPerms: boolean) => {
+    (tabId: string, projectPath: string, projectName: string, toolIdx: number, modelIdx: number, effortIdx: number, skipPerms: boolean) => {
       updateTab(tabId, {
         type: "terminal",
         projectPath,
         projectName,
+        toolIdx,
         modelIdx,
         effortIdx,
         skipPerms,
@@ -139,7 +140,8 @@ function AppContent() {
                   <Terminal
                     tabId={tab.id}
                     projectPath={tab.projectPath!}
-                    modelIdx={tab.modelIdx!}
+                    toolIdx={tab.toolIdx ?? 0}
+                    modelIdx={tab.modelIdx ?? 0}
                     effortIdx={tab.effortIdx ?? 0}
                     skipPerms={tab.skipPerms ?? false}
                     themeIdx={themeIdx}

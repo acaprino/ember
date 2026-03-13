@@ -10,6 +10,16 @@ pub const MODELS: &[(&str, &str)] = &[
 
 pub const EFFORTS: &[&str] = &["high", "medium", "low"];
 
+fn is_shim(exe_str: &str) -> bool {
+    exe_str.ends_with(".cmd") || exe_str.ends_with(".bat")
+}
+
+fn wrap_shim(exe_str: &str, args: Vec<String>) -> (String, Vec<String>) {
+    let mut shim_args = vec!["/c".to_string(), format!("\"{}\"", exe_str)];
+    shim_args.extend(args);
+    ("cmd.exe".to_string(), shim_args)
+}
+
 pub fn resolve_claude_exe() -> Result<PathBuf, String> {
     if let Ok(path) = which::which("claude") {
         return Ok(path);
@@ -25,7 +35,7 @@ pub fn resolve_claude_exe() -> Result<PathBuf, String> {
     Err("Claude executable not found. Install with: npm install -g @anthropic-ai/claude-code".to_string())
 }
 
-pub fn build_command(
+pub fn build_claude_command(
     claude_exe: &Path,
     model_idx: usize,
     effort_idx: usize,
@@ -39,7 +49,6 @@ pub fn build_command(
     let effort = EFFORTS.get(effort_idx).copied().unwrap_or(EFFORTS[0]);
 
     let exe_str = claude_exe.to_string_lossy().to_string();
-    let is_shim = exe_str.ends_with(".cmd") || exe_str.ends_with(".bat");
 
     let mut claude_args = vec![
         "--model".to_string(),
@@ -52,11 +61,9 @@ pub fn build_command(
         claude_args.push("--dangerously-skip-permissions".to_string());
     }
 
-    if is_shim {
+    if is_shim(&exe_str) {
         // Quote the exe path for cmd.exe /c to handle spaces
-        let mut args = vec!["/c".to_string(), format!("\"{}\"", exe_str)];
-        args.extend(claude_args);
-        ("cmd.exe".to_string(), args)
+        wrap_shim(&exe_str, claude_args)
     } else {
         (exe_str, claude_args)
     }
@@ -65,6 +72,38 @@ pub fn build_command(
 pub fn claude_env() -> Vec<(String, String)> {
     vec![
         ("CLAUDE_CODE_MAX_OUTPUT_TOKENS".to_string(), "64000".to_string()),
+        ("TERM".to_string(), "xterm-256color".to_string()),
+        ("COLORTERM".to_string(), "truecolor".to_string()),
+    ]
+}
+
+pub fn resolve_gemini_exe() -> Result<PathBuf, String> {
+    if let Ok(path) = which::which("gemini") {
+        return Ok(path);
+    }
+
+    if let Some(home) = dirs::home_dir() {
+        let fallback = home.join(".local").join("bin").join("gemini.exe");
+        if fallback.exists() {
+            return Ok(fallback);
+        }
+    }
+
+    Err("Gemini executable not found. Install with: npm install -g @google/gemini-cli".to_string())
+}
+
+pub fn build_gemini_command(gemini_exe: &Path) -> (String, Vec<String>) {
+    let exe_str = gemini_exe.to_string_lossy().to_string();
+
+    if is_shim(&exe_str) {
+        wrap_shim(&exe_str, vec![])
+    } else {
+        (exe_str, vec![])
+    }
+}
+
+pub fn gemini_env() -> Vec<(String, String)> {
+    vec![
         ("TERM".to_string(), "xterm-256color".to_string()),
         ("COLORTERM".to_string(), "truecolor".to_string()),
     ]

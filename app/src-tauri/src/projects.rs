@@ -18,6 +18,8 @@ pub struct Settings {
     #[serde(default)]
     pub version: u32,
     #[serde(default)]
+    pub tool_idx: usize,
+    #[serde(default)]
     pub model_idx: usize,
     #[serde(default)]
     pub effort_idx: usize,
@@ -51,7 +53,7 @@ fn default_font_size() -> u32 {
 }
 
 fn default_project_dirs() -> Vec<String> {
-    let dir = std::env::var("CLAUDE_LAUNCHER_PROJECTS_DIR")
+    let dir = std::env::var("EMBER_PROJECTS_DIR")
         .unwrap_or_else(|_| DEFAULT_PROJECTS_DIR.to_string());
     vec![dir]
 }
@@ -60,6 +62,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             version: 1,
+            tool_idx: 0,
             model_idx: 0,
             effort_idx: 0,
             sort_idx: 0,
@@ -96,7 +99,7 @@ pub struct ProjectInfo {
 
 pub(crate) fn data_dir() -> PathBuf {
     let dir = dirs::data_local_dir()
-        .map(|p| p.join("claude-launcher"))
+        .map(|p| p.join("ember"))
         .unwrap_or_else(|| {
             std::env::current_exe()
                 .ok()
@@ -108,19 +111,19 @@ pub(crate) fn data_dir() -> PathBuf {
 }
 
 fn settings_path() -> PathBuf {
-    data_dir().join("claude-launcher-settings.json")
+    data_dir().join("ember-settings.json")
 }
 
 fn settings_bak_path() -> PathBuf {
-    data_dir().join("claude-launcher-settings.json.bak")
+    data_dir().join("ember-settings.json.bak")
 }
 
 fn usage_path() -> PathBuf {
-    data_dir().join("claude-launcher-usage.json")
+    data_dir().join("ember-usage.json")
 }
 
 fn session_path() -> PathBuf {
-    data_dir().join("claude-launcher-session.json")
+    data_dir().join("ember-session.json")
 }
 
 pub fn load_session() -> Option<serde_json::Value> {

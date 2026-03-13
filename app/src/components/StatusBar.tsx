@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Settings, MODELS, EFFORTS, SORT_ORDERS, THEMES } from "../types";
+import { Settings, TOOLS, MODELS, EFFORTS, SORT_ORDERS, THEMES } from "../types";
 import "./StatusBar.css";
 
 export type StatusBarAction = "create-project" | "manage-dirs" | "label-project" | "quick-launch" | "theme-picker" | "font-settings";
@@ -12,6 +12,8 @@ interface StatusBarProps {
 }
 
 export default memo(function StatusBar({ settings, filter, onUpdate, onAction }: StatusBarProps) {
+  const tool = TOOLS[settings.tool_idx] ?? TOOLS[0];
+  const isClaude = settings.tool_idx === 0;
   const model = MODELS[settings.model_idx]?.display ?? MODELS[0].display;
   const effort = EFFORTS[settings.effort_idx] ?? EFFORTS[0];
   const sort = SORT_ORDERS[settings.sort_idx] ?? SORT_ORDERS[0];
@@ -53,18 +55,29 @@ export default memo(function StatusBar({ settings, filter, onUpdate, onAction }:
       <div className="status-right">
         <button
           className="status-btn"
-          onClick={() => onUpdate({ model_idx: (settings.model_idx + 1) % MODELS.length })}
-          title="Click or Tab to cycle model"
+          onClick={() => onUpdate({ tool_idx: (settings.tool_idx + 1) % TOOLS.length })}
+          title="Click or F1 to cycle tool"
         >
-          Model: <strong>{model}</strong>
+          Tool: <strong>{tool}</strong>
         </button>
-        <button
-          className="status-btn"
-          onClick={() => onUpdate({ effort_idx: (settings.effort_idx + 1) % EFFORTS.length })}
-          title="Click or F2 to cycle effort"
-        >
-          Effort: <strong>{effort}</strong>
-        </button>
+        {isClaude && (
+          <button
+            className="status-btn"
+            onClick={() => onUpdate({ model_idx: (settings.model_idx + 1) % MODELS.length })}
+            title="Click or Tab to cycle model"
+          >
+            Model: <strong>{model}</strong>
+          </button>
+        )}
+        {isClaude && (
+          <button
+            className="status-btn"
+            onClick={() => onUpdate({ effort_idx: (settings.effort_idx + 1) % EFFORTS.length })}
+            title="Click or F2 to cycle effort"
+          >
+            Effort: <strong>{effort}</strong>
+          </button>
+        )}
         <button
           className="status-btn"
           onClick={() => onUpdate({ sort_idx: (settings.sort_idx + 1) % SORT_ORDERS.length })}
@@ -72,13 +85,15 @@ export default memo(function StatusBar({ settings, filter, onUpdate, onAction }:
         >
           Sort: <strong>{sort}</strong>
         </button>
-        <button
-          className={`status-btn perms ${settings.skip_perms ? "on" : "off"}`}
-          onClick={() => onUpdate({ skip_perms: !settings.skip_perms })}
-          title="Click or F4 to toggle permissions"
-        >
-          Perms: <strong>{settings.skip_perms ? "SKIP" : "safe"}</strong>
-        </button>
+        {isClaude && (
+          <button
+            className={`status-btn perms ${settings.skip_perms ? "on" : "off"}`}
+            onClick={() => onUpdate({ skip_perms: !settings.skip_perms })}
+            title="Click or F4 to toggle permissions"
+          >
+            Perms: <strong>{settings.skip_perms ? "SKIP" : "safe"}</strong>
+          </button>
+        )}
         <button
           className="status-btn"
           onClick={() => onAction?.("theme-picker")}

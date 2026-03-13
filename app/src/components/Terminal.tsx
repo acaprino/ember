@@ -11,6 +11,7 @@ import "./Terminal.css";
 interface TerminalProps {
   tabId: string;
   projectPath: string;
+  toolIdx: number;
   modelIdx: number;
   effortIdx: number;
   skipPerms: boolean;
@@ -28,6 +29,7 @@ interface TerminalProps {
 export default memo(function Terminal({
   tabId,
   projectPath,
+  toolIdx,
   modelIdx,
   effortIdx,
   skipPerms,
@@ -185,6 +187,7 @@ export default memo(function Terminal({
 
       spawnClaude(
         projectPath,
+        toolIdx,
         modelIdx,
         effortIdx,
         skipPerms,
@@ -199,7 +202,7 @@ export default memo(function Terminal({
         (code: number) => {
           exitedRef.current = true;
           xtermRef.current?.write(
-            `\r\n\x1b[90m[Claude exited with code ${code}. Press any key to close tab]\x1b[0m`,
+            `\r\n\x1b[90m[Process exited with code ${code}. Press any key to close tab]\x1b[0m`,
           );
           onExitRef.current(tabIdRef.current, code);
         },
@@ -235,6 +238,15 @@ export default memo(function Terminal({
       }
     }, 5000);
 
+    // On wake from standby, send an immediate heartbeat so the reaper doesn't
+    // time out sessions that are still alive but missed beats during sleep.
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible" && sessionIdRef.current && !exitedRef.current) {
+        sendHeartbeat(sessionIdRef.current).catch(() => {});
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     // File drag-and-drop: write dropped paths into PTY
     // Only allow safe Windows path characters to prevent shell injection
     // Only allow alphanumeric, whitespace, common punctuation — exclude cmd.exe
@@ -262,6 +274,7 @@ export default memo(function Terminal({
       cancelAnimationFrame(resizeRafRef.current);
       clearTimeout(resizeTimer);
       clearInterval(heartbeatInterval);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       unlistenDragDrop?.();
       observer.disconnect();
       if (sessionIdRef.current) {

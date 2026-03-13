@@ -17,9 +17,10 @@ const MAX_SESSIONS: usize = 10;
 const OUTPUT_BATCH_MS: u64 = 16;
 const MAX_WRITE_SIZE: usize = 65536;
 
-/// Heartbeat timeout: 60s gives 12× safety margin over the 5s heartbeat interval.
-/// Previously 30s (only 6×), which risked reaping live sessions under main-thread load.
-const HEARTBEAT_TIMEOUT_SECS: u64 = 60;
+/// Heartbeat timeout: 300s to survive brief standby periods.
+/// The frontend sends heartbeats every 5s, and also immediately on wake from standby.
+/// 300s = 5 minutes, covers typical short standby without killing live sessions.
+const HEARTBEAT_TIMEOUT_SECS: u64 = 300;
 
 #[derive(Clone, Serialize)]
 #[serde(rename_all = "camelCase", tag = "type")]
@@ -233,6 +234,7 @@ impl SessionRegistry {
                         .collect();
                     for id in stale {
                         if let Some(entry) = sessions.remove(&id) {
+                            log_info!("reaper: killing stale session {id} (heartbeat timeout)");
                             entry.pty.kill();
                         }
                     }

@@ -3,7 +3,7 @@
 #[macro_use]
 mod logging;
 
-mod claude;
+mod tools;
 mod commands;
 mod projects;
 mod pty;
@@ -48,7 +48,7 @@ fn main() {
     tauri::Builder::default()
         .manage(registry)
         .invoke_handler(tauri::generate_handler![
-            commands::spawn_claude,
+            commands::spawn_tool,
             commands::write_pty,
             commands::resize_pty,
             commands::kill_session,
