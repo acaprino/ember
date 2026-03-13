@@ -46,6 +46,8 @@ fn main() {
 
     log_info!("Starting Tauri application");
     tauri::Builder::default()
+        .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_shell::init())
         .manage(registry)
         .invoke_handler(tauri::generate_handler![
             commands::spawn_tool,
@@ -59,7 +61,6 @@ fn main() {
             commands::save_settings,
             commands::load_usage,
             commands::record_usage,
-            commands::open_in_explorer,
             commands::create_project,
             commands::save_session,
             commands::load_session,

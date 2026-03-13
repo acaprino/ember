@@ -3,6 +3,7 @@ import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebglAddon } from "@xterm/addon-webgl";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
+import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { spawnClaude, writePty, resizePty, sendHeartbeat, killSession } from "../hooks/usePty";
 import { getXtermTheme } from "../themes";
 import "@xterm/xterm/css/xterm.css";
@@ -120,7 +121,7 @@ export default memo(function Terminal({
         const selection = xterm.getSelection();
         if (selection) {
           event.preventDefault();
-          navigator.clipboard.writeText(selection).catch((err) => {
+          writeText(selection).catch((err) => {
             console.warn("Clipboard copy failed:", err);
           });
           xterm.clearSelection();
@@ -133,7 +134,7 @@ export default memo(function Terminal({
       if (event.ctrlKey && !event.shiftKey && event.key === "v") {
         if (event.repeat) return false;
         event.preventDefault();
-        navigator.clipboard.readText().then((text) => {
+        readText().then((text) => {
           if (!text) return;
           if (exitedRef.current) {
             onRequestCloseRef.current(tabIdRef.current);

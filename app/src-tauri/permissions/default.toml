@@ -56,11 +56,6 @@ description = "Allows recording usage data"
 commands.allow = ["record_usage"]
 
 [[permission]]
-identifier = "allow-open-in-explorer"
-description = "Allows opening a path in Windows Explorer"
-commands.allow = ["open_in_explorer"]
-
-[[permission]]
 identifier = "allow-create-project"
 description = "Allows creating a new project directory"
 commands.allow = ["create_project"]

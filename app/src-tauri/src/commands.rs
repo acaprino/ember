@@ -171,22 +171,6 @@ pub async fn record_usage(project_path: String) -> Result<(), String> {
     .map_err(|e| format!("Task failed: {e}"))?
 }
 
-#[tauri::command]
-pub async fn open_in_explorer(path: String) -> Result<(), String> {
-    log_info!("open_in_explorer: {path}");
-    if projects::is_unc(&path) {
-        return Err("UNC paths are not supported".to_string());
-    }
-    if !std::path::Path::new(&path).is_dir() {
-        log_error!("open_in_explorer: not a directory: {path}");
-        return Err("Path is not a valid directory".to_string());
-    }
-    std::process::Command::new("explorer.exe")
-        .arg(&path)
-        .spawn()
-        .map_err(|e| format!("Failed to open explorer: {e}"))?;
-    Ok(())
-}
 
 #[tauri::command]
 pub async fn create_project(

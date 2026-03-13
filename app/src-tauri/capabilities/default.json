@@ -18,7 +18,6 @@
     "allow-save-settings",
     "allow-load-usage",
     "allow-record-usage",
-    "allow-open-in-explorer",
     "allow-create-project",
     "allow-save-session",
     "allow-load-session",
@@ -27,6 +26,9 @@
     "core:window:allow-is-maximized",
     "core:window:allow-start-dragging",
     "core:window:allow-start-resize-dragging",
-    "core:window:allow-destroy"
+    "core:window:allow-destroy",
+    "clipboard-manager:allow-read-text",
+    "clipboard-manager:allow-write-text",
+    "shell:allow-open"
   ]
 }

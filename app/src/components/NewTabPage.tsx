@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-shell";
 import { useProjectsContext } from "../contexts/ProjectsContext";
 import ProjectList from "./ProjectList";
 import StatusBar, { StatusBarAction } from "./StatusBar";
@@ -187,7 +188,7 @@ function NewTabPage({ tabId, onLaunch, onRequestClose, isActive }: NewTabPagePro
         case "F6":
           e.preventDefault();
           if (currentProjects[selectedIdxRef.current]) {
-            invoke("open_in_explorer", { path: currentProjects[selectedIdxRef.current].path }).catch((e) => console.error("open_in_explorer failed:", e));
+            open(currentProjects[selectedIdxRef.current].path).catch((e) => console.error("open_in_explorer failed:", e));
           }
           break;
         case "F7":

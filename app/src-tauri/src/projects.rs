@@ -349,7 +349,7 @@ pub fn scan_projects(project_dirs: &[String], single_project_dirs: &[String], la
 
     // Add single-project dirs directly (the folder itself is a project)
     for path in single_project_dirs {
-        // Reject UNC paths, consistent with spawn_claude and open_in_explorer.
+        // Reject UNC paths, consistent with spawn_claude.
         if is_unc(path) {
             continue;
         }
