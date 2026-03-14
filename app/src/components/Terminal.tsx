@@ -360,7 +360,7 @@ export default memo(function Terminal({
       if (data === "\r") {
         const line = xterm.buffer.active.baseY + xterm.buffer.active.cursorY;
         if (line !== lastBookmarkLineRef.current) {
-          const lineContent = xterm.buffer.active.getLine(xterm.buffer.active.cursorY);
+          const lineContent = xterm.buffer.active.getLine(line);
           const text = lineContent?.translateToString(true).trim() ?? "";
           if (text.length > 0) {
             lastBookmarkLineRef.current = line;
