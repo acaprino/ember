@@ -26,10 +26,15 @@ function AppContent() {
     prevTab,
   } = useTabManager();
 
-  const { settings } = useProjectsContext();
+  const { settings, setFilter } = useProjectsContext();
   const themeIdx = settings?.theme_idx ?? 0;
   const fontFamily = settings?.font_family ?? "Cascadia Code";
   const fontSize = settings?.font_size ?? 14;
+
+  const addTabAndResetFilter = useCallback(() => {
+    setFilter("");
+    return addTab();
+  }, [addTab, setFilter]);
 
   // Update window title — depend only on fields that affect the title,
   // not the entire tabs array (which changes on every hasNewOutput toggle)
@@ -48,7 +53,7 @@ function AppContent() {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "t") {
         e.preventDefault();
-        addTab();
+        addTabAndResetFilter();
       } else if (e.ctrlKey && e.key === "F4") {
         e.preventDefault();
         closeTab(activeTabId);
@@ -66,7 +71,7 @@ function AppContent() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [addTab, toggleAboutTab, closeTab, activeTabId, nextTab, prevTab]);
+  }, [addTabAndResetFilter, toggleAboutTab, closeTab, activeTabId, nextTab, prevTab]);
 
   const handleLaunch = useCallback(
     (tabId: string, projectPath: string, projectName: string, toolIdx: number, modelIdx: number, effortIdx: number, skipPerms: boolean) => {
@@ -119,7 +124,7 @@ function AppContent() {
         activeTabId={activeTabId}
         onActivate={activateTab}
         onClose={closeTab}
-        onAdd={addTab}
+        onAdd={addTabAndResetFilter}
       />
       <div className="tab-content">
         {tabs.map((tab) => {
