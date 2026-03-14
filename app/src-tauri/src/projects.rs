@@ -17,6 +17,8 @@ const DEFAULT_PROJECTS_DIR: &str = r"D:\Projects";
 pub struct SystemPrompt {
     pub id: String,
     pub name: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
     pub content: String,
 }
 
@@ -46,6 +48,8 @@ pub struct Settings {
     pub system_prompts: Vec<SystemPrompt>,
     #[serde(default)]
     pub active_prompt_ids: Vec<String>,
+    #[serde(default)]
+    pub prompts_seeded: bool,
     #[serde(default = "default_true")]
     pub security_gate: bool,
     #[serde(default = "default_project_dirs")]

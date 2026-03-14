@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { ProjectInfo, Settings, UsageData, SORT_ORDERS } from "../types";
 import { applyTheme } from "../themes";
+import { BUILTIN_PROMPTS } from "../prompts";
 
 function scanProjects(s: Settings): Promise<ProjectInfo[]> {
   return invoke<ProjectInfo[]>("scan_projects", {
@@ -30,6 +31,17 @@ export function useProjects() {
         invoke<Settings>("load_settings"),
         invoke<UsageData>("load_usage"),
       ]);
+      // Seed example prompts on first run (empty list, never seeded)
+      if (s.system_prompts.length === 0 && !s.prompts_seeded) {
+        s.system_prompts = BUILTIN_PROMPTS.map((bp) => ({
+          id: bp.id,
+          name: bp.name,
+          description: bp.description,
+          content: bp.content,
+        }));
+        s.prompts_seeded = true;
+        invoke("save_settings", { settings: s }).catch(console.error);
+      }
       setSettings(s);
       setUsage(u);
 

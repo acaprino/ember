@@ -165,6 +165,9 @@ function SystemPromptPage({ tabId, onRequestClose, isActive }: SystemPromptPageP
                   <button className="sp-btn sp-btn-edit" onClick={() => handleEdit(prompt)} title="Edit">edit</button>
                   <button className="sp-btn sp-btn-delete" onClick={() => handleDelete(prompt.id)} title="Delete">del</button>
                 </div>
+                {prompt.description && (
+                  <div className="sp-item-description">{prompt.description}</div>
+                )}
                 {!isItemEditing && (
                   <pre className="sp-item-preview">{prompt.content.slice(0, PREVIEW_MAX_CHARS)}{prompt.content.length > PREVIEW_MAX_CHARS ? "..." : ""}</pre>
                 )}

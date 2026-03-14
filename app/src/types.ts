@@ -1,6 +1,7 @@
 export interface SystemPrompt {
   id: string;
   name: string;
+  description?: string;
   content: string;
 }
 
@@ -41,6 +42,7 @@ export interface Settings {
   autocompact: boolean;
   system_prompts: SystemPrompt[];
   active_prompt_ids: string[];
+  prompts_seeded?: boolean;
   security_gate: boolean;
   project_dirs: string[];
   single_project_dirs: string[];
