@@ -24,12 +24,13 @@ interface NewTabPageProps {
     autocompact: boolean,
   ) => void;
   onRequestClose: (tabId: string) => void;
+  onOpenSystemPrompts: () => void;
   isActive: boolean;
 }
 
 type ModalType = "create-project" | "label-project" | "quick-launch" | "settings" | null;
 
-function NewTabPage({ tabId, onLaunch, onRequestClose, isActive }: NewTabPageProps) {
+function NewTabPage({ tabId, onLaunch, onRequestClose, onOpenSystemPrompts, isActive }: NewTabPageProps) {
   const {
     settings,
     projects,
@@ -280,6 +281,7 @@ function NewTabPage({ tabId, onLaunch, onRequestClose, isActive }: NewTabPagePro
         filter={filter}
         projectCount={projects.length}
         onOpenSettings={openSettings}
+        onOpenSystemPrompts={onOpenSystemPrompts}
       />
 
       {activeModal === "create-project" && (

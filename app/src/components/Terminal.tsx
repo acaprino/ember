@@ -468,6 +468,9 @@ export default memo(function Terminal({
       // For Claude (toolIdx 0), buffer initial output to strip the built-in
       // banner (▐▛███▜▌ block chars) — Anvil shows its own logo instead.
       let bannerBuf = toolIdx === 0 ? "" : null;
+      // After banner is stripped, briefly suppress cursor-repositioned output
+      // to prevent Claude's status bar from overwriting the Anvil logo.
+      let bannerCooldownEnd = 0;
 
       spawnClaude(
         projectPath,
@@ -482,18 +485,28 @@ export default memo(function Terminal({
         (data: string) => {
           if (bannerBuf !== null) {
             bannerBuf += data;
-            // Wait until we see the first horizontal rule (─────) which marks
-            // the end of Claude's banner, or bail after 8KB to avoid stalling.
-            if (bannerBuf.includes("\u2500\u2500\u2500\u2500\u2500") || bannerBuf.length > 8192) {
-              // Use lastIndexOf: Claude's status box borders also contain ─────,
-              // so indexOf matches the box border and keeps most of the banner.
-              // The actual separator is the LAST horizontal rule in the banner.
-              const idx = bannerBuf.lastIndexOf("\u2500\u2500\u2500\u2500\u2500");
+            // Count ───── occurrences: Claude's status box has top border
+            // (╭───╮), bottom border (╰───╯), and a separator line — 3 total.
+            // Wait for all 3 so lastIndexOf reliably finds the separator,
+            // not a box border that would keep the status text.
+            const dashes = "\u2500\u2500\u2500\u2500\u2500";
+            let dashCount = 0;
+            let searchFrom = 0;
+            while (dashCount < 4) {
+              const pos = bannerBuf.indexOf(dashes, searchFrom);
+              if (pos === -1) break;
+              dashCount++;
+              searchFrom = pos + 5;
+            }
+            if (dashCount >= 3 || bannerBuf.length > 8192) {
+              const idx = bannerBuf.lastIndexOf(dashes);
               if (idx !== -1) {
-                // Keep everything from the separator onward
-                const rest = bannerBuf.slice(idx);
+                // Skip past the separator line itself
+                const nlAfter = bannerBuf.indexOf("\n", idx);
+                const rest = nlAfter !== -1 ? bannerBuf.slice(nlAfter + 1) : "";
                 bannerBuf = null;
-                xtermRef.current?.write(rest);
+                bannerCooldownEnd = Date.now() + 2000;
+                if (rest) xtermRef.current?.write(rest);
               } else {
                 // Bail — write everything as-is
                 const buf = bannerBuf;
@@ -502,6 +515,18 @@ export default memo(function Terminal({
               }
             }
             return;
+          }
+          // During post-banner cooldown, suppress cursor-repositioned output
+          // (Claude's status bar drawing). Non-cursor output (prompt) passes
+          // through and ends the cooldown early.
+          if (bannerCooldownEnd) {
+            if (Date.now() >= bannerCooldownEnd) {
+              bannerCooldownEnd = 0;
+            } else if (CURSOR_MOVE_RE.test(data)) {
+              return;
+            } else {
+              bannerCooldownEnd = 0;
+            }
           }
           // Claude Code's spinner/status updates reposition the cursor via
           // save/restore (ESC 7/8), ANSI save/restore (CSI s/u), or direct

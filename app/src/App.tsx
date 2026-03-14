@@ -170,6 +170,7 @@ function AppContent() {
                     tabId={tab.id}
                     onLaunch={handleLaunch}
                     onRequestClose={closeTab}
+                    onOpenSystemPrompts={toggleSystemPromptTab}
                     isActive={isActive}
                   />
                 </ErrorBoundary>

@@ -39,7 +39,17 @@ export function useProjects() {
           description: bp.description,
           content: bp.content,
         }));
+        s.active_prompt_ids = [...(s.active_prompt_ids ?? []), "builtin-claudione"];
         s.prompts_seeded = true;
+        invoke("save_settings", { settings: s }).catch(console.error);
+      }
+      // Ensure claudione is active for existing users who already seeded
+      if (
+        s.prompts_seeded &&
+        s.system_prompts.some((p) => p.id === "builtin-claudione") &&
+        !(s.active_prompt_ids ?? []).includes("builtin-claudione")
+      ) {
+        s.active_prompt_ids = [...(s.active_prompt_ids ?? []), "builtin-claudione"];
         invoke("save_settings", { settings: s }).catch(console.error);
       }
       setSettings(s);
