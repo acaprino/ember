@@ -10,14 +10,18 @@ interface BookmarkListProps {
 
 export default memo(function BookmarkList({ xterm, isActive, bookmarksRef }: BookmarkListProps) {
   const [entries, setEntries] = useState<{ line: number; text: string }[]>([]);
+  const [activeLine, setActiveLine] = useState<number>(-1);
   const containerRef = useRef<HTMLDivElement>(null);
-  const prevSizeRef = useRef(0);
+  const prevKeysRef = useRef("");
+  const activeLineRef = useRef(-1);
+  const rafRef = useRef(0);
 
-  // Sync entries from bookmarksRef on every write (bookmarks are added on Enter)
+  // Sync entries from bookmarksRef — detect changes by serializing keys
   const syncEntries = useCallback(() => {
     const bm = bookmarksRef.current;
-    if (bm.size === prevSizeRef.current) return;
-    prevSizeRef.current = bm.size;
+    const keys = [...bm.keys()].join(",");
+    if (keys === prevKeysRef.current) return;
+    prevKeysRef.current = keys;
     const arr: { line: number; text: string }[] = [];
     for (const [line, text] of bm) {
       arr.push({ line, text });
@@ -26,46 +30,58 @@ export default memo(function BookmarkList({ xterm, isActive, bookmarksRef }: Boo
     setEntries(arr);
   }, [bookmarksRef]);
 
+  // Find the nearest bookmark to the current viewport for highlighting
+  const updateActive = useCallback(() => {
+    if (!xterm) return;
+    const vpTop = xterm.buffer.active.viewportY;
+    const vpBottom = vpTop + xterm.rows;
+    const bm = bookmarksRef.current;
+    let nearest = -1;
+    let nearestDist = Infinity;
+    for (const line of bm.keys()) {
+      if (line <= vpBottom) {
+        const d = Math.abs(line - vpTop);
+        if (d < nearestDist || (d === nearestDist && line > nearest)) {
+          nearest = line;
+          nearestDist = d;
+        }
+      }
+    }
+    if (nearest !== activeLineRef.current) {
+      activeLineRef.current = nearest;
+      setActiveLine(nearest);
+    }
+  }, [xterm, bookmarksRef]);
+
+  // Throttle sync+active updates to once per animation frame — these fire on
+  // every PTY chunk (hundreds/sec during heavy output) but the viewport can
+  // only change once per frame.
+  const scheduleUpdate = useCallback(() => {
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = 0;
+      syncEntries();
+      updateActive();
+    });
+  }, [syncEntries, updateActive]);
+
   useEffect(() => {
     if (!xterm) return;
     syncEntries();
-    const d = xterm.onWriteParsed(() => syncEntries());
-    return () => d.dispose();
-  }, [xterm, syncEntries]);
-
-  // Also sync on tab activation (bookmarks may have changed while inactive)
-  useEffect(() => {
-    if (isActive) syncEntries();
-  }, [isActive, syncEntries]);
-
-  // Find the nearest bookmark to the current viewport for highlighting
-  const [activeLine, setActiveLine] = useState<number>(-1);
-
-  useEffect(() => {
-    if (!xterm) return;
-    const updateActive = () => {
-      const vpTop = xterm.buffer.active.viewportY;
-      const vpBottom = vpTop + xterm.rows;
-      const bm = bookmarksRef.current;
-      let nearest = -1;
-      let nearestDist = Infinity;
-      for (const line of bm.keys()) {
-        // Find the last bookmark above or at the viewport top
-        if (line <= vpBottom) {
-          const d = Math.abs(line - vpTop);
-          if (d < nearestDist || (d === nearestDist && line > nearest)) {
-            nearest = line;
-            nearestDist = d;
-          }
-        }
-      }
-      setActiveLine(nearest);
-    };
     updateActive();
-    const d1 = xterm.onScroll(() => updateActive());
-    const d2 = xterm.onWriteParsed(() => updateActive());
-    return () => { d1.dispose(); d2.dispose(); };
-  }, [xterm, bookmarksRef]);
+    const d1 = xterm.onWriteParsed(() => scheduleUpdate());
+    const d2 = xterm.onScroll(() => scheduleUpdate());
+    return () => {
+      d1.dispose();
+      d2.dispose();
+      if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = 0; }
+    };
+  }, [xterm, syncEntries, updateActive, scheduleUpdate]);
+
+  // Also sync on tab activation
+  useEffect(() => {
+    if (isActive) { syncEntries(); updateActive(); }
+  }, [isActive, syncEntries, updateActive]);
 
   // Auto-scroll the bookmark list to keep the active item visible
   useEffect(() => {

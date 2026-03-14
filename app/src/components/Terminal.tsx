@@ -11,6 +11,14 @@ import BookmarkList from "./BookmarkList";
 import "@xterm/xterm/css/xterm.css";
 import "./Terminal.css";
 
+/** Single regex matching any cursor-repositioning escape sequence:
+ *  ESC 7/8 (DEC save/restore), CSI s/u (ANSI save/restore), CSI row;colH (CUP).
+ *  One pass replaces six sequential string scans on every PTY data chunk. */
+const CURSOR_MOVE_RE = /\x1b[78]|\x1b\[[su]|\x1b\[\d+;\d*H/;
+const ESC_CURSOR_HIDE = "\x1b[?25l";
+const ESC_CURSOR_SHOW = "\x1b[?25h";
+const MAX_BOOKMARK_TEXT = 200;
+
 /** Replace common non-ASCII characters with ASCII equivalents and strip control chars.
  *  This prevents encoding issues when pasting text from editors, web pages, or Word docs. */
 function sanitizePastedText(text: string): string {
@@ -353,14 +361,17 @@ export default memo(function Terminal({
               stale.forEach(b => bm.delete(b));
             }
             // Cap at 2000 — strip leading prompt chars (›, ❯, >)
-            if (bm.size < 2000) bm.set(line, text.replace(/^[›❯>\s]+/, ""));
+            if (bm.size < 2000) bm.set(line, text.replace(/^[›❯>\s]+/, "").slice(0, MAX_BOOKMARK_TEXT));
           }
         }
       }
       writePty(sessionIdRef.current, data).catch(() => {});
     });
 
-    // Prune stale bookmarks when the buffer shrinks (e.g. /clear in Claude Code)
+    // Clear all bookmarks when the buffer shrinks significantly (e.g. /clear,
+    // /compact in Claude Code). After a compact, all previous line positions
+    // are invalid — partial pruning would leave stale bookmarks pointing to
+    // wrong content.
     xterm.onWriteParsed(() => {
       const bufLen = xterm.buffer.active.length;
       const prevLen = prevBufferLenRef.current;
@@ -368,9 +379,7 @@ export default memo(function Terminal({
       if (prevLen > 0 && bufLen < prevLen - xterm.rows) {
         const bm = bookmarksRef.current;
         if (bm.size === 0) return;
-        const stale = [...bm.keys()].filter(b => b >= bufLen);
-        stale.forEach(b => bm.delete(b));
-        if (bufLen < xterm.rows * 2) bm.clear();
+        bm.clear();
         lastBookmarkLineRef.current = -1;
       }
     });
@@ -502,12 +511,11 @@ export default memo(function Terminal({
           // visible at its final (real) position.
           // Don't add trailing show if data itself hides the cursor (Claude
           // hides cursor during thinking).
-          const hasCursorMove = data.includes("\x1b7") || data.includes("\x1b8")
-            || data.includes("\x1b[s") || data.includes("\x1b[u")
-            || /\x1b\[\d+;\d*H/.test(data);
-          if (hasCursorMove) {
-            const endsWithHide = data.includes("\x1b[?25l") && !data.includes("\x1b[?25h");
-            xtermRef.current?.write("\x1b[?25l" + data + (endsWithHide ? "" : "\x1b[?25h"));
+          if (CURSOR_MOVE_RE.test(data)) {
+            const lastHide = data.lastIndexOf(ESC_CURSOR_HIDE);
+            const lastShow = data.lastIndexOf(ESC_CURSOR_SHOW);
+            const endsWithHide = lastHide > lastShow;
+            xtermRef.current?.write(ESC_CURSOR_HIDE + data + (endsWithHide ? "" : ESC_CURSOR_SHOW));
           } else {
             xtermRef.current?.write(data);
           }
