@@ -19,6 +19,17 @@ const ESC_CURSOR_HIDE = "\x1b[?25l";
 const ESC_CURSOR_SHOW = "\x1b[?25h";
 const MAX_BOOKMARK_TEXT = 200;
 
+/** Banner stripping constants — Claude's startup box has top/bottom borders
+ *  plus a separator line, each containing runs of ─ (U+2500). */
+const BANNER_DASHES = "\u2500\u2500\u2500\u2500\u2500";
+const BANNER_DASH_THRESHOLD = 3;
+const BANNER_BUF_MAX = 8192;
+/** How long (ms) to strip cursor-repositioned status bar output after the
+ *  banner is consumed. Prevents Claude's status from overwriting the Anvil logo. */
+const BANNER_COOLDOWN_MS = 2000;
+/** Matches CSI row;col H (CUP) sequences used by Claude's status bar positioning. */
+const CUP_RE = /\x1b\[\d+;\d*H/g;
+
 /** Replace common non-ASCII characters with ASCII equivalents and strip control chars.
  *  This prevents encoding issues when pasting text from editors, web pages, or Word docs. */
 function sanitizePastedText(text: string): string {
@@ -489,23 +500,22 @@ export default memo(function Terminal({
             // (╭───╮), bottom border (╰───╯), and a separator line — 3 total.
             // Wait for all 3 so lastIndexOf reliably finds the separator,
             // not a box border that would keep the status text.
-            const dashes = "\u2500\u2500\u2500\u2500\u2500";
             let dashCount = 0;
             let searchFrom = 0;
-            while (dashCount < 4) {
-              const pos = bannerBuf.indexOf(dashes, searchFrom);
+            while (dashCount < BANNER_DASH_THRESHOLD) {
+              const pos = bannerBuf.indexOf(BANNER_DASHES, searchFrom);
               if (pos === -1) break;
               dashCount++;
               searchFrom = pos + 5;
             }
-            if (dashCount >= 3 || bannerBuf.length > 8192) {
-              const idx = bannerBuf.lastIndexOf(dashes);
+            if (dashCount >= BANNER_DASH_THRESHOLD || bannerBuf.length > BANNER_BUF_MAX) {
+              const idx = bannerBuf.lastIndexOf(BANNER_DASHES);
               if (idx !== -1) {
                 // Skip past the separator line itself
                 const nlAfter = bannerBuf.indexOf("\n", idx);
                 const rest = nlAfter !== -1 ? bannerBuf.slice(nlAfter + 1) : "";
                 bannerBuf = null;
-                bannerCooldownEnd = Date.now() + 2000;
+                bannerCooldownEnd = Date.now() + BANNER_COOLDOWN_MS;
                 if (rest) xtermRef.current?.write(rest);
               } else {
                 // Bail — write everything as-is
@@ -516,13 +526,21 @@ export default memo(function Terminal({
             }
             return;
           }
-          // During post-banner cooldown, suppress cursor-repositioned output
-          // (Claude's status bar drawing). Non-cursor output (prompt) passes
-          // through and ends the cooldown early.
+          // During post-banner cooldown, strip cursor-repositioned sequences
+          // (Claude's status bar drawing) from data chunks. Non-cursor output
+          // (prompt) passes through and ends the cooldown early.
           if (bannerCooldownEnd) {
             if (Date.now() >= bannerCooldownEnd) {
               bannerCooldownEnd = 0;
             } else if (CURSOR_MOVE_RE.test(data)) {
+              // Strip only CUP sequences (absolute positioning used by Claude's
+              // status bar) and their trailing text up to the next ESC or newline.
+              // This preserves non-cursor content in mixed chunks.
+              const stripped = data.replace(CUP_RE, "");
+              if (stripped && !/^\s*$/.test(stripped)) {
+                bannerCooldownEnd = 0;
+                xtermRef.current?.write(stripped);
+              }
               return;
             } else {
               bannerCooldownEnd = 0;
@@ -550,6 +568,7 @@ export default memo(function Terminal({
         },
         (code: number) => {
           exitedRef.current = true;
+          bannerCooldownEnd = 0;
           xtermRef.current?.write(
             `\r\n\x1b[90m[Process exited with code ${code}. Press any key to close tab]\x1b[0m`,
           );

@@ -39,17 +39,24 @@ export function useProjects() {
           description: bp.description,
           content: bp.content,
         }));
-        s.active_prompt_ids = [...(s.active_prompt_ids ?? []), "builtin-claudione"];
+        if (!(s.active_prompt_ids ?? []).includes("builtin-claudione")) {
+          s.active_prompt_ids = [...(s.active_prompt_ids ?? []), "builtin-claudione"];
+        }
         s.prompts_seeded = true;
+        (s as any).claudione_migrated = true;
         invoke("save_settings", { settings: s }).catch(console.error);
       }
-      // Ensure claudione is active for existing users who already seeded
+      // One-time migration: activate claudione for existing users who already
+      // seeded but haven't had this migration yet. Runs once, then sets a flag
+      // so users who later deactivate it are respected.
       if (
         s.prompts_seeded &&
+        !(s as any).claudione_migrated &&
         s.system_prompts.some((p) => p.id === "builtin-claudione") &&
         !(s.active_prompt_ids ?? []).includes("builtin-claudione")
       ) {
         s.active_prompt_ids = [...(s.active_prompt_ids ?? []), "builtin-claudione"];
+        (s as any).claudione_migrated = true;
         invoke("save_settings", { settings: s }).catch(console.error);
       }
       setSettings(s);

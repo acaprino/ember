@@ -69,14 +69,14 @@
   outline-offset: 2px;
 }
 
-.info-strip__gear {
+.info-strip__btn.info-strip__gear {
   transition: color 0.15s ease-out, background 0.15s ease-out, transform 0.3s ease-out;
 }
 
-.info-strip__gear:hover {
+.info-strip__btn.info-strip__gear:hover {
   transform: rotate(60deg);
 }
 
-.info-strip__gear:active {
+.info-strip__btn.info-strip__gear:active {
   transform: rotate(60deg) scale(0.9);
 }
