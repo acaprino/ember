@@ -21,10 +21,10 @@ const ESC_CURSOR_HIDE = "\x1b[?25l";
 const ESC_CURSOR_SHOW = "\x1b[?25h";
 const MAX_BOOKMARK_TEXT = 200;
 
-/** Banner stripping constants — Claude's startup box has top/bottom borders
- *  plus a separator line, each containing runs of ─ (U+2500). */
-const BANNER_DASHES = "\u2500\u2500\u2500\u2500\u2500";
-const BANNER_DASH_THRESHOLD = 3;
+/** Banner stripping: detect end of Claude's startup banner by looking for
+ *  the interactive prompt line. The prompt character (> or ❯) may be wrapped
+ *  in ANSI color codes, so we allow optional SGR sequences around it. */
+const BANNER_PROMPT_RE = /\n(?:\x1b\[[0-9;]*m)*[>❯](?:\x1b\[[0-9;]*m)* /;
 const BANNER_BUF_MAX = 8192;
 /** Minimum time (ms) to display the Anvil logo overlay before hiding it. */
 const LOGO_MIN_MS = 2000;
@@ -151,6 +151,7 @@ export default memo(function Terminal({
   const [showLogo, setShowLogo] = useState(true);
   const showLogoRef = useRef(true);
   const logoHideTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const bannerTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const logoOverlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -506,8 +507,16 @@ export default memo(function Terminal({
         }
         fadeOutLogo();
       };
-      // Debounced cursor show — hide during all output, show only after idle.
-      // Prevents the cursor from flickering at intermediate write positions.
+      // Time-based fallback: if banner detection hasn't triggered after
+      // LOGO_MIN_MS, flush the buffer and stop buffering. This prevents the
+      // overlay from staying forever if Claude's banner format changes again.
+      bannerTimeoutRef.current = bannerBuf !== null ? setTimeout(() => {
+        if (cancelled || bannerBuf === null) return;
+        const buf = bannerBuf;
+        bannerBuf = null;
+        hideLogo();
+        xtermRef.current?.write(buf);
+      }, LOGO_MIN_MS + 500) : undefined;
 
       spawnClaude(
         projectPath,
@@ -524,28 +533,15 @@ export default memo(function Terminal({
           if (bannerBuf === null && showLogoRef.current) hideLogo();
           if (bannerBuf !== null) {
             bannerBuf += data;
-            // Count ───── occurrences: Claude's status box has top border
-            // (╭───╮), bottom border (╰───╯), and a separator line — 3 total.
-            // Wait for all 3 so lastIndexOf reliably finds the separator,
-            // not a box border that would keep the status text.
-            let dashCount = 0;
-            let searchFrom = 0;
-            while (dashCount < BANNER_DASH_THRESHOLD) {
-              const pos = bannerBuf.indexOf(BANNER_DASHES, searchFrom);
-              if (pos === -1) break;
-              dashCount++;
-              searchFrom = pos + 5;
-            }
-            if (dashCount >= BANNER_DASH_THRESHOLD || bannerBuf.length > BANNER_BUF_MAX) {
-              const idx = bannerBuf.lastIndexOf(BANNER_DASHES);
-              if (idx !== -1) {
-                // Skip past the separator line itself
-                const nlAfter = bannerBuf.indexOf("\n", idx);
-                const rest = nlAfter !== -1 ? bannerBuf.slice(nlAfter + 1) : "";
+            // Detect end of Claude's startup banner by finding the interactive
+            // prompt line (> or ❯ after a newline). Strip everything before it.
+            const promptMatch = BANNER_PROMPT_RE.exec(bannerBuf);
+            if (promptMatch || bannerBuf.length > BANNER_BUF_MAX) {
+              if (promptMatch) {
+                // Keep everything from the prompt line onward
+                const rest = bannerBuf.slice(promptMatch.index + 1); // skip the \n
                 bannerBuf = null;
                 hideLogo();
-                // Filter rest through same cooldown logic — it may contain
-                // CUP-positioned status bar output that would overwrite the logo.
                 if (rest && !CURSOR_MOVE_RE.test(rest)) {
                   xtermRef.current?.write(rest);
                 }
@@ -690,6 +686,7 @@ export default memo(function Terminal({
       clearTimeout(resizeTimer);
       clearTimeout(cursorShowTimer);
       clearTimeout(logoHideTimerRef.current);
+      clearTimeout(bannerTimeoutRef.current);
       clearInterval(heartbeatInterval);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       containerRef.current?.removeEventListener("paste", handleNativePaste, true);
@@ -759,7 +756,7 @@ export default memo(function Terminal({
     <div className="terminal-wrapper">
       {showLogo && (
         <div ref={logoOverlayRef} className="terminal-logo-overlay">
-          <AsciiLogo cols={25} />
+          <AsciiLogo cols={55} />
         </div>
       )}
       <div ref={containerRef} className="terminal-container" />
