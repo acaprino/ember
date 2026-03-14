@@ -28,8 +28,38 @@ function sanitizePastedText(text: string): string {
     .replace(/[\u200B-\u200D\uFEFF\u2060]/g, "")
     // Bullets/arrows
     .replace(/\u2022/g, "*")
-    .replace(/\u2192/g, "->")
-    .replace(/\u2190/g, "<-")
+    .replace(/[\u2192\u279C\u2794\u27A1]/g, "->")
+    .replace(/[\u2190\u2B05]/g, "<-")
+    .replace(/[\u2191\u2B06]/g, "^")
+    .replace(/[\u2193\u2B07]/g, "v")
+    // Box-drawing heavy lines → ASCII equivalents
+    .replace(/[\u2501\u2509\u250B\u254D\u254F\u2578\u257A\u257C\u257E]/g, "-")
+    .replace(/[\u2503\u250A\u2507\u254E\u2550\u2579\u257B\u257D\u257F]/g, "|")
+    .replace(/[\u250F\u2513\u2517\u251B\u2523\u252B\u2533\u253B\u254B]/g, "+")
+    // Box-drawing light lines → ASCII equivalents
+    .replace(/[\u2500\u2504\u2508\u254C]/g, "-")
+    .replace(/[\u2502\u2506\u250A\u254E]/g, "|")
+    .replace(/[\u250C\u2510\u2514\u2518\u251C\u2524\u252C\u2534\u253C]/g, "+")
+    // Box-drawing double lines → ASCII equivalents
+    .replace(/[\u2550]/g, "=")
+    .replace(/[\u2551]/g, "|")
+    .replace(/[\u2552-\u256C]/g, "+")
+    // Block elements → ASCII
+    .replace(/[\u2580-\u2588]/g, "#")
+    .replace(/[\u2589-\u258F]/g, "|")
+    .replace(/[\u2590-\u259F]/g, ".")
+    // Checkmarks/crosses
+    .replace(/[\u2713\u2714\u2705]/g, "[x]")
+    .replace(/[\u2717\u2718\u274C]/g, "[!]")
+    // Common symbols
+    .replace(/\u00B7/g, ".")           // middle dot
+    .replace(/[\u25CF\u25CB\u25A0\u25A1]/g, "*")  // circles/squares → bullet
+    .replace(/\u00A9/g, "(c)")
+    .replace(/\u00AE/g, "(R)")
+    .replace(/\u2122/g, "(TM)")
+    // Strip ANSI escape sequences that may be in clipboard text
+    .replace(/\x1b\[[0-9;]*[a-zA-Z]/g, "")
+    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, "")  // OSC sequences
     // Strip control characters (keep \t, \n, \r)
     .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]/g, "")
     // Strip lone surrogates — defense against non-standard clipboard sources (e.g. Tauri plugin IPC)
@@ -212,21 +242,27 @@ export default memo(function Terminal({
           return;
         }
         if (!sessionIdRef.current) return;
-        // Try text first
+        // Try text first — Tauri plugin, then navigator.clipboard fallback
+        let text: string | null = null;
         try {
-          const text = await readText();
-          if (text) {
-            const sanitized = sanitizePastedText(text);
-            if (sanitized) {
-              const sid = sessionIdRef.current;
-              if (!sid) return;
-              const bracketed = `\x1b[200~${sanitized}\x1b[201~`;
-              await writePty(sid, bracketed);
-              return;
-            }
-          }
+          text = await readText();
         } catch (textErr) {
-          console.debug("Clipboard text unavailable, trying image:", textErr);
+          console.debug("Tauri clipboard readText failed, trying navigator.clipboard:", textErr);
+          try {
+            text = await navigator.clipboard.readText();
+          } catch {
+            console.debug("navigator.clipboard also failed");
+          }
+        }
+        if (text) {
+          const sanitized = sanitizePastedText(text);
+          if (sanitized) {
+            const sid = sessionIdRef.current;
+            if (!sid) return;
+            const bracketed = `\x1b[200~${sanitized}\x1b[201~`;
+            await writePty(sid, bracketed);
+            return;
+          }
         }
         // Fallback: try clipboard image — save as PNG temp file and paste the path
         try {
@@ -239,6 +275,8 @@ export default memo(function Terminal({
         } catch (err) {
           console.warn("Clipboard paste failed:", err);
           xtermRef.current?.write("\x07"); // bell
+          const msg = err instanceof Error ? err.message : String(err);
+          xtermRef.current?.write(`\r\n\x1b[33m[paste failed: ${msg}]\x1b[0m`);
         }
       } finally {
         pasteInFlightRef.current = false;

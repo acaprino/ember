@@ -130,6 +130,16 @@ export default memo(function Minimap({ xterm, isActive, bookmarksRef }: MinimapP
     ctx.fillRect(0, 0, MINIMAP_WIDTH, canvasH);
 
     const bookmarkSet = bookmarksRef.current;
+
+    // Prune stale bookmarks after buffer clear (e.g. /clear in Claude Code)
+    if (bookmarkSet.size > 0) {
+      for (const b of bookmarkSet) {
+        if (b >= totalLines) bookmarkSet.delete(b);
+      }
+      // Buffer shorter than 2 visible pages = likely a clear — drop all bookmarks
+      if (totalLines < xterm.rows * 2) bookmarkSet.clear();
+    }
+
     const maxChars = Math.floor(MINIMAP_WIDTH / CHAR_W);
 
     for (let i = 0; i < totalLines; i += lineStep) {
@@ -202,6 +212,19 @@ export default memo(function Minimap({ xterm, isActive, bookmarksRef }: MinimapP
 
   useEffect(() => { if (isActive) scheduleRender(); }, [isActive, scheduleRender]);
 
+  // Forward wheel events to terminal instead of scrolling minimap container
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !xterm) return;
+    const handleWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const lines = Math.round(e.deltaY / 25) || (e.deltaY > 0 ? 1 : -1);
+      xterm.scrollLines(lines);
+    };
+    container.addEventListener("wheel", handleWheel, { passive: false });
+    return () => container.removeEventListener("wheel", handleWheel);
+  }, [xterm]);
+
   // Clean up drag listeners on unmount
   useEffect(() => () => { dragCleanupRef.current?.(); }, []);
 
@@ -211,7 +234,11 @@ export default memo(function Minimap({ xterm, isActive, bookmarksRef }: MinimapP
       if (!xterm || !containerRef.current || !canvasRef.current) return;
       const rect = canvasRef.current.getBoundingClientRect();
       const y = clientY - rect.top + containerRef.current.scrollTop;
-      const line = Math.floor(y / CHAR_H);
+      const totalLines = xterm.buffer.active.length;
+      const rawH = totalLines * CHAR_H;
+      const canvasH = Math.min(rawH, MAX_CANVAS_H);
+      const scale = canvasH / rawH;
+      const line = Math.floor(y / (CHAR_H * scale));
 
       let targetCenter = line;
       if (snap) {
