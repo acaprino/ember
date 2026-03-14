@@ -135,6 +135,7 @@ export default memo(function Terminal({
   const sessionIdRef = useRef<string | null>(null);
   const channelRef = useRef<any>(null);
   const resizeRafRef = useRef(0);
+  const lastResizeTimeRef = useRef(0);
   const tabIdRef = useRef(tabId);
   const isActiveRef = useRef(isActive);
   const onRequestCloseRef = useRef(onRequestClose);
@@ -441,6 +442,7 @@ export default memo(function Terminal({
       resizeRafRef.current = requestAnimationFrame(() => {
         resizeRafRef.current = 0;
         if (cancelled) return;
+        lastResizeTimeRef.current = Date.now();
         fitAddon.fit();
         syncPtySize(true);
       });
@@ -539,10 +541,13 @@ export default memo(function Terminal({
             if (Date.now() >= bannerCooldownEnd) {
               bannerCooldownEnd = 0;
             } else if (CURSOR_MOVE_RE.test(data)) {
-              // Drop entire chunk — the text is position-dependent (status bar
-              // content placed by CUP sequences) and writing it without its
-              // cursor positioning causes garbled overlap with the Anvil logo.
-              return;
+              // Strip cursor-positioning and all ANSI sequences, then check if
+              // any printable text remains. If not, this is pure status bar
+              // repositioning — drop it to prevent logo overlap. If printable
+              // content exists (e.g. the prompt), end cooldown and write it all.
+              const printable = data.replace(/\x1b(?:\[[0-9;]*[a-zA-Z]|\[[\?]?[0-9;]*[a-zA-Z]|[78])/g, "");
+              if (!printable.trim()) return;
+              bannerCooldownEnd = 0;
             } else {
               bannerCooldownEnd = 0;
             }

@@ -57,19 +57,20 @@ export default memo(function TabBar({ tabs, activeTabId, onActivate, onClose, on
 
   const handleContextMenu = useCallback((e: React.MouseEvent, tabId: string) => {
     e.preventDefault();
-    setContextMenu({ tabId, x: e.clientX, y: e.clientY });
+    const x = Math.min(e.clientX, window.innerWidth - 180);
+    const y = Math.min(e.clientY, window.innerHeight - 80);
+    setContextMenu({ tabId, x, y });
   }, []);
 
-  const handleSaveToProjects = useCallback(() => {
-    if (contextMenu && onSaveToProjects) {
-      onSaveToProjects(contextMenu.tabId);
-    }
+  const handleSaveToProjects = useCallback((tabId: string) => {
+    onSaveToProjects?.(tabId);
     setContextMenu(null);
-  }, [contextMenu, onSaveToProjects]);
+  }, [onSaveToProjects]);
 
   // Close context menu on click outside or Escape
+  const contextMenuOpen = contextMenu != null;
   useEffect(() => {
-    if (!contextMenu) return;
+    if (!contextMenuOpen) return;
     const close = () => setContextMenu(null);
     const handleKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
     window.addEventListener("click", close);
@@ -78,7 +79,7 @@ export default memo(function TabBar({ tabs, activeTabId, onActivate, onClose, on
       window.removeEventListener("click", close);
       window.removeEventListener("keydown", handleKey);
     };
-  }, [contextMenu]);
+  }, [contextMenuOpen]);
 
   return (
     <div className="tab-bar" data-tauri-drag-region>
@@ -133,19 +134,19 @@ export default memo(function TabBar({ tabs, activeTabId, onActivate, onClose, on
       </button>
       {contextMenu && (() => {
         const tab = tabs.find((t) => t.id === contextMenu.tabId);
-        if (!tab || tab.type !== "terminal") return null;
+        if (!tab) return null;
         return (
           <div
             className="tab-context-menu"
             style={{ left: contextMenu.x, top: contextMenu.y }}
             onClick={(e) => e.stopPropagation()}
           >
-            {tab.temporary && onSaveToProjects && (
-              <button className="context-menu-item" onClick={handleSaveToProjects}>
+            {tab.type === "terminal" && tab.temporary && onSaveToProjects && (
+              <button className="context-menu-item" onClick={() => handleSaveToProjects(contextMenu.tabId)}>
                 Save to Projects
               </button>
             )}
-            <button className="context-menu-item" onClick={() => { onClose(contextMenu.tabId); setContextMenu(null); }}>
+            <button className="context-menu-item" onClick={() => { handleClose(contextMenu.tabId); setContextMenu(null); }}>
               Close Tab
             </button>
           </div>

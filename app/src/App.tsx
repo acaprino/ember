@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo } from "react";
+import { useEffect, useCallback, useMemo, useRef } from "react";
 import { SystemPrompt } from "./types";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useTabManager } from "./hooks/useTabManager";
@@ -60,6 +60,13 @@ function AppContent() {
       appWindow.setTitle("Anvil");
     }
   }, [activeTab.type, activeTab.projectName, terminalCount]);
+
+  // Sync font settings to CSS custom properties so GUI inherits them
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty("--font-mono", `'${fontFamily}', 'Consolas', monospace`);
+    root.style.setProperty("--text-base", `${fontSize}px`);
+  }, [fontFamily, fontSize]);
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -126,12 +133,17 @@ function AppContent() {
     console.error(`Tab ${tabId} error:`, msg);
   }, []);
 
+  const tabsRef = useRef(tabs);
+  tabsRef.current = tabs;
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+
   const handleSaveToProjects = useCallback((tabId: string) => {
-    const tab = tabs.find((t) => t.id === tabId);
+    const tab = tabsRef.current.find((t) => t.id === tabId);
     if (!tab?.projectPath || !tab.temporary) return;
     // Add to single_project_dirs if not already tracked
     const dl = tab.projectPath.toLowerCase();
-    const currentSettings = settings;
+    const currentSettings = settingsRef.current;
     if (!currentSettings) return;
     const inContainer = currentSettings.project_dirs.some(
       (d) => dl.startsWith(d.toLowerCase() + "\\") || dl.startsWith(d.toLowerCase() + "/"),
@@ -142,7 +154,7 @@ function AppContent() {
     }
     // Remove temp flag
     updateTab(tabId, { temporary: false });
-  }, [tabs, settings, updateSettings, updateTab]);
+  }, [updateSettings, updateTab]);
 
   // H4: Memoize resize handlers to avoid creating new arrow functions every render
   const resizeHandlers = useMemo(() => ({
