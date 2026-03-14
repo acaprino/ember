@@ -6,9 +6,10 @@ const CHAR_W = 2;
 const CHAR_H = 3;
 const MINIMAP_WIDTH = 90;
 const BOOKMARK_W = 6;
-const MAX_CANVAS_H = 16384;
+const MAX_CANVAS_PX = 16384; // Max hardware pixels — safe for all GPUs
 const SPECIAL_CHARS = new Set("{}[]()=><|&;:");
 const WHEEL_LINE_PX = 25;
+const RENDER_THROTTLE_MS = 150; // Throttle full re-renders during rapid output
 
 interface ThemeColors {
   bg: string;
@@ -30,6 +31,8 @@ export default memo(function Minimap({ xterm, isActive, bookmarksRef }: MinimapP
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRafRef = useRef(0);
   const vpRafRef = useRef(0);
+  const throttleTimerRef = useRef(0);
+  const lastRenderTimeRef = useRef(0);
   const isDraggingRef = useRef(false);
   const colorsRef = useRef<ThemeColors | null>(null);
   const prevCanvasDimsRef = useRef({ w: 0, h: 0, dpr: 0 });
@@ -67,7 +70,9 @@ export default memo(function Minimap({ xterm, isActive, bookmarksRef }: MinimapP
     const buf = xterm.buffer.active;
     const totalLines = buf.length;
     const rawH = totalLines * CHAR_H;
-    const canvasH = Math.min(rawH, MAX_CANVAS_H);
+    const dpr = window.devicePixelRatio || 1;
+    const maxCssH = Math.floor(MAX_CANVAS_PX / dpr);
+    const canvasH = Math.min(rawH, maxCssH);
     const scale = canvasH / rawH;
 
     const vpTop = buf.viewportY * CHAR_H * scale;
@@ -99,10 +104,12 @@ export default memo(function Minimap({ xterm, isActive, bookmarksRef }: MinimapP
     const buf = xterm.buffer.active;
     const totalLines = buf.length;
     const rawH = totalLines * CHAR_H;
-    const canvasH = Math.min(rawH, MAX_CANVAS_H);
-    const lineStep = rawH > MAX_CANVAS_H ? Math.ceil(totalLines / (MAX_CANVAS_H / CHAR_H)) : 1;
-    const scale = canvasH / rawH;
     const dpr = window.devicePixelRatio || 1;
+    // Cap canvas CSS height so hardware pixels never exceed GPU limits
+    const maxCssH = Math.floor(MAX_CANVAS_PX / dpr);
+    const canvasH = Math.min(rawH, maxCssH);
+    const lineStep = rawH > canvasH ? Math.ceil(totalLines / (canvasH / CHAR_H)) : 1;
+    const scale = canvasH / rawH;
 
     const needW = Math.round(MINIMAP_WIDTH * dpr);
     const needH = Math.round(canvasH * dpr);
@@ -155,11 +162,34 @@ export default memo(function Minimap({ xterm, isActive, bookmarksRef }: MinimapP
   }, [xterm, readColors, updateViewport, bookmarksRef]);
 
   const scheduleRender = useCallback(() => {
-    if (contentRafRef.current) return;
-    contentRafRef.current = requestAnimationFrame(() => {
-      contentRafRef.current = 0;
-      render();
-    });
+    // Already have a trailing timer — it will handle the final render
+    if (throttleTimerRef.current) return;
+
+    const now = performance.now();
+    const elapsed = now - lastRenderTimeRef.current;
+
+    if (elapsed >= RENDER_THROTTLE_MS) {
+      // Enough time passed — render on next frame
+      if (!contentRafRef.current) {
+        contentRafRef.current = requestAnimationFrame(() => {
+          contentRafRef.current = 0;
+          lastRenderTimeRef.current = performance.now();
+          render();
+        });
+      }
+    }
+
+    // Always schedule a trailing render to capture final state
+    throttleTimerRef.current = window.setTimeout(() => {
+      throttleTimerRef.current = 0;
+      if (!contentRafRef.current) {
+        contentRafRef.current = requestAnimationFrame(() => {
+          contentRafRef.current = 0;
+          lastRenderTimeRef.current = performance.now();
+          render();
+        });
+      }
+    }, RENDER_THROTTLE_MS);
   }, [render]);
 
   const scheduleViewportUpdate = useCallback(() => {
@@ -184,6 +214,7 @@ export default memo(function Minimap({ xterm, isActive, bookmarksRef }: MinimapP
       disposables.forEach((d) => d.dispose());
       if (contentRafRef.current) { cancelAnimationFrame(contentRafRef.current); contentRafRef.current = 0; }
       if (vpRafRef.current) { cancelAnimationFrame(vpRafRef.current); vpRafRef.current = 0; }
+      if (throttleTimerRef.current) { clearTimeout(throttleTimerRef.current); throttleTimerRef.current = 0; }
       if (canvasRef.current) { canvasRef.current.width = 0; canvasRef.current.height = 0; }
       prevCanvasDimsRef.current = { w: 0, h: 0, dpr: 0 };
     };
@@ -222,7 +253,9 @@ export default memo(function Minimap({ xterm, isActive, bookmarksRef }: MinimapP
       const rect = canvasRef.current.getBoundingClientRect();
       const y = clientY - rect.top + containerRef.current.scrollTop;
       const rawH = totalLines * CHAR_H;
-      const canvasH = Math.min(rawH, MAX_CANVAS_H);
+      const dpr = window.devicePixelRatio || 1;
+      const maxCssH = Math.floor(MAX_CANVAS_PX / dpr);
+      const canvasH = Math.min(rawH, maxCssH);
       const scale = canvasH / rawH;
       const line = Math.floor(y / (CHAR_H * scale));
 
