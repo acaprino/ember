@@ -1,6 +1,7 @@
 use std::collections::BTreeMap;
 use std::io;
 use std::mem::{size_of, zeroed};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 
 use windows::core::{PCWSTR, PWSTR};
@@ -19,7 +20,11 @@ pub struct PtySession {
     /// callers (e.g. Tauri IPC thread + any future writer) do not race on WriteFile.
     pub input_write: Mutex<HANDLE>,
     pub output_read: HANDLE,
+    #[allow(dead_code)]
     pub pid: u32,
+    /// Guards against double-close of the pseudo console handle.
+    /// `kill()` closes it to break the pipe, and `Drop` must skip it if already closed.
+    console_closed: AtomicBool,
     _attr_list_buf: Vec<u8>,
 }
 
@@ -30,8 +35,8 @@ pub struct PtySession {
 // - process_handle and thread_handle are only used for wait/terminate operations
 //   which are thread-safe Win32 calls.
 // - hpc (pseudo console handle) is used for resize from the main thread and
-//   closed via close_console() or Drop; ClosePseudoConsole is safe to call
-//   from any thread.
+//   closed via kill() or Drop (guarded by console_closed AtomicBool);
+//   ClosePseudoConsole is safe to call from any thread.
 unsafe impl Send for PtySession {}
 unsafe impl Sync for PtySession {}
 
@@ -195,6 +200,7 @@ impl PtySession {
             input_write: Mutex::new(pty_input_write),
             output_read: pty_output_read,
             pid: pi.dwProcessId,
+            console_closed: AtomicBool::new(false),
             _attr_list_buf: attr_list_buf,
         })
     }
@@ -226,6 +232,9 @@ impl PtySession {
     }
 
     pub fn resize(&self, cols: i16, rows: i16) -> io::Result<()> {
+        if self.console_closed.load(Ordering::SeqCst) {
+            return Err(io::Error::new(io::ErrorKind::BrokenPipe, "Console already closed"));
+        }
         unsafe {
             ResizePseudoConsole(self.hpc, COORD { X: cols, Y: rows })
                 .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
@@ -252,7 +261,9 @@ impl PtySession {
     pub fn kill(&self) {
         unsafe {
             let _ = TerminateProcess(self.process_handle, 1);
-            ClosePseudoConsole(self.hpc);
+            if !self.console_closed.swap(true, Ordering::SeqCst) {
+                ClosePseudoConsole(self.hpc);
+            }
         }
     }
 }
@@ -265,10 +276,12 @@ impl Drop for PtySession {
             DeleteProcThreadAttributeList(
                 LPPROC_THREAD_ATTRIBUTE_LIST(self._attr_list_buf.as_mut_ptr() as *mut _),
             );
-            // Note: ClosePseudoConsole may have already been called by kill().
-            // Calling it again on an already-closed HPCON is harmless on Windows
-            // (it becomes a no-op on an invalid handle).
-            ClosePseudoConsole(self.hpc);
+            // Only close the pseudo console if kill() hasn't already done so.
+            // Double-closing an HPCON is NOT safe — it causes heap corruption
+            // because the handle's internal memory is freed on the first close.
+            if !self.console_closed.swap(true, Ordering::SeqCst) {
+                ClosePseudoConsole(self.hpc);
+            }
             let _ = CloseHandle(self.process_handle);
             let _ = CloseHandle(self.thread_handle);
             let handle = *self.input_write.lock().unwrap_or_else(|e| e.into_inner());
