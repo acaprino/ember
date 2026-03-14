@@ -2,12 +2,14 @@ import { memo, useEffect, useRef, useState } from "react";
 import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebglAddon } from "@xterm/addon-webgl";
+import { Unicode11Addon } from "@xterm/addon-unicode11";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { spawnClaude, writePty, resizePty, sendHeartbeat, killSession, saveClipboardImage } from "../hooks/usePty";
 import { getXtermTheme } from "../themes";
 import Minimap from "./Minimap";
 import BookmarkList from "./BookmarkList";
+import AsciiLogo from "./AsciiLogo";
 import "@xterm/xterm/css/xterm.css";
 import "./Terminal.css";
 
@@ -26,7 +28,7 @@ const BANNER_DASH_THRESHOLD = 3;
 const BANNER_BUF_MAX = 8192;
 /** How long (ms) to strip cursor-repositioned status bar output after the
  *  banner is consumed. Prevents Claude's status from overwriting the Anvil logo. */
-const BANNER_COOLDOWN_MS = 2000;
+const BANNER_COOLDOWN_MS = 4000;
 /** How long (ms) after a resize to ignore buffer shrinkage — reflow (line
  *  unwrapping) reduces buffer.active.length without content being cleared. */
 const RESIZE_REFLOW_MS = 500;
@@ -129,6 +131,7 @@ export default memo(function Terminal({
   const containerRef = useRef<HTMLDivElement>(null);
   const xtermRef = useRef<XTerm | null>(null);
   const [xtermReady, setXtermReady] = useState<XTerm | null>(null);
+  const [showLogo, setShowLogo] = useState(true);
   const bookmarksRef = useRef(new Map<number, string>());
   const lastBookmarkLineRef = useRef(-1);
   const prevBufferLenRef = useRef(0);
@@ -147,6 +150,7 @@ export default memo(function Terminal({
   const onExitRef = useRef(onExit);
   const onErrorRef = useRef(onError);
   const pasteInFlightRef = useRef(false);
+  const showLogoRef = useRef(true);
 
   useEffect(() => {
     isActiveRef.current = isActive;
@@ -186,6 +190,10 @@ export default memo(function Terminal({
     const fitAddon = new FitAddon();
     xterm.loadAddon(fitAddon);
     xterm.open(containerRef.current);
+
+    const unicode11 = new Unicode11Addon();
+    xterm.loadAddon(unicode11);
+    xterm.unicode.activeVersion = "11";
 
     // Track WebGL addon for recovery after context loss (e.g. system standby,
     // GPU driver reset, context eviction with many tabs open).
@@ -466,30 +474,15 @@ export default memo(function Terminal({
       const cols = xterm.cols;
       const rows = xterm.rows;
 
-      // Write the Anvil ASCII logo into the terminal before spawning so it
-      // appears instantly — the hook-based approach only injects into Claude's
-      // system context and is never visible to the user.
-      xterm.write(
-        "\x1b[38;2;139;110;72m        ___\r\n" +
-        "       / _ \\\r\n" +
-        "      | |_) |\r\n" +
-        "       \\___/\x1b[0m\r\n" +
-        "\x1b[38;2;108;130;145m    \u2554\u2550\u2550\u2550\u2567\u2550\u2550\u2550\u2557\r\n" +
-        "    \u2551       \u2551\r\n" +
-        "    \u2560\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2563\r\n" +
-        "    \u2551       \u2551\r\n" +
-        "    \u255a\u2550\u2550\u2564\u2550\u2564\u2550\u2550\u255d\r\n" +
-        "   \u2550\u2550\u2550\u2550\u2567\u2550\u2567\u2550\u2550\u2550\u2550\x1b[0m\r\n" +
-        "\r\n" +
-        "\x1b[38;2;180;190;200m   \u2554\u2550\u2557 \u2566\u2557\u2566 \u2566  \u2566 \u2566 \u2566\r\n" +
-        "   \u2560\u2550\u2563 \u2551\u2551\u2551 \u255a\u2557\u2554\u255d \u2551 \u2551\r\n" +
-        "   \u2569 \u2569 \u255d\u255a\u255d  \u255a\u255d  \u2569 \u2569\u2550\u255d\x1b[0m\r\n" +
-        "\x1b[2m   AI Code Session Launcher\x1b[0m\r\n\r\n"
-      );
-
       // For Claude (toolIdx 0), buffer initial output to strip the built-in
       // banner (▐▛███▜▌ block chars) — Anvil shows its own logo instead.
       let bannerBuf = toolIdx === 0 ? "" : null;
+      const hideLogo = () => {
+        if (showLogoRef.current) {
+          showLogoRef.current = false;
+          setShowLogo(false);
+        }
+      };
       // After banner is stripped, briefly suppress cursor-repositioned output
       // to prevent Claude's status bar from overwriting the Anvil logo.
       let bannerCooldownEnd = 0;
@@ -507,6 +500,8 @@ export default memo(function Terminal({
         cols,
         rows,
         (data: string) => {
+          // For non-Claude tools, hide logo overlay on first output
+          if (bannerBuf === null && showLogoRef.current) hideLogo();
           if (bannerBuf !== null) {
             bannerBuf += data;
             // Count ───── occurrences: Claude's status box has top border
@@ -529,6 +524,7 @@ export default memo(function Terminal({
                 const rest = nlAfter !== -1 ? bannerBuf.slice(nlAfter + 1) : "";
                 bannerBuf = null;
                 bannerCooldownEnd = Date.now() + BANNER_COOLDOWN_MS;
+                hideLogo();
                 // Filter rest through same cooldown logic — it may contain
                 // CUP-positioned status bar output that would overwrite the logo.
                 if (rest && !CURSOR_MOVE_RE.test(rest)) {
@@ -538,6 +534,7 @@ export default memo(function Terminal({
                 // Bail — write everything as-is
                 const buf = bannerBuf;
                 bannerBuf = null;
+                hideLogo();
                 xtermRef.current?.write(buf);
               }
             }
@@ -759,6 +756,11 @@ export default memo(function Terminal({
 
   return (
     <div className="terminal-wrapper">
+      {showLogo && (
+        <div className="terminal-logo-overlay">
+          <AsciiLogo cols={25} />
+        </div>
+      )}
       <div ref={containerRef} className="terminal-container" />
       <BookmarkList xterm={xtermReady} isActive={isActive} bookmarksRef={bookmarksRef} />
       <Minimap xterm={xtermReady} isActive={isActive} bookmarksRef={bookmarksRef} />

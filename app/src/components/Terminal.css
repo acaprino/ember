@@ -1,4 +1,5 @@
 .terminal-wrapper {
+  position: relative;
   display: flex;
   flex: 1;
   width: 100%;
@@ -17,6 +18,25 @@
 }
 
 @keyframes terminal-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.terminal-logo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  background: var(--bg);
+  animation: logo-fade-in 0.3s ease-out;
+}
+
+@keyframes logo-fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }

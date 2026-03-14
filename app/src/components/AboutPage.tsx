@@ -6,6 +6,12 @@ import AsciiLogo from "./AsciiLogo";
 import "./GsdLayout.css";
 import "./AboutPage.css";
 
+interface AboutPageProps {
+  tabId: string;
+  onRequestClose: (tabId: string) => void;
+  isActive: boolean;
+}
+
 function buildAboutBox(version: string) {
   return `  A N V I L
   AI Code Session Launcher
