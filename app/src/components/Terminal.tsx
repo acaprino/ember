@@ -9,28 +9,54 @@ import { spawnClaude, writePty, resizePty, sendHeartbeat, killSession, saveClipb
 import { getXtermTheme } from "../themes";
 import Minimap from "./Minimap";
 import BookmarkList from "./BookmarkList";
-import AsciiLogo from "./AsciiLogo";
 import "@xterm/xterm/css/xterm.css";
 import "./Terminal.css";
 
 /** Single regex matching any cursor-repositioning escape sequence:
  *  ESC 7/8 (DEC save/restore), CSI s/u (ANSI save/restore), CSI row;colH (CUP).
  *  One pass replaces six sequential string scans on every PTY data chunk. */
-const CURSOR_MOVE_RE = /\x1b[78]|\x1b\[[su]|\x1b\[\d+;\d*H/;
 const ESC_CURSOR_HIDE = "\x1b[?25l";
 const ESC_CURSOR_SHOW = "\x1b[?25h";
 const MAX_BOOKMARK_TEXT = 200;
 
-/** Banner stripping: detect end of Claude's startup banner by looking for
- *  the interactive prompt line. The prompt character (> or ❯) may be wrapped
- *  in ANSI color codes, so we allow optional SGR sequences around it. */
-const BANNER_PROMPT_RE = /\n(?:\x1b\[[0-9;]*m)*[>❯](?:\x1b\[[0-9;]*m)* /;
+/** Detect the horizontal separator line (─────) that marks the end of
+ *  Claude's startup banner. Everything before it is the logo/version block;
+ *  everything from it onward is the interactive TUI. */
+const BANNER_END_RE = /\n(?:\x1b\[[0-9;?]*[a-zA-Z])*─/;
 const BANNER_BUF_MAX = 8192;
-/** Minimum time (ms) to display the Anvil logo overlay before hiding it. */
-const LOGO_MIN_MS = 2000;
 /** How long (ms) after a resize to ignore buffer shrinkage — reflow (line
  *  unwrapping) reduces buffer.active.length without content being cleared. */
 const RESIZE_REFLOW_MS = 500;
+
+/** Anvil ASCII art logo — 15 lines, generated from icon.png via convertico.com.
+ *  Colors match the icon: dark brown hammer head, orange handle, steel anvil,
+ *  blue-gray base. */
+const C = {
+  HEAD: "\x1b[38;2;90;60;30m",    // dark brown — hammer head
+  HANDLE: "\x1b[38;2;210;160;70m", // orange — hammer handle
+  OUTLINE: "\x1b[38;2;50;50;50m",  // near-black — outlines
+  STEEL: "\x1b[38;2;120;135;155m", // steel gray — anvil body
+  LIGHT: "\x1b[38;2;160;175;190m", // lighter — anvil highlights (▒)
+  BLUE: "\x1b[38;2;90;140;170m",   // blue accent — base
+  R: "\x1b[0m",
+};
+const ANSI_LOGO = [
+  `${C.OUTLINE}           ${C.HEAD}████`,
+  `${C.OUTLINE}         ${C.HEAD}███▓▓${C.OUTLINE}█${C.HANDLE}████████████${C.OUTLINE}███`,
+  `${C.OUTLINE}         ${C.HEAD}█▓▓▓▓${C.OUTLINE}█${C.HANDLE}▒▒▒▒▒▒▒▒▓▒▒▓${C.OUTLINE}██`,
+  `${C.OUTLINE}         ${C.HEAD}███▓▓${C.OUTLINE}██████████████`,
+  `${C.OUTLINE}      ██████${C.STEEL}▓▓${C.OUTLINE}████`,
+  `${C.OUTLINE}      ████████████`,
+  `${C.OUTLINE}     █████████████████`,
+  `${C.OUTLINE} ███${C.STEEL}▓██▓▓▓▓▓▓▓▓▓▓▓▓▓▓█▓▓${C.OUTLINE}██`,
+  `${C.OUTLINE} ██${C.STEEL}▓▓▓▓▓▓${C.LIGHT}▒▒▒▒▒▒▒▒▒▒▒${C.STEEL}▓▓▓▓${C.OUTLINE}██`,
+  `${C.OUTLINE}  █████${C.STEEL}▓▓${C.LIGHT}▒▒▒▒▒▒▒▒▒▒▒${C.STEEL}▓█▓${C.OUTLINE}███`,
+  `${C.OUTLINE}     ██${C.STEEL}▓▓▓▓▓▓▓▓▓▓▓▓▓▓${C.OUTLINE}██`,
+  `${C.OUTLINE}        ██${C.STEEL}▓▓▓▓▓▓▓▓${C.OUTLINE}█`,
+  `${C.OUTLINE}        ██${C.STEEL}▓▓▓▓▓▓▓▓${C.OUTLINE}█`,
+  `${C.OUTLINE}     ${C.BLUE}█████████████████`,
+  `${C.OUTLINE}     ${C.BLUE}██▓▓▓▓▓▓▓▓▓▓▓▓▓██`,
+].join("\r\n") + C.R;
 
 /** Replace common non-ASCII characters with ASCII equivalents and strip control chars.
  *  This prevents encoding issues when pasting text from editors, web pages, or Word docs. */
@@ -148,11 +174,6 @@ export default memo(function Terminal({
   const onExitRef = useRef(onExit);
   const onErrorRef = useRef(onError);
   const pasteInFlightRef = useRef(false);
-  const [showLogo, setShowLogo] = useState(true);
-  const showLogoRef = useRef(true);
-  const logoHideTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const bannerTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const logoOverlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     isActiveRef.current = isActive;
@@ -477,46 +498,28 @@ export default memo(function Terminal({
       const cols = xterm.cols;
       const rows = xterm.rows;
 
-      // For Claude (toolIdx 0), buffer initial output to strip the built-in
-      // banner (▐▛███▜▌ block chars) — Anvil shows its own logo instead.
-      let bannerBuf = toolIdx === 0 ? "" : null;
-      const logoShownAt = Date.now();
-      const fadeOutLogo = () => {
-        if (cancelled) return;
-        showLogoRef.current = false;
-        // Add fading class for CSS transition, then remove from DOM after transition
-        const el = logoOverlayRef.current;
-        if (el) {
-          el.classList.add("fading");
-          el.addEventListener("transitionend", () => setShowLogo(false), { once: true });
-          // Fallback: remove after 500ms if transitionend doesn't fire
-          setTimeout(() => { if (!cancelled) setShowLogo(false); }, 500);
-        } else {
-          setShowLogo(false);
+      // For Claude (toolIdx 0), buffer initial output until we detect the
+      // horizontal separator (─────). Replace Claude's block-char logo with
+      // the Anvil ASCII logo, keep everything else (separator, prompt, status).
+      let bannerBuf: string | null = toolIdx === 0 ? "" : null;
+      // Row offset for cursor positioning: our logo (15 lines) is taller than
+      // Claude's banner (3 lines). Claude's TUI uses absolute CUP sequences
+      // (ESC[row;colH), so we offset all row numbers by the difference.
+      // Reset to 0 on screen clear (ESC[2J/3J) since Claude redraws from scratch.
+      let cupRowOffset = 0;
+      /** Adjust absolute cursor positioning sequences in data by cupRowOffset. */
+      const adjustCup = (s: string): string => {
+        if (cupRowOffset === 0) return s;
+        // Reset offset on screen clear — Claude redraws everything
+        if (s.includes("\x1b[2J") || s.includes("\x1b[3J")) {
+          cupRowOffset = 0;
+          return s;
         }
+        return s.replace(/\x1b\[(\d+)(;[\d]*)?([Hfd])/g, (_match, row, col, cmd) => {
+          const newRow = parseInt(row, 10) + cupRowOffset;
+          return `\x1b[${newRow}${col || ""}${cmd}`;
+        });
       };
-      const hideLogo = () => {
-        if (cancelled || !showLogoRef.current) return;
-        const elapsed = Date.now() - logoShownAt;
-        if (elapsed < LOGO_MIN_MS) {
-          // Ensure logo is visible for at least LOGO_MIN_MS
-          if (!logoHideTimerRef.current) {
-            logoHideTimerRef.current = setTimeout(fadeOutLogo, LOGO_MIN_MS - elapsed);
-          }
-          return;
-        }
-        fadeOutLogo();
-      };
-      // Time-based fallback: if banner detection hasn't triggered after
-      // LOGO_MIN_MS, flush the buffer and stop buffering. This prevents the
-      // overlay from staying forever if Claude's banner format changes again.
-      bannerTimeoutRef.current = bannerBuf !== null ? setTimeout(() => {
-        if (cancelled || bannerBuf === null) return;
-        const buf = bannerBuf;
-        bannerBuf = null;
-        hideLogo();
-        xtermRef.current?.write(buf);
-      }, LOGO_MIN_MS + 500) : undefined;
 
       spawnClaude(
         projectPath,
@@ -529,32 +532,22 @@ export default memo(function Terminal({
         cols,
         rows,
         (data: string) => {
-          // For non-Claude tools, hide logo overlay on first output
-          if (bannerBuf === null && showLogoRef.current) hideLogo();
           if (bannerBuf !== null) {
             bannerBuf += data;
-            // Detect end of Claude's startup banner by finding the interactive
-            // prompt line (> or ❯ after a newline). Strip everything before it.
-            const promptMatch = BANNER_PROMPT_RE.exec(bannerBuf);
-            if (promptMatch || bannerBuf.length > BANNER_BUF_MAX) {
-              if (promptMatch) {
-                // Keep everything from the prompt line onward
-                const rest = bannerBuf.slice(promptMatch.index + 1); // skip the \n
-                bannerBuf = null;
-                hideLogo();
-                if (rest && !CURSOR_MOVE_RE.test(rest)) {
-                  xtermRef.current?.write(rest);
-                }
-              } else {
-                // Bail — write everything as-is
-                const buf = bannerBuf;
-                bannerBuf = null;
-                hideLogo();
-                xtermRef.current?.write(buf);
-              }
+            const endMatch = BANNER_END_RE.exec(bannerBuf);
+            if (endMatch || bannerBuf.length > BANNER_BUF_MAX) {
+              const rest = endMatch
+                ? bannerBuf.slice(endMatch.index + 1) // keep from \n onward (the ─── line)
+                : bannerBuf; // fallback: write everything
+              bannerBuf = null;
+              cupRowOffset = 12; // 15 (logo lines) - 3 (Claude banner lines)
+              // Write Anvil logo then the rest of Claude's TUI (with adjusted rows)
+              xtermRef.current?.write(ANSI_LOGO + "\r\n" + adjustCup(rest));
             }
             return;
           }
+          // Adjust cursor positioning for the taller logo
+          data = adjustCup(data);
           // Hide cursor during ALL output, not just cursor-repositioning
           // sequences. Rapid writes cause the cursor to flash at intermediate
           // positions ("ghost caret" flickering through the text). A debounced
@@ -685,8 +678,6 @@ export default memo(function Terminal({
       cancelAnimationFrame(resizeRafRef.current);
       clearTimeout(resizeTimer);
       clearTimeout(cursorShowTimer);
-      clearTimeout(logoHideTimerRef.current);
-      clearTimeout(bannerTimeoutRef.current);
       clearInterval(heartbeatInterval);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       containerRef.current?.removeEventListener("paste", handleNativePaste, true);
@@ -754,11 +745,6 @@ export default memo(function Terminal({
 
   return (
     <div className="terminal-wrapper">
-      {showLogo && (
-        <div ref={logoOverlayRef} className="terminal-logo-overlay">
-          <AsciiLogo cols={55} />
-        </div>
-      )}
       <div ref={containerRef} className="terminal-container" />
       <BookmarkList xterm={xtermReady} isActive={isActive} bookmarksRef={bookmarksRef} />
       <Minimap xterm={xtermReady} isActive={isActive} bookmarksRef={bookmarksRef} />

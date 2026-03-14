@@ -104,6 +104,12 @@ CSS custom properties in `App.css` `:root`:
 - Hidden directories (starting with `.`) are excluded from project scanning.
 - Default project directory is `D:\Projects`, overridable via settings (multiple directories supported).
 
+## ASCII Logo
+
+- The terminal startup logo is generated from `icon.png` using https://convertico.com/image-to-ascii/ (30x15)
+- Hardcoded in `Terminal.tsx` as `ANSI_LOGO` constant with ANSI RGB color codes
+- Replaces Claude's built-in block-char banner on startup
+
 ## Conventions
 
 - Commit messages use conventional commits: `feat:`, `fix:`, `style:`, `perf:`, `docs:`, `refactor:`

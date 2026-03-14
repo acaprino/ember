@@ -22,25 +22,6 @@
   to { opacity: 1; }
 }
 
-.terminal-logo-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-  background: var(--bg);
-  opacity: 1;
-  transition: opacity 0.4s ease-out;
-  pointer-events: none;
-}
-
-.terminal-logo-overlay.fading {
-  opacity: 0;
-}
 
 .terminal-container .xterm {
   height: 100%;

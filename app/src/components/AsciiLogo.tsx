@@ -3,7 +3,7 @@ import { memo, useState, useEffect } from "react";
 // ASCII density ramp: dark → light
 const DENSITY = "@%#*+=-:. ";
 
-interface AsciiCell {
+export interface AsciiCell {
   char: string;
   r: number;
   g: number;
@@ -11,7 +11,7 @@ interface AsciiCell {
   a: number;
 }
 
-function imageToAscii(img: HTMLImageElement, cols: number): AsciiCell[][] {
+export function imageToAscii(img: HTMLImageElement, cols: number): AsciiCell[][] {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (!ctx) return [];
