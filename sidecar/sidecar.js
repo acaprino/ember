@@ -4,6 +4,8 @@
 import { query, listSessions, getSessionMessages } from "@anthropic-ai/claude-agent-sdk";
 import Anthropic from "@anthropic-ai/sdk";
 import { createInterface } from "readline";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 // Active sessions: tabId → { query, abortController, inputQueue, inputResolve }
 const sessions = new Map();
@@ -421,13 +423,50 @@ const AUTOCOMPLETE_MODEL = "claude-haiku-4-5-20251001";
 const AUTOCOMPLETE_TIMEOUT_MS = 5000;
 
 let anthropicClient = null;
+let anthropicClientExpiresAt = 0; // 0 = no expiry (API key), else ms timestamp
+
+/** Read OAuth access token from Claude's credentials file. */
+function readClaudeOAuthToken() {
+  try {
+    const home = process.env.USERPROFILE || process.env.HOME || "";
+    const credPath = join(home, ".claude", ".credentials.json");
+    const creds = JSON.parse(readFileSync(credPath, "utf-8"));
+    const oauth = creds?.claudeAiOauth;
+    if (oauth?.accessToken && oauth.expiresAt > Date.now()) {
+      return { token: oauth.accessToken, expiresAt: oauth.expiresAt };
+    }
+  } catch {
+    // Credentials file not found or unreadable
+  }
+  return null;
+}
 
 function getAnthropicClient() {
-  if (!process.env.ANTHROPIC_API_KEY) return null;
-  if (!anthropicClient) {
-    anthropicClient = new Anthropic();
+  // If cached and not expired, return it
+  if (anthropicClient && (anthropicClientExpiresAt === 0 || anthropicClientExpiresAt > Date.now())) {
+    return anthropicClient;
   }
-  return anthropicClient;
+
+  // Reset expired client
+  anthropicClient = null;
+  anthropicClientExpiresAt = 0;
+
+  // Try env var first (never expires)
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (apiKey) {
+    anthropicClient = new Anthropic({ apiKey });
+    return anthropicClient;
+  }
+
+  // Try Claude OAuth token
+  const oauth = readClaudeOAuthToken();
+  if (oauth) {
+    anthropicClient = new Anthropic({ authToken: oauth.token });
+    anthropicClientExpiresAt = oauth.expiresAt;
+    return anthropicClient;
+  }
+
+  return null;
 }
 
 // Rate limiting: max 10 calls per minute per session
