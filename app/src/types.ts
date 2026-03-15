@@ -7,7 +7,7 @@ export interface SystemPrompt {
 
 export interface Tab {
   id: string;
-  type: "new-tab" | "terminal" | "agent" | "about" | "usage" | "system-prompt" | "sessions";
+  type: "new-tab" | "agent" | "about" | "usage" | "system-prompt" | "sessions";
   projectPath?: string;
   projectName?: string;
   toolIdx?: number;
@@ -16,7 +16,6 @@ export interface Tab {
   skipPerms?: boolean;
   autocompact?: boolean;
   temporary?: boolean;
-  sessionId?: string;
   agentSessionId?: string;
   hasNewOutput?: boolean;
   exitCode?: number | null;
@@ -48,7 +47,6 @@ export interface Settings {
   project_dirs: string[];
   single_project_dirs: string[];
   project_labels: Record<string, string>;
-  use_agent_sdk?: boolean;
   vertical_tabs?: boolean;
   sidebar_width?: number;
 }

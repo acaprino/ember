@@ -1,9 +1,6 @@
 import { memo, useState, useCallback, useRef, useEffect } from "react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Tab } from "../types";
-import "./TabBar.css";
-
-const appWindow = getCurrentWindow();
+import "./TabSidebar.css";
 
 interface ContextMenu {
   tabId: string;
@@ -11,21 +8,31 @@ interface ContextMenu {
   y: number;
 }
 
-interface TabBarProps {
+interface TabSidebarProps {
   tabs: Tab[];
   activeTabId: string;
+  sidebarWidth: number;
   onActivate: (id: string) => void;
   onClose: (id: string) => void;
   onAdd: () => void;
   onSaveToProjects?: (tabId: string) => void;
   onToggleAbout: () => void;
   onToggleUsage: () => void;
+  onResizeWidth: (width: number) => void;
+  onResizing: (resizing: boolean) => void;
 }
 
-export default memo(function TabBar({ tabs, activeTabId, onActivate, onClose, onAdd, onSaveToProjects, onToggleAbout, onToggleUsage }: TabBarProps) {
+const SIDEBAR_MIN = 140;
+const SIDEBAR_MAX = 360;
+
+export default memo(function TabSidebar({
+  tabs, activeTabId, sidebarWidth, onActivate, onClose, onAdd,
+  onSaveToProjects, onToggleAbout, onToggleUsage, onResizeWidth, onResizing,
+}: TabSidebarProps) {
   const [closingIds, setClosingIds] = useState<Set<string>>(new Set());
   const closingTimersRef = useRef<Map<string, number>>(new Map());
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const handleClose = useCallback((tabId: string) => {
     if (closingTimersRef.current.has(tabId)) return;
@@ -44,18 +51,6 @@ export default memo(function TabBar({ tabs, activeTabId, onActivate, onClose, on
 
     closingTimersRef.current.set(tabId, timer);
   }, [onClose]);
-
-  const handleMinimize = useCallback(() => {
-    appWindow.minimize();
-  }, []);
-
-  const handleMaximize = useCallback(() => {
-    appWindow.toggleMaximize();
-  }, []);
-
-  const handleWindowClose = useCallback(() => {
-    appWindow.close();
-  }, []);
 
   const handleContextMenu = useCallback((e: React.MouseEvent, tabId: string) => {
     e.preventDefault();
@@ -83,9 +78,50 @@ export default memo(function TabBar({ tabs, activeTabId, onActivate, onClose, on
     };
   }, [contextMenuOpen]);
 
+  // Resize handle logic
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = sidebarWidth;
+    onResizing(true);
+
+    const onMove = (ev: MouseEvent) => {
+      const delta = ev.clientX - startX;
+      const newWidth = Math.max(SIDEBAR_MIN, Math.min(SIDEBAR_MAX, startWidth + delta));
+      document.documentElement.style.setProperty("--sidebar-width", `${newWidth}px`);
+    };
+
+    const onUp = (ev: MouseEvent) => {
+      const delta = ev.clientX - startX;
+      const newWidth = Math.max(SIDEBAR_MIN, Math.min(SIDEBAR_MAX, startWidth + delta));
+      onResizing(false);
+      onResizeWidth(newWidth);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  }, [sidebarWidth, onResizeWidth, onResizing]);
+
+  // Auto-scroll active tab into view
+  useEffect(() => {
+    if (!listRef.current) return;
+    const active = listRef.current.querySelector(".tab.active");
+    if (active) {
+      active.scrollIntoView({ block: "nearest" });
+    }
+  }, [activeTabId]);
+
   return (
-    <div className="tab-bar" data-tauri-drag-region>
-      <div className="tab-list" role="tablist" data-tauri-drag-region>
+    <div className="tab-sidebar">
+      <div className="tab-sidebar__header">
+        <button className="tab-sidebar__add" onClick={onAdd} title="New Tab (Ctrl+T)" aria-label="New Tab">
+          + New Tab
+        </button>
+      </div>
+
+      <div className="tab-sidebar__list" ref={listRef} role="tablist" aria-orientation="vertical">
         {tabs.map((tab) => {
           const isActive = tab.id === activeTabId;
           const isClosing = closingIds.has(tab.id);
@@ -134,10 +170,8 @@ export default memo(function TabBar({ tabs, activeTabId, onActivate, onClose, on
           );
         })}
       </div>
-      <button className="tab-add" onClick={onAdd} title="New Tab (Ctrl+T)" aria-label="New Tab">
-        +
-      </button>
-      <div className="tab-bar-actions">
+
+      <div className="tab-sidebar__footer">
         <button className="tab-bar-action" onClick={onToggleUsage} title="Usage Stats (Ctrl+U)" aria-label="Usage Stats">
           <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
             <rect x="1" y="7" width="2" height="4" rx="0.5" fill="currentColor"/>
@@ -152,6 +186,14 @@ export default memo(function TabBar({ tabs, activeTabId, onActivate, onClose, on
           </svg>
         </button>
       </div>
+
+      {/* Resize handle */}
+      <div
+        className="tab-sidebar__resize"
+        onMouseDown={handleResizeStart}
+      />
+
+      {/* Context menu */}
       {contextMenu && (() => {
         const tab = tabs.find((t) => t.id === contextMenu.tabId);
         if (!tab) return null;
@@ -172,17 +214,6 @@ export default memo(function TabBar({ tabs, activeTabId, onActivate, onClose, on
           </div>
         );
       })()}
-      <div className="window-controls">
-        <button className="win-btn minimize" onClick={handleMinimize} aria-label="Minimize">
-          <svg width="10" height="1" viewBox="0 0 10 1"><rect width="10" height="1" fill="currentColor"/></svg>
-        </button>
-        <button className="win-btn maximize" onClick={handleMaximize} aria-label="Maximize">
-          <svg width="10" height="10" viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor" strokeWidth="1"/></svg>
-        </button>
-        <button className="win-btn close" onClick={handleWindowClose} aria-label="Close">
-          <svg width="10" height="10" viewBox="0 0 10 10"><line x1="0" y1="0" x2="10" y2="10" stroke="currentColor" strokeWidth="1.2"/><line x1="10" y1="0" x2="0" y2="10" stroke="currentColor" strokeWidth="1.2"/></svg>
-        </button>
-      </div>
     </div>
   );
 });

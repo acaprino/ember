@@ -26,7 +26,7 @@ function createNewTab(): Tab {
 function createRestoredTab(saved: SavedTab): Tab {
   return {
     id: crypto.randomUUID(),
-    type: "terminal",
+    type: "agent",
     projectPath: saved.projectPath,
     projectName: saved.projectName,
     toolIdx: saved.toolIdx,
@@ -78,14 +78,14 @@ export function useTabManager() {
   // Use a stable key derived only from persistence-relevant fields to avoid
   // recalculating on volatile changes like hasNewOutput or exitCode.
   const saveableKey = tabs
-    .filter((t) => (t.type === "terminal" || t.type === "agent") && t.projectPath)
+    .filter((t) => t.type === "agent" && t.projectPath)
     .map((t) => `${t.projectPath}|${t.projectName ?? "Terminal"}|${t.toolIdx ?? 0}|${t.modelIdx ?? 0}|${t.effortIdx ?? 0}|${t.skipPerms ?? false}|${t.temporary ?? false}`)
     .join("\n");
 
   const saveableState = useMemo(() =>
     JSON.stringify(
       tabs
-        .filter((t) => (t.type === "terminal" || t.type === "agent") && t.projectPath)
+        .filter((t) => t.type === "agent" && t.projectPath)
         .map((t) => ({
           projectPath: t.projectPath,
           projectName: t.projectName ?? "Terminal",

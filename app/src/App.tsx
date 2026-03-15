@@ -1,7 +1,6 @@
 import { useEffect, useCallback, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { SystemPrompt, THEMES } from "./types";
-import { getSidecarStatus } from "./hooks/useAgentSession";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useTabManager } from "./hooks/useTabManager";
 import { ProjectsProvider, useProjectsContext } from "./contexts/ProjectsContext";
@@ -39,21 +38,6 @@ function AppContent() {
   } = useTabManager();
 
   const { settings, setFilter, updateSettings } = useProjectsContext();
-  const [sidecarAvailable, setSidecarAvailable] = useState(false);
-  const [sidecarReason, setSidecarReason] = useState<string | null>(null);
-  const sidecarAvailableRef = useRef(false);
-
-  // Check sidecar status on mount
-  useEffect(() => {
-    getSidecarStatus().then((status) => {
-      setSidecarAvailable(status.available);
-      setSidecarReason(status.reason);
-      sidecarAvailableRef.current = status.available;
-    }).catch(() => {
-      setSidecarAvailable(false);
-      sidecarAvailableRef.current = false;
-    });
-  }, []);
 
   const themeIdx = settings?.theme_idx ?? 0;
   const fontFamily = settings?.font_family ?? "Cascadia Code";
@@ -100,9 +84,9 @@ function AppContent() {
   }, [addTab, setFilter]);
 
   // H2: Memoize terminal count to avoid refiltering on every render
-  const terminalCount = useMemo(() => tabs.filter((t) => t.type === "terminal" || t.type === "agent").length, [tabs]);
+  const terminalCount = useMemo(() => tabs.filter((t) => t.type === "agent").length, [tabs]);
   useEffect(() => {
-    if ((activeTab.type === "terminal" || activeTab.type === "agent") && activeTab.projectName) {
+    if (activeTab.type === "agent" && activeTab.projectName) {
       const suffix = terminalCount > 1 ? ` (+${terminalCount - 1} tabs)` : "";
       appWindow.setTitle(`Anvil \u2014 ${activeTab.projectName}${suffix}`);
     } else {
@@ -153,10 +137,8 @@ function AppContent() {
 
   const handleLaunch = useCallback(
     (tabId: string, projectPath: string, projectName: string, toolIdx: number, modelIdx: number, effortIdx: number, skipPerms: boolean, autocompact: boolean, temporary?: boolean) => {
-      // Claude (toolIdx 0) always uses agent SDK; Gemini uses PTY
-      const useAgent = toolIdx === 0;
       updateTab(tabId, {
-        type: useAgent ? "agent" : "terminal",
+        type: "agent",
         projectPath,
         projectName,
         toolIdx,
@@ -167,7 +149,7 @@ function AppContent() {
         temporary: temporary || false,
       });
     },
-    [updateTab, settings?.use_agent_sdk],
+    [updateTab],
   );
 
   // H1: Use markNewOutput which guards against redundant array creation
@@ -180,7 +162,7 @@ function AppContent() {
   }, [updateTab]);
 
   const handleSessionCreated = useCallback((tabId: string, sessionId: string) => {
-    updateTab(tabId, { sessionId });
+    updateTab(tabId, { agentSessionId: sessionId });
   }, [updateTab]);
 
   const handleError = useCallback((tabId: string, msg: string) => {
@@ -270,7 +252,7 @@ function AppContent() {
       <div className="tab-content">
         {tabs.map((tab) => {
           const isActive = tab.id === activeTabId;
-          const isTerminal = tab.type === "terminal" || tab.type === "agent";
+          const isTerminal = tab.type === "agent";
 
           return (
             <div
@@ -333,11 +315,10 @@ function AppContent() {
                     }}
                   />
                 </ErrorBoundary>
-              ) : (tab.type === "terminal" || tab.type === "agent") ? (
+              ) : tab.type === "agent" ? (
                 <ErrorBoundary tabId={tab.id} onClose={closeTab}>
                   <Terminal
                     tabId={tab.id}
-                    tabType={tab.type as "terminal" | "agent"}
                     projectPath={tab.projectPath!}
                     toolIdx={tab.toolIdx ?? 0}
                     modelIdx={tab.modelIdx ?? 0}

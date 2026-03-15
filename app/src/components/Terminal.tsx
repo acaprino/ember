@@ -5,8 +5,7 @@ import { WebglAddon } from "@xterm/addon-webgl";
 import { Unicode11Addon } from "@xterm/addon-unicode11";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { readText, writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { spawnClaude, writePty, resizePty, sendHeartbeat, killSession, saveClipboardImage } from "../hooks/usePty";
-import { spawnAgent, sendAgentMessage, killAgent, respondPermission } from "../hooks/useAgentSession";
+import { spawnAgent, sendAgentMessage, killAgent, respondPermission, saveClipboardImage } from "../hooks/useAgentSession";
 import { renderAgentEvent } from "../ansiRenderer";
 import { getXtermTheme } from "../themes";
 import type { AgentEvent, ThemeColors } from "../types";
@@ -19,11 +18,6 @@ const ESC_CURSOR_HIDE = "\x1b[?25l";
 const ESC_CURSOR_SHOW = "\x1b[?25h";
 const MAX_BOOKMARK_TEXT = 200;
 
-/** Detect the horizontal separator line (─────) that marks the end of
- *  Claude's startup banner. Everything before it is the logo/version block;
- *  everything from it onward is the interactive TUI. */
-const BANNER_END_RE = /\n(?:\x1b\[[0-9;?]*[a-zA-Z])*─/;
-const BANNER_BUF_MAX = 8192;
 /** How long (ms) after a resize to ignore buffer shrinkage — reflow (line
  *  unwrapping) reduces buffer.active.length without content being cleared. */
 const RESIZE_REFLOW_MS = 500;
@@ -80,9 +74,7 @@ const ANSI_LOGO = ANSI_LOGO_PARTS.map((line, i) => {
 }).join("\r\n") + LOGO_COLORS.R;
 
 /** Strip characters outside the Basic Multilingual Plane (emoji, supplementary chars)
- *  that become surrogate pairs in UTF-16.  On Windows, passing these through command-line
- *  arguments or ConPTY can corrupt them into lone surrogates, causing "invalid high
- *  surrogate" JSON errors from the Claude API.  Also strips lone surrogates directly. */
+ *  that become surrogate pairs in UTF-16.  Also strips lone surrogates directly. */
 function stripNonBmpAndSurrogates(text: string): string {
   // IMPORTANT: the 'u' flag is required — without it \u{10000}-\u{10FFFF} won't match
   // supplementary plane codepoints and surrogate pairs won't be handled atomically.
@@ -147,7 +139,6 @@ function sanitizePastedText(text: string): string {
 
 interface TerminalProps {
   tabId: string;
-  tabType: "terminal" | "agent";
   projectPath: string;
   toolIdx: number;
   modelIdx: number;
@@ -171,13 +162,12 @@ interface TerminalProps {
 
 export default memo(function Terminal({
   tabId,
-  tabType,
   projectPath,
-  toolIdx,
+  toolIdx: _toolIdx,
   modelIdx,
   effortIdx,
   skipPerms,
-  autocompact,
+  autocompact: _autocompact,
   systemPrompt,
   themeIdx,
   themeColors,
@@ -219,6 +209,7 @@ export default memo(function Terminal({
   const agentInputStateRef = useRef<"idle" | "awaiting_input" | "processing" | "awaiting_permission">("idle");
   const agentInputBufRef = useRef("");
   const spinnerTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const responseBookmarkedRef = useRef(false);
   const themeColorsRef = useRef(themeColors);
 
   useEffect(() => {
@@ -349,6 +340,17 @@ export default memo(function Terminal({
     };
     loadWebgl();
 
+    // Agent input helper — appends text to the input buffer and echoes to
+    // the terminal. Returns true when in awaiting_input state (text accepted).
+    const MAX_AGENT_INPUT = 65536; // 64KB cap
+    const tryAgentWrite = (text: string): boolean => {
+      if (agentInputStateRef.current !== "awaiting_input") return false;
+      if (agentInputBufRef.current.length + text.length > MAX_AGENT_INPUT) return false;
+      agentInputBufRef.current += text;
+      xtermRef.current?.write(text);
+      return true;
+    };
+
     // Shared paste logic used by both Ctrl+V and right-click → Paste.
     // Guard against double-fire: Ctrl+V keydown + native paste event can both trigger.
     const doPaste = async () => {
@@ -375,21 +377,15 @@ export default memo(function Terminal({
         if (text) {
           const sanitized = sanitizePastedText(text);
           if (sanitized) {
-            const sid = sessionIdRef.current;
-            if (!sid) return;
-            const bracketed = `\x1b[200~${sanitized}\x1b[201~`;
-            await writePty(sid, bracketed);
+            tryAgentWrite(sanitized);
             return;
           }
         }
         // Fallback: try clipboard image — save as PNG temp file and paste the path
         try {
           const path = await saveClipboardImage();
-          const sid = sessionIdRef.current;
-          if (!sid) return;
           const quoted = path.includes(" ") ? `"${path}"` : path;
-          const bracketed = `\x1b[200~${quoted}\x1b[201~`;
-          await writePty(sid, bracketed);
+          tryAgentWrite(quoted);
         } catch (err) {
           console.warn("Clipboard paste failed:", err);
           xtermRef.current?.write("\x07"); // bell
@@ -448,97 +444,76 @@ export default memo(function Terminal({
       }
       if (!sessionIdRef.current) return;
 
-      // ── Agent mode input handling ──
-      if (tabType === "agent") {
-        const state = agentInputStateRef.current;
+      const state = agentInputStateRef.current;
 
-        if (state === "awaiting_permission") {
-          // Only accept Y/y/N/n/Enter
-          if (data === "Y" || data === "y" || data === "\r") {
-            xterm.write("Y\r\n");
-            respondPermission(tabIdRef.current, true).catch(() => {});
-            agentInputStateRef.current = "processing";
-          } else if (data === "N" || data === "n") {
-            xterm.write("N\r\n");
-            respondPermission(tabIdRef.current, false).catch(() => {});
-            agentInputStateRef.current = "processing";
-          }
-          return;
+      if (state === "awaiting_permission") {
+        // Only accept Y/y/N/n/Enter
+        if (data === "Y" || data === "y" || data === "\r") {
+          xterm.write("Y\r\n");
+          respondPermission(tabIdRef.current, true).catch(() => {});
+          agentInputStateRef.current = "processing";
+        } else if (data === "N" || data === "n") {
+          xterm.write("N\r\n");
+          respondPermission(tabIdRef.current, false).catch(() => {});
+          agentInputStateRef.current = "processing";
         }
-
-        if (state === "awaiting_input") {
-          if (data === "\r") {
-            // Send the buffered input
-            const text = agentInputBufRef.current;
-            agentInputBufRef.current = "";
-            xterm.write("\r\n");
-            if (text) {
-              agentInputStateRef.current = "processing";
-              xterm.write(ESC_CURSOR_HIDE);
-              startSpinner("Thinking...");
-              onTaglineChangeRef.current?.(tabIdRef.current, "Thinking…");
-              sendAgentMessage(tabIdRef.current, text).catch(() => {});
-            }
-          } else if (data === "\x7f" || data === "\b") {
-            // Backspace
-            if (agentInputBufRef.current.length > 0) {
-              agentInputBufRef.current = agentInputBufRef.current.slice(0, -1);
-              xterm.write("\b \b");
-            }
-          } else if (data === "\x03") {
-            // Ctrl+C — clear input
-            agentInputBufRef.current = "";
-            xterm.write("^C\r\n");
-            // Re-show prompt
-            const rendered = renderAgentEvent({ type: "inputRequired" }, themeColorsRef.current, xterm.cols);
-            xterm.write(rendered);
-          } else if (data.length === 1 && data >= " ") {
-            // Regular character
-            agentInputBufRef.current += data;
-            xterm.write(data);
-          } else if (data.length > 1 && !data.startsWith("\x1b")) {
-            // Pasted text (multi-char, non-escape)
-            agentInputBufRef.current += data;
-            xterm.write(data);
-          }
-          return;
-        }
-
-        if (state === "processing") {
-          if (data === "\x03") {
-            // Ctrl+C during processing — interrupt
-            killAgent(tabIdRef.current).catch(() => {});
-          }
-          return;
-        }
-
-        // idle — ignore input until SDK is ready
         return;
       }
 
-      // ── PTY mode input handling ──
-      // Bookmark: when user presses Enter, record the buffer line as a prompt bookmark.
-      // Debounce: skip if same line as last bookmark (rapid Enter presses, empty confirms).
-      if (data === "\r") {
-        const line = xterm.buffer.active.baseY + xterm.buffer.active.cursorY;
-        if (line !== lastBookmarkLineRef.current) {
-          const lineContent = xterm.buffer.active.getLine(line);
-          const text = lineContent?.translateToString(true).trim() ?? "";
-          if (text.length > 0) {
-            lastBookmarkLineRef.current = line;
-            const bm = bookmarksRef.current;
-            // Prune bookmarks outside current buffer range
-            const minLine = xterm.buffer.active.baseY;
-            if (bm.size > 1500) {
-              const stale = [...bm.keys()].filter(b => b < minLine);
-              stale.forEach(b => bm.delete(b));
-            }
-            // Cap at 2000 — strip leading prompt chars (›, ❯, >)
-            if (bm.size < 2000) bm.set(line, text.replace(/^[›❯>\s]+/, "").slice(0, MAX_BOOKMARK_TEXT));
+      if (state === "awaiting_input") {
+        if (data === "\r") {
+          // Send the buffered input
+          const text = agentInputBufRef.current;
+          agentInputBufRef.current = "";
+          xterm.write("\r\n");
+          if (text) {
+            // Bookmark the user's prompt at the current line
+            const promptLine = xterm.buffer.active.baseY + xterm.buffer.active.cursorY;
+            const label = text.length > MAX_BOOKMARK_TEXT ? text.slice(0, MAX_BOOKMARK_TEXT) + "…" : text;
+            bookmarksRef.current.set(promptLine, `❯ ${label}`);
+            lastBookmarkLineRef.current = promptLine;
+            responseBookmarkedRef.current = false;
+
+            agentInputStateRef.current = "processing";
+            xterm.write(ESC_CURSOR_HIDE);
+            startSpinner("Thinking...");
+            onTaglineChangeRef.current?.(tabIdRef.current, "Thinking...");
+            sendAgentMessage(tabIdRef.current, text).catch(() => {});
           }
+        } else if (data === "\x7f" || data === "\b") {
+          // Backspace
+          if (agentInputBufRef.current.length > 0) {
+            agentInputBufRef.current = agentInputBufRef.current.slice(0, -1);
+            xterm.write("\b \b");
+          }
+        } else if (data === "\x03") {
+          // Ctrl+C — clear input
+          agentInputBufRef.current = "";
+          xterm.write("^C\r\n");
+          // Re-show prompt
+          const rendered = renderAgentEvent({ type: "inputRequired" }, themeColorsRef.current, xterm.cols);
+          xterm.write(rendered);
+        } else if (data.length === 1 && data >= " ") {
+          // Regular character
+          agentInputBufRef.current += data;
+          xterm.write(data);
+        } else if (data.length > 1 && !data.startsWith("\x1b")) {
+          // Pasted text (multi-char, non-escape)
+          agentInputBufRef.current += data;
+          xterm.write(data);
         }
+        return;
       }
-      writePty(sessionIdRef.current, data).catch(() => {});
+
+      if (state === "processing") {
+        if (data === "\x03") {
+          // Ctrl+C during processing — interrupt
+          killAgent(tabIdRef.current).catch(() => {});
+        }
+        return;
+      }
+
+      // idle — ignore input until SDK is ready
     });
 
     // Clear all bookmarks when the buffer shrinks significantly (e.g. /clear,
@@ -601,30 +576,13 @@ export default memo(function Terminal({
     let lastRows = 0;
     let resizeTimer: ReturnType<typeof setTimeout> | undefined;
     let cursorShowTimer: ReturnType<typeof setTimeout> | undefined;
-    const CURSOR_IDLE_MS = 80;
 
-    const syncPtySize = (debounce: boolean) => {
+    const syncPtySize = (_debounce: boolean) => {
       const cols = xterm.cols;
       const rows = xterm.rows;
       if (cols !== lastCols || rows !== lastRows) {
         lastCols = cols;
         lastRows = rows;
-        // Agent tabs don't have a PTY to resize
-        if (tabType === "agent") return;
-        if (sessionIdRef.current) {
-          if (debounce) {
-            // Capture session ID now — session may change within the 80ms window.
-            const capturedSid = sessionIdRef.current;
-            clearTimeout(resizeTimer);
-            resizeTimer = setTimeout(() => {
-              if (sessionIdRef.current === capturedSid) {
-                resizePty(capturedSid, cols, rows).catch(() => {});
-              }
-            }, 80);
-          } else {
-            resizePty(sessionIdRef.current, cols, rows).catch(() => {});
-          }
-        }
       }
     };
 
@@ -652,222 +610,115 @@ export default memo(function Terminal({
     observer.observe(containerRef.current);
 
     // Defer fit + spawn to next frame so the container has its final layout.
-    // Use cancellation flag to prevent orphaned PTY if component unmounts before rAF fires.
+    // Use cancellation flag to prevent orphaned agent if component unmounts before rAF fires.
     const rafId = requestAnimationFrame(() => {
       if (cancelled) return;
       fitAndResize();
-      const cols = xterm.cols;
-      const rows = xterm.rows;
 
-      // ── Agent mode branch ────────────────────────────────────
-      if (tabType === "agent") {
-        // Show logo directly
-        xterm.write(ESC_CURSOR_HIDE + ANSI_LOGO + "\r\n\r\n");
+      // Show logo directly
+      xterm.write(ESC_CURSOR_HIDE + ANSI_LOGO + "\r\n\r\n");
 
-        const MODELS = ["claude-sonnet-4-6", "claude-opus-4-6", "claude-haiku-4-5", "claude-sonnet-4-6[1m]", "claude-opus-4-6[1m]"];
-        const EFFORTS = ["high", "medium", "low"];
-        const modelId = MODELS[modelIdx] || "";
-        const effortId = EFFORTS[effortIdx] || "high";
+      const MODELS = ["claude-sonnet-4-6", "claude-opus-4-6", "claude-haiku-4-5", "claude-sonnet-4-6[1m]", "claude-opus-4-6[1m]"];
+      const EFFORTS = ["high", "medium", "low"];
+      const modelId = MODELS[modelIdx] || "";
+      const effortId = EFFORTS[effortIdx] || "high";
 
-        const handleAgentEvent = (event: AgentEvent) => {
-          if (cancelled) return;
+      const handleAgentEvent = (event: AgentEvent) => {
+        if (cancelled) return;
 
-          // Stop spinner before rendering new content (except for thinking deltas)
-          if (event.type !== "thinking" && event.type !== "progress" && event.type !== "status") {
-            stopSpinner();
-          }
-
-          const rendered = renderAgentEvent(event, themeColorsRef.current, xterm.cols);
-          if (rendered) xterm.write(rendered);
-
-          if (event.type === "inputRequired") {
-            stopSpinner();
-            agentInputStateRef.current = "awaiting_input";
-            agentInputBufRef.current = "";
-            xterm.write(ESC_CURSOR_SHOW);
-            onTaglineChangeRef.current?.(tabIdRef.current, "");
-          } else if (event.type === "permission") {
-            stopSpinner();
-            agentInputStateRef.current = "awaiting_permission";
-            onTaglineChangeRef.current?.(tabIdRef.current, `Permission: ${event.tool}`);
-          } else if (event.type === "toolUse") {
-            const inp = event.input as Record<string, string> | undefined;
-            const detail = event.tool === "Bash" ? (inp?.command || "").slice(0, 40)
-              : event.tool === "Edit" || event.tool === "Write" || event.tool === "Read"
-                ? (inp?.file_path || "").split(/[/\\]/).pop() || ""
-                : "";
-            onTaglineChangeRef.current?.(tabIdRef.current, detail ? `${event.tool}: ${detail}` : event.tool);
-          } else if (event.type === "thinking") {
-            // Start/keep animated spinner for thinking — the static rendered text
-            // from ansiRenderer is overwritten by the spinner animation
-            if (!spinnerTimerRef.current) {
-              startSpinner("Thinking...");
-            }
-            onTaglineChangeRef.current?.(tabIdRef.current, "Thinking…");
-          } else if (event.type === "result") {
-            stopSpinner();
-            onAgentResultRef.current?.(tabIdRef.current, event);
-            onTaglineChangeRef.current?.(tabIdRef.current, "");
-          } else if (event.type === "exit") {
-            stopSpinner();
-            exitedRef.current = true;
-            onExitRef.current(tabIdRef.current, event.code);
-            onTaglineChangeRef.current?.(tabIdRef.current, "");
-          }
-
-          if (!isActiveRef.current) {
-            onNewOutputRef.current(tabIdRef.current);
-          }
-        };
-
-        spawnAgent(
-          tabId,
-          projectPath,
-          modelId,
-          effortId,
-          stripNonBmpAndSurrogates(systemPrompt),
-          skipPerms,
-          handleAgentEvent,
-        )
-          .then((channel) => {
-            if (cancelled) {
-              killAgent(tabId).catch(() => {});
-              return;
-            }
-            sessionIdRef.current = tabId; // Use tabId as session key for agent mode
-            channelRef.current = channel;
-            onSessionCreatedRef.current(tabIdRef.current, tabId);
-          })
-          .catch((err) => {
-            if (cancelled) return;
-            onErrorRef.current(tabIdRef.current, String(err));
-            xterm.write(`\r\n\x1b[91mError: ${String(err).replace(/\x1b/g, "")}\x1b[0m`);
-          });
-
-        // Early return — skip PTY spawn
-        return;
-      }
-
-      // ── PTY mode (terminal tabs) ─────────────────────────────
-      // For Claude (toolIdx 0), buffer initial output until we detect the
-      // horizontal separator (─────). Replace Claude's block-char logo with
-      // the Anvil ASCII logo, keep everything else (separator, prompt, status).
-      // No CUP offset or PTY row reduction — Claude uses the full terminal.
-      // The logo acts as a startup splash that gets overwritten when Claude
-      // redraws (e.g. on resize or when output fills the screen).
-      let bannerBuf: string | null = toolIdx === 0 ? "" : null;
-      /** Detect screen clear (ESC[2J/3J) for banner re-interception on resize. */
-      const hasScreenClear = (s: string): number => {
-        let maxEnd = -1;
-        for (const seq of ["\x1b[2J", "\x1b[3J"]) {
-          const i = s.lastIndexOf(seq);
-          if (i !== -1) maxEnd = Math.max(maxEnd, i + seq.length);
+        // Stop spinner before rendering new content (except for thinking deltas)
+        if (event.type !== "thinking" && event.type !== "progress" && event.type !== "status") {
+          stopSpinner();
         }
-        return maxEnd;
+
+        // Bookmark the start of Claude's response (first assistant chunk per turn)
+        if (event.type === "assistant" && !responseBookmarkedRef.current) {
+          responseBookmarkedRef.current = true;
+          const responseLine = xterm.buffer.active.baseY + xterm.buffer.active.cursorY;
+          // Use first line of response text as preview
+          const preview = event.text.split(/\r?\n/)[0].slice(0, MAX_BOOKMARK_TEXT) || "Response";
+          bookmarksRef.current.set(responseLine, `◆ ${preview}`);
+          lastBookmarkLineRef.current = responseLine;
+        }
+
+        const rendered = renderAgentEvent(event, themeColorsRef.current, xterm.cols);
+        if (rendered) xterm.write(rendered);
+
+        if (event.type === "inputRequired") {
+          stopSpinner();
+          agentInputStateRef.current = "awaiting_input";
+          agentInputBufRef.current = "";
+          xterm.write(ESC_CURSOR_SHOW);
+          onTaglineChangeRef.current?.(tabIdRef.current, "");
+        } else if (event.type === "permission") {
+          stopSpinner();
+          agentInputStateRef.current = "awaiting_permission";
+          onTaglineChangeRef.current?.(tabIdRef.current, `Permission: ${event.tool}`);
+        } else if (event.type === "toolUse") {
+          const inp = event.input as Record<string, string> | undefined;
+          const detail = event.tool === "Bash" ? (inp?.command || "").slice(0, 40)
+            : event.tool === "Edit" || event.tool === "Write" || event.tool === "Read"
+              ? (inp?.file_path || "").split(/[/\\]/).pop() || ""
+              : "";
+          onTaglineChangeRef.current?.(tabIdRef.current, detail ? `${event.tool}: ${detail}` : event.tool);
+        } else if (event.type === "thinking") {
+          // Start/keep animated spinner for thinking — the static rendered text
+          // from ansiRenderer is overwritten by the spinner animation
+          if (!spinnerTimerRef.current) {
+            startSpinner("Thinking...");
+          }
+          onTaglineChangeRef.current?.(tabIdRef.current, "Thinking...");
+        } else if (event.type === "result") {
+          stopSpinner();
+          onAgentResultRef.current?.(tabIdRef.current, event);
+          onTaglineChangeRef.current?.(tabIdRef.current, "");
+        } else if (event.type === "exit") {
+          stopSpinner();
+          exitedRef.current = true;
+          onExitRef.current(tabIdRef.current, event.code);
+          onTaglineChangeRef.current?.(tabIdRef.current, "");
+        }
+
+        if (!isActiveRef.current) {
+          onNewOutputRef.current(tabIdRef.current);
+        }
       };
 
-      spawnClaude(
+      spawnAgent(
+        tabId,
         projectPath,
-        toolIdx,
-        modelIdx,
-        effortIdx,
-        skipPerms,
-        autocompact,
+        modelId,
+        effortId,
         stripNonBmpAndSurrogates(systemPrompt),
-        cols,
-        rows,
-        (data: string) => {
-          if (bannerBuf !== null) {
-            bannerBuf += data;
-            const endMatch = BANNER_END_RE.exec(bannerBuf);
-            if (endMatch || bannerBuf.length > BANNER_BUF_MAX) {
-              const rest = endMatch
-                ? bannerBuf.slice(endMatch.index + 1) // keep from \n onward (the ─── line)
-                : bannerBuf; // fallback: write everything
-              bannerBuf = null;
-              xtermRef.current?.write(ESC_CURSOR_HIDE + ANSI_LOGO + "\r\n" + rest);
-            }
-            return;
-          }
-          // On screen clear (resize redraw), Claude redraws its banner.
-          // Re-activate banner buffering to replace it with our logo again.
-          if (toolIdx === 0) {
-            const clearEnd = hasScreenClear(data);
-            if (clearEnd !== -1) {
-              const pre = data.slice(0, clearEnd);
-              xtermRef.current?.write(pre);
-              bannerBuf = data.slice(clearEnd);
-              return;
-            }
-          }
-          // Hide cursor during ALL output, not just cursor-repositioning
-          // sequences. Rapid writes cause the cursor to flash at intermediate
-          // positions ("ghost caret" flickering through the text). A debounced
-          // show ensures the cursor only appears once output settles.
-          clearTimeout(cursorShowTimer);
-          const lastHide = data.lastIndexOf(ESC_CURSOR_HIDE);
-          const lastShow = data.lastIndexOf(ESC_CURSOR_SHOW);
-          const endsWithHide = lastHide > lastShow;
-          xtermRef.current?.write(ESC_CURSOR_HIDE + data);
-          if (!endsWithHide) {
-            cursorShowTimer = setTimeout(() => {
-              xtermRef.current?.write(ESC_CURSOR_SHOW);
-            }, CURSOR_IDLE_MS);
-          }
-          if (!isActiveRef.current) {
-            onNewOutputRef.current(tabIdRef.current);
-          }
-        },
-        (code: number) => {
-          exitedRef.current = true;
-          xtermRef.current?.write(
-            `\r\n\x1b[90m[Process exited with code ${code}. Press any key to close tab]\x1b[0m`,
-          );
-          onExitRef.current(tabIdRef.current, code);
-        },
+        skipPerms,
+        handleAgentEvent,
       )
-        .then(({ sessionId, channel }) => {
+        .then((channel) => {
           if (cancelled) {
-            // Component unmounted while spawn was in flight — kill orphan
-            killSession(sessionId).catch(() => {});
+            killAgent(tabId).catch(() => {});
             return;
           }
-          sessionIdRef.current = sessionId;
+          sessionIdRef.current = tabId; // Use tabId as session key for agent mode
           channelRef.current = channel;
-          onSessionCreatedRef.current(tabIdRef.current, sessionId);
-          // Reset tracking to spawn-time values so fitAndResize detects
-          // the delta if the terminal resized while spawn was in flight.
-          // Without this, a resize during spawn is recorded in lastCols/lastRows
-          // but never sent (sessionId was null), and the post-spawn fit sees
-          // no change and skips the PTY resize — leaving the PTY at stale dims.
-          lastCols = cols;
-          lastRows = rows;
-          fitAndResize();
+          onSessionCreatedRef.current(tabIdRef.current, tabId);
         })
         .catch((err) => {
           if (cancelled) return;
           onErrorRef.current(tabIdRef.current, String(err));
-          xtermRef.current?.write(`\r\n\x1b[91mError: ${String(err).replace(/\x1b/g, "")}\x1b[0m`);
+          xterm.write(`\r\n\x1b[91mError: ${String(err).replace(/\x1b/g, "")}\x1b[0m`);
         });
     });
 
-    const heartbeatInterval = setInterval(() => {
+    // Periodic WebGL health check — if a context loss event fired, dispose the
+    // addon and force canvas fallback.
+    const webglHealthInterval = setInterval(() => {
       if (cancelled) return;
-      if (sessionIdRef.current && !exitedRef.current) {
-        sendHeartbeat(sessionIdRef.current).catch(() => {});
-      }
-      // If a context loss event fired between heartbeats, dispose the addon
-      // now and force canvas fallback. The webglContextLost flag is set by
-      // onContextLoss / webglcontextlost handlers even if disposeWebgl was
-      // already called (idempotent), so this is a safety net.
       if (currentWebgl && webglContextLost) {
         disposeWebgl("periodic health check: context lost");
       }
     }, 5000);
 
-    // On wake from standby, send an immediate heartbeat so the reaper doesn't
-    // time out sessions that are still alive but missed beats during sleep.
-    // If the heartbeat fails, the session was already reaped — surface exit to user.
+    // On wake from standby, recover WebGL and refresh the terminal.
     const handleVisibilityChange = () => {
       if (cancelled) return;
       if (document.visibilityState === "visible") {
@@ -887,26 +738,11 @@ export default memo(function Terminal({
         requestAnimationFrame(() => {
           if (!cancelled) safeRefresh();
         });
-
-        if (sessionIdRef.current && !exitedRef.current) {
-          sendHeartbeat(sessionIdRef.current).catch(() => {
-            if (!exitedRef.current) {
-              exitedRef.current = true;
-              xtermRef.current?.write(
-                `\r\n\x1b[90m[Session lost during standby. Press any key to close tab]\x1b[0m`,
-              );
-              onExitRef.current(tabIdRef.current, -1);
-            }
-          });
-        }
       }
     };
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // File drag-and-drop: write dropped paths into PTY
-    // Only allow safe Windows path characters to prevent shell injection
-    // Only allow alphanumeric, whitespace, common punctuation — exclude cmd.exe
-    // metacharacters (%, ^, !, &, |) that would expand or inject when written to a PTY.
+    // File drag-and-drop: insert dropped paths into agent input
     const SAFE_WIN_PATH = /^[a-zA-Z]:\\[\w\s.\-\\()]+$/;
     let unlistenDragDrop: (() => void) | null = null;
     getCurrentWebview().onDragDropEvent((event) => {
@@ -918,7 +754,7 @@ export default memo(function Terminal({
       const paths = safePaths
         .map((p) => (p.includes(" ") ? `"${p}"` : p))
         .join(" ");
-      writePty(sessionIdRef.current, paths + " ").catch(() => {});
+      tryAgentWrite(paths + " ");
     }).then((unlisten) => {
       if (cancelled) { unlisten(); return; }
       unlistenDragDrop = unlisten;
@@ -930,7 +766,7 @@ export default memo(function Terminal({
       cancelAnimationFrame(resizeRafRef.current);
       clearTimeout(resizeTimer);
       clearTimeout(cursorShowTimer);
-      clearInterval(heartbeatInterval);
+      clearInterval(webglHealthInterval);
       if (spinnerTimerRef.current) {
         clearInterval(spinnerTimerRef.current);
         spinnerTimerRef.current = null;
@@ -940,11 +776,7 @@ export default memo(function Terminal({
       unlistenDragDrop?.();
       observer.disconnect();
       if (sessionIdRef.current) {
-        if (tabType === "agent") {
-          killAgent(sessionIdRef.current).catch(() => {});
-        } else {
-          killSession(sessionIdRef.current).catch(() => {});
-        }
+        killAgent(sessionIdRef.current).catch(() => {});
       }
       if (channelRef.current) {
         channelRef.current.onmessage = () => {};
@@ -952,7 +784,10 @@ export default memo(function Terminal({
       try { currentWebgl?.dispose(); } catch { /* ok */ }
       currentWebgl = null;
       setXtermReady(null);
-      xterm.dispose();
+      // Detach from DOM before dispose to prevent xterm.js RenderService race
+      // where syncScrollArea fires after the render service is torn down
+      xterm.element?.remove();
+      try { xterm.dispose(); } catch (e) { console.debug("xterm dispose:", e); }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

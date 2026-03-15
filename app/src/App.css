@@ -36,6 +36,11 @@
   --info-strip-height: 24px;
   --backdrop: color-mix(in srgb, var(--crust) 85%, transparent);
   --shadow-modal: 0 8px 32px color-mix(in srgb, var(--crust) 80%, transparent);
+  --title-bar-height: 32px;
+  --sidebar-width: 200px;
+  --sidebar-min-width: 140px;
+  --sidebar-max-width: 360px;
+  --sidebar-handle-width: 4px;
 }
 
 *, *::before, *::after {
@@ -58,6 +63,8 @@ html, body, #root {
 
 /* Theme crossfade: smooth color transitions on structural containers when switching themes */
 .tab-bar,
+.tab-sidebar,
+.title-bar,
 .session-config,
 .info-strip,
 .new-tab-page,
@@ -88,6 +95,34 @@ button, input, select {
   flex: 1;
   overflow: hidden;
   position: relative;
+}
+
+/* ── Vertical tabs mode ── */
+.app.vertical-tabs {
+  display: grid;
+  grid-template-rows: var(--title-bar-height) 1fr;
+  grid-template-columns: var(--sidebar-width) 1fr;
+}
+
+.app.vertical-tabs .tab-bar {
+  display: none;
+}
+
+.app.vertical-tabs .tab-content {
+  min-width: 0;
+  min-height: 0;
+}
+
+.app.vertical-tabs .resize-handle.left {
+  top: var(--title-bar-height);
+}
+
+.app.vertical-tabs.resizing .tab-content {
+  pointer-events: none;
+}
+
+.app.vertical-tabs.resizing {
+  cursor: col-resize;
 }
 
 .tab-panel {
@@ -157,6 +192,8 @@ button, input, select {
 
 /* Thicker structural borders */
 .retro .tab-bar { border-bottom: 2px solid var(--overlay0); }
+.retro .title-bar { border-bottom: 2px solid var(--overlay0); }
+.retro .tab-sidebar { border-right: 2px solid var(--overlay0); }
 .retro .session-config { border-bottom: 2px solid var(--overlay0); }
 
 /* Active tab: compensate for 2px border (was -1px for 1px border) */
@@ -168,6 +205,11 @@ button, input, select {
 .retro .tab-add,
 .retro .win-btn,
 .retro .tab-bar,
+.retro .title-bar,
+.retro .tab-sidebar,
+.retro .tab-sidebar__resize,
+.retro .tab-sidebar__add,
+.retro .tab-bar-action,
 .retro .session-config,
 .retro .segmented__item,
 .retro .info-strip,

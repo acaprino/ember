@@ -18,6 +18,10 @@ const FONT_OPTIONS = [
 ];
 
 const SORT_OPTIONS = SORT_ORDERS.map((s) => ({ label: s, value: s }));
+const TAB_LAYOUT_OPTIONS = [
+  { label: "Horizontal", value: "horizontal" },
+  { label: "Vertical", value: "vertical" },
+];
 
 interface SettingsModalProps {
   settings: Settings;
@@ -28,6 +32,9 @@ interface SettingsModalProps {
 export default function SettingsModal({ settings, onClose, onUpdate }: SettingsModalProps) {
   const handleSortChange = useCallback((idx: number) => {
     onUpdate({ sort_idx: idx });
+  }, [onUpdate]);
+  const handleTabLayoutChange = useCallback((idx: number) => {
+    onUpdate({ vertical_tabs: idx === 1 });
   }, [onUpdate]);
   // Font state (local until explicit conceptual grouping, but we apply live)
   const [fontFamily, setFontFamily] = useState(settings.font_family || "Cascadia Code");
@@ -216,6 +223,15 @@ export default function SettingsModal({ settings, onClose, onUpdate }: SettingsM
         {/* Behavior */}
         <div className="settings-section">
           <h3 className="settings-section__title">Behavior</h3>
+          <div className="settings-toggle-row">
+            <span>Tab layout</span>
+            <SegmentedControl
+              options={TAB_LAYOUT_OPTIONS}
+              value={settings.vertical_tabs ? "vertical" : "horizontal"}
+              onChange={handleTabLayoutChange}
+              title="Tab layout"
+            />
+          </div>
           <div className="settings-toggle-row">
             <span>Sort order</span>
             <SegmentedControl

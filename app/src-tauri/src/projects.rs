@@ -61,6 +61,10 @@ pub struct Settings {
     pub project_labels: HashMap<String, String>,
     #[serde(default = "default_true")]
     pub use_agent_sdk: bool,
+    #[serde(default)]
+    pub vertical_tabs: bool,
+    #[serde(default = "default_sidebar_width")]
+    pub sidebar_width: u32,
     #[serde(flatten)]
     pub extra: HashMap<String, serde_json::Value>,
 }
@@ -75,6 +79,10 @@ fn default_font_family() -> String {
 
 fn default_font_size() -> u32 {
     14
+}
+
+fn default_sidebar_width() -> u32 {
+    200
 }
 
 fn default_project_dirs() -> Vec<String> {
@@ -104,6 +112,8 @@ impl Default for Settings {
             single_project_dirs: Vec::new(),
             project_labels: HashMap::new(),
             use_agent_sdk: true,
+            vertical_tabs: false,
+            sidebar_width: default_sidebar_width(),
             extra: HashMap::new(),
         }
     }

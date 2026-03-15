@@ -1,0 +1,49 @@
+.title-bar {
+  display: flex;
+  align-items: center;
+  height: var(--title-bar-height);
+  background: var(--crust);
+  border-bottom: 1px solid var(--surface);
+  user-select: none;
+  grid-column: 1 / -1;
+}
+
+.title-bar__spacer {
+  flex: 1;
+}
+
+/* Window controls (scoped to title-bar for vertical-tabs mode) */
+.title-bar .window-controls {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  height: 100%;
+}
+
+.title-bar .win-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 100%;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: background 0.1s ease-out, color 0.1s ease-out;
+}
+
+.title-bar .win-btn:hover {
+  background: var(--hover-overlay);
+  color: var(--text);
+}
+
+.title-bar .win-btn.close:hover {
+  background: var(--red);
+  color: var(--crust);
+}
+
+.title-bar .win-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}

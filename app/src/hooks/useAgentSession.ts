@@ -104,3 +104,7 @@ export interface SidecarStatus {
 export async function getSidecarStatus(): Promise<SidecarStatus> {
   return invoke<SidecarStatus>("sidecar_available");
 }
+
+export async function saveClipboardImage(): Promise<string> {
+  return invoke<string>("save_clipboard_image");
+}

@@ -73,6 +73,12 @@ if exist "%RELEASE_DIR%\anvil.exe" (
     exit /b 1
 )
 
+:: Copy data directory (system prompts, etc.)
+if exist "%RELEASE_DIR%\data" (
+    xcopy /Y /E /I "%RELEASE_DIR%\data" "%DIST_DIR%\data" >nul
+    echo   - data\
+)
+
 :: Copy WebView2Loader if present
 if exist "%RELEASE_DIR%\WebView2Loader.dll" (
     copy /Y "%RELEASE_DIR%\WebView2Loader.dll" "%DIST_DIR%\" >nul
