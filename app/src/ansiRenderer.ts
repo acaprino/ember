@@ -79,7 +79,7 @@ export function renderAgentEvent(event: AgentEvent, theme: ThemeColors, cols: nu
     }
 
     case "inputRequired": {
-      return `\r\n${fg(theme.accent)}❯${RESET} `;
+      return `\r\n\x1b[?25h${fg(theme.accent)}❯${RESET} `;
     }
 
     case "thinking": {
