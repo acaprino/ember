@@ -133,19 +133,6 @@ async function handleCreate(cmd) {
   session.query = q;
   sessions.set(tabId, session);
 
-  // Store the inputResolve setter
-  session._setInputResolve = (fn) => { inputResolve = fn; };
-  session._pushInput = (text) => {
-    if (inputResolve) {
-      const resolve = inputResolve;
-      inputResolve = null;
-      resolve(text);
-    } else {
-      inputQueue.push(text);
-    }
-  };
-  // Fix: wire inputResolve through session object
-  const origInputResolve = inputResolve;
   session._pushInput = (text) => {
     if (inputResolve) {
       const r = inputResolve;
@@ -337,6 +324,7 @@ function handleKill(cmd) {
 
   session.query?.close();
   sessions.delete(cmd.tabId);
+  autocompleteTimestamps.delete(cmd.tabId);
   emit({ evt: "exit", tabId: cmd.tabId, code: -1 });
 }
 
@@ -424,9 +412,13 @@ async function handleGetMessages(cmd) {
 
 // ── Autocomplete handler ────────────────────────────────────────────
 
+const AUTOCOMPLETE_MODEL = "claude-haiku-4-5-20251001";
+const AUTOCOMPLETE_TIMEOUT_MS = 5000;
+
 let anthropicClient = null;
 
 function getAnthropicClient() {
+  if (!process.env.ANTHROPIC_API_KEY) return null;
   if (!anthropicClient) {
     anthropicClient = new Anthropic();
   }
@@ -464,6 +456,10 @@ async function handleAutocomplete(cmd) {
 
   try {
     const client = getAnthropicClient();
+    if (!client) {
+      emit({ evt: "autocomplete", tabId, suggestions: [], seq });
+      return;
+    }
 
     const messages = [];
     // Add conversation context (last 2-3 messages)
@@ -481,12 +477,15 @@ async function handleAutocomplete(cmd) {
       content: `Complete this partial input: "${input}"`,
     });
 
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), AUTOCOMPLETE_TIMEOUT_MS);
     const response = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: AUTOCOMPLETE_MODEL,
       max_tokens: 150,
       system: "You are an autocomplete engine for a coding assistant. Given the user's partial input and recent conversation context, suggest 3 short completions of what they might be typing. Return ONLY a JSON array of 3 strings, each being the completion text (the part that comes AFTER what they already typed). Be concise. Example: if input is \"fix the bug in\", return [\" the auth middleware\", \" src/login.ts\", \" the database connection\"]",
       messages,
-    });
+    }, { signal: controller.signal });
+    clearTimeout(timer);
 
     // Parse the response
     const text = response.content[0]?.text || "[]";
@@ -555,10 +554,7 @@ rl.on("line", async (line) => {
         await handleGetMessages(cmd);
         break;
       case "autocomplete":
-        handleAutocomplete(cmd).catch((err) => {
-          log(`Autocomplete error: ${err.message}`);
-          emit({ evt: "autocomplete", tabId: cmd.tabId, suggestions: [], seq: cmd.seq });
-        });
+        await handleAutocomplete(cmd);
         break;
       default:
         log("Unknown command:", cmd.cmd);

@@ -8,13 +8,18 @@ const ESC_ERASE_EOL = "\x1b[K";
 const ESC_DIM_ITALIC_GREY = "\x1b[2;3;90m";
 const ESC_RESET = "\x1b[0m";
 
+/** Strip ANSI escape sequences and control characters from a string. */
+function sanitizeSuggestion(s: string): string {
+  return s.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, "").replace(/[\x00-\x1f\x7f-\x9f]/g, "");
+}
+
 interface CacheEntry {
   suggestions: string[];
   timestamp: number;
-  inputSnapshot: string;
 }
 
 const CACHE_TTL_MS = 30_000;
+const CACHE_MAX_SIZE = 100;
 const DEBOUNCE_MS = 300;
 const MIN_CHARS_FILE = 1;
 const MIN_CHARS_LLM = 3;
@@ -36,7 +41,6 @@ export function useAutocomplete(
   inputBufRef: React.RefObject<string>,
   projectPath: string,
   enabled: boolean,
-  toolIdx: number,
 ): AutocompleteState {
   const suggestionsRef = useRef<string[]>([]);
   const currentIdxRef = useRef(0);
@@ -46,7 +50,6 @@ export function useAutocomplete(
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cacheRef = useRef<Map<string, CacheEntry>>(new Map());
   const ghostVisibleRef = useRef(false);
-  const lastGhostLenRef = useRef(0);
   const savedCursorRef = useRef<{ row: number; col: number } | null>(null);
 
   // Cleanup on unmount
@@ -67,7 +70,7 @@ export function useAutocomplete(
     // Truncate to fit remaining columns
     const availCols = xterm.cols - (col - 1);
     const indicator = total > 1 ? ` (${idx + 1}/${total})` : "";
-    let display = suggestion.split("\n")[0]; // First line only
+    let display = sanitizeSuggestion(suggestion.split("\n")[0]); // First line only, sanitized
     const maxLen = availCols - indicator.length;
     if (display.length > maxLen) {
       display = display.slice(0, Math.max(0, maxLen - 3)) + "...";
@@ -87,8 +90,8 @@ export function useAutocomplete(
     savedCursorRef.current = { row, col };
     ghostVisibleRef.current = true;
     hasSuggestionRef.current = true;
-    lastGhostLenRef.current = display.length + indicator.length;
-  }, [xtermRef]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const clearGhost = useCallback(() => {
     if (!ghostVisibleRef.current || !savedCursorRef.current) return;
@@ -102,8 +105,8 @@ export function useAutocomplete(
     ghostVisibleRef.current = false;
     hasSuggestionRef.current = false;
     savedCursorRef.current = null;
-    lastGhostLenRef.current = 0;
-  }, [xtermRef]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const dismiss = useCallback(() => {
     clearGhost();
@@ -133,6 +136,20 @@ export function useAutocomplete(
     return suggestion;
   }, [enabled, clearGhost]);
 
+  /** Evict expired cache entries and enforce max size. */
+  const evictCache = useCallback(() => {
+    const now = Date.now();
+    for (const [k, v] of cacheRef.current) {
+      if (now - v.timestamp > CACHE_TTL_MS) cacheRef.current.delete(k);
+    }
+    // Cap size — remove oldest entries
+    if (cacheRef.current.size > CACHE_MAX_SIZE) {
+      const sorted = [...cacheRef.current.entries()].sort((a, b) => a[1].timestamp - b[1].timestamp);
+      const excess = cacheRef.current.size - CACHE_MAX_SIZE;
+      for (let i = 0; i < excess; i++) cacheRef.current.delete(sorted[i][0]);
+    }
+  }, []);
+
   const fetchSuggestions = useCallback(async (input: string) => {
     if (!enabled || !input.trim()) return;
 
@@ -147,7 +164,7 @@ export function useAutocomplete(
         });
         newSuggestions.push(...files);
       } catch {
-        // Silently ignore file scan errors
+        // File scan errors are non-critical
       }
     }
 
@@ -158,22 +175,19 @@ export function useAutocomplete(
       renderGhost(newSuggestions[0], 0, newSuggestions.length);
     }
 
-    // 2. LLM provider — async, only for Claude (toolIdx 0), min 3 chars
-    if (input.length >= MIN_CHARS_LLM && toolIdx === 0) {
+    // 2. LLM provider — async, min 3 chars
+    if (input.length >= MIN_CHARS_LLM) {
       // Check cache first
       const cacheKey = input.toLowerCase().trim();
       const cached = cacheRef.current.get(cacheKey);
       if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-        // Verify cache is still relevant
-        if (cacheKey.startsWith(cached.inputSnapshot.toLowerCase().trim())) {
-          const merged = [...newSuggestions, ...cached.suggestions.filter((s) => !newSuggestions.includes(s))];
-          suggestionsRef.current = merged;
-          if (merged.length > 0) {
-            currentIdxRef.current = 0;
-            renderGhost(merged[0], 0, merged.length);
-          }
-          return;
+        const merged = [...newSuggestions, ...cached.suggestions.filter((s) => !newSuggestions.includes(s))];
+        suggestionsRef.current = merged;
+        if (merged.length > 0) {
+          currentIdxRef.current = 0;
+          renderGhost(merged[0], 0, merged.length);
         }
+        return;
       }
 
       // Show loading indicator if no file results are showing yet
@@ -186,7 +200,6 @@ export function useAutocomplete(
           xterm.write(`\x1b[${row};${col}H${ESC_DIM_ITALIC_GREY}...${ESC_RESET}`);
           xterm.write(`\x1b[${row};${col}H`);
           ghostVisibleRef.current = true;
-          lastGhostLenRef.current = 3;
         }
       }
 
@@ -196,32 +209,31 @@ export function useAutocomplete(
         await requestAutocomplete(
           tabIdRef.current || "",
           input,
-          [], // Context will be enhanced later
+          [],
           seq,
         );
-        // Response comes back via handleAutocompleteResponse (called from Terminal.tsx)
       } catch {
-        // Silently ignore LLM errors
+        // LLM errors are non-critical
       }
     }
-  }, [enabled, projectPath, toolIdx, tabIdRef, xtermRef, renderGhost]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, projectPath, renderGhost]);
 
   // Handle LLM autocomplete responses from sidecar
   const handleAutocompleteResponse = useCallback((suggestions: string[], seq: number) => {
     if (!enabled) return;
     // Discard stale responses
     if (seq !== seqRef.current) return;
-
     if (suggestions.length === 0) return;
 
-    // Cache the LLM response
+    // Cache the LLM response (with eviction)
     const input = inputBufRef.current;
-    if (input && suggestions.length > 0) {
+    if (input) {
       const cacheKey = input.toLowerCase().trim();
+      evictCache();
       cacheRef.current.set(cacheKey, {
         suggestions,
         timestamp: Date.now(),
-        inputSnapshot: input,
       });
     }
 
@@ -238,7 +250,7 @@ export function useAutocomplete(
       // Update the cycle indicator without changing current suggestion
       renderGhost(merged[currentIdxRef.current], currentIdxRef.current, merged.length);
     }
-  }, [enabled, inputBufRef, renderGhost]);
+  }, [enabled, inputBufRef, renderGhost, evictCache]);
 
   // Expose the response handler via ref so it's always current
   const responseHandlerRef = useRef(handleAutocompleteResponse);

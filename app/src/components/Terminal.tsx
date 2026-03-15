@@ -215,7 +215,6 @@ export default memo(function Terminal({
     agentInputBufRef,
     projectPath,
     autocompleteEnabled !== false,
-    0, // toolIdx — always Claude
   );
   const autocompleteRef = useRef(autocomplete);
   autocompleteRef.current = autocomplete;
@@ -535,14 +534,12 @@ export default memo(function Terminal({
           const rendered = renderAgentEvent({ type: "inputRequired" }, themeColorsRef.current, xterm.cols);
           xterm.write(rendered);
         } else if (data.length === 1 && data >= " ") {
-          autocompleteRef.current.dismiss();
-          // Regular character
+          // Regular character — onInputChange handles ghost dismissal
           agentInputBufRef.current += data;
           xterm.write(data);
           autocompleteRef.current.onInputChange();
         } else if (data.length > 1 && !data.startsWith("\x1b")) {
-          autocompleteRef.current.dismiss();
-          // Pasted text (multi-char, non-escape)
+          // Pasted text (multi-char, non-escape) — onInputChange handles ghost dismissal
           agentInputBufRef.current += data;
           xterm.write(data);
           autocompleteRef.current.onInputChange();
