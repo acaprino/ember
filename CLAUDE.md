@@ -68,6 +68,9 @@ sonnet / opus / haiku / sonnet [1M] / opus [1M]
 ### Agent Tab (Terminal.tsx active)
 - **Ctrl+C**: Copy selection (or send interrupt if no selection)
 - **Ctrl+V**: Paste (text or image path)
+- **Tab**: Cycle autocomplete suggestion (when ghost text visible)
+- **Right Arrow**: Accept autocomplete suggestion (when ghost text visible)
+- **Esc**: Dismiss autocomplete suggestion (when ghost text visible)
 
 ## Design Tokens
 

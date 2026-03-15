@@ -285,6 +285,7 @@ pub enum AgentEvent {
         cache_read_tokens: u64, cache_write_tokens: u64,
         turns: u32, duration_ms: u64, is_error: bool, session_id: String,
     },
+    Autocomplete { suggestions: Vec<String>, seq: u32 },
     Error { code: String, message: String },
     Exit { code: i32 },
 }
@@ -377,6 +378,7 @@ All data files are stored in `dirs::data_local_dir() / "anvil"` (typically `%LOC
 | `project_labels` | `HashMap<String, String>` | `{}` |
 | `vertical_tabs` | `bool` | `false` |
 | `sidebar_width` | `u32` | `200` |
+| `autocomplete_enabled` | `bool` (via `extra`) | `true` (stored in `extra` via serde flatten) |
 | `extra` | `HashMap<String, Value>` | `{}` (serde flatten, forward-compatible) |
 
 **Save strategy:** Atomic write via temp file + rename. Before overwriting, the current file is backed up to `.bak`. Load falls back to backup if primary is corrupt.
@@ -488,6 +490,7 @@ The sidecar is a standalone Node.js process that wraps the `@anthropic-ai/claude
 | `set_model` | `tabId, model` | Change model mid-session |
 | `list_sessions` | `tabId, cwd` | List past SDK sessions |
 | `get_messages` | `tabId, sessionId, dir` | Get messages from a past session |
+| `autocomplete` | `tabId, input, context, seq` | Request LLM-based input autocomplete suggestions |
 
 **Events (stdout, JSON-lines):**
 
@@ -507,6 +510,7 @@ The sidecar is a standalone Node.js process that wraps the `@anthropic-ai/claude
 | `exit` | `tabId, code` | Session ended |
 | `sessions` | `tabId, list` | Response to `list_sessions` |
 | `messages` | `tabId, sessionId, messages` | Response to `get_messages` |
+| `autocomplete` | `tabId, suggestions, seq` | Autocomplete suggestions (response to `autocomplete` command) |
 
 ### Session Lifecycle
 
@@ -689,14 +693,16 @@ Minimal title bar shown with vertical tab layout. Contains only the drag region 
 | `onExit` | `(tabId, code) => void` | Process exit callback |
 | `onError` | `(tabId, msg) => void` | Error callback |
 | `onRequestClose` | `(tabId) => void` | Close request callback |
+| `onAgentResult` | `(tabId, event) => void` | Optional callback on agent result events |
 | `onTaglineChange` | `(tabId, tagline) => void` | Tab tagline update |
+| `autocompleteEnabled` | `boolean` | Enable/disable input autocomplete (default true) |
 
 **Agent input state machine** (`Terminal.tsx:203`):
 
 | State | Description | User actions |
 |-------|-------------|--------------|
 | `idle` | Waiting for SDK to initialize | Input ignored |
-| `awaiting_input` | SDK ready for user message | Type, paste, backspace, Enter to send, Ctrl+C to clear |
+| `awaiting_input` | SDK ready for user message | Type, paste, backspace, Enter to send, Ctrl+C to clear, Tab/Right Arrow/Esc for autocomplete |
 | `processing` | SDK processing a request | Ctrl+C to interrupt (kill agent) |
 | `awaiting_permission` | SDK requesting tool permission | Y/y/Enter to allow, N/n to deny |
 
@@ -1269,6 +1275,7 @@ The `spawn_agent` (and `agent_resume`, `agent_fork`) commands accept a Tauri `Ch
 | `status` | `status, model` | Session status change |
 | `progress` | `message` | Tool progress update |
 | `result` | `cost, inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens, turns, durationMs, isError, sessionId` | Turn result with usage statistics |
+| `autocomplete` | `suggestions, seq` | Autocomplete suggestions for agent input |
 | `error` | `code, message` | Error condition |
 | `exit` | `code` | Agent session ended |
 
@@ -1326,6 +1333,9 @@ The `spawn_agent` (and `agent_resume`, `agent_fork`) commands accept a Tauri `Ch
 | N/n | Deny permission (when awaiting permission) |
 | Enter | Send buffered input (when awaiting input) |
 | Backspace | Delete last input character (when awaiting input) |
+| Tab | Cycle autocomplete suggestion (when ghost text visible) |
+| Right Arrow | Accept autocomplete suggestion (when ghost text visible) |
+| Escape | Dismiss autocomplete suggestion (when ghost text visible) |
 | Any key (after process exit) | Close tab |
 | File drag-and-drop | Insert paths into agent input |
 
@@ -1358,7 +1368,8 @@ Ctrl+T, Ctrl+F4, and Ctrl+Tab are intercepted by the custom key handler and pass
   "single_project_dirs": [],
   "project_labels": {},
   "vertical_tabs": false,
-  "sidebar_width": 200
+  "sidebar_width": 200,
+  "autocomplete_enabled": true
 }
 ```
 
