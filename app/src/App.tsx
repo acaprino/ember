@@ -1,6 +1,6 @@
 import { useEffect, useCallback, useMemo, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { SystemPrompt, THEMES } from "./types";
+import { SystemPrompt } from "./types";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useTabManager } from "./hooks/useTabManager";
 import { ProjectsProvider, useProjectsContext } from "./contexts/ProjectsContext";
@@ -40,7 +40,6 @@ function AppContent() {
 
   const { settings, setFilter, updateSettings } = useProjectsContext();
 
-  const themeIdx = settings?.theme_idx ?? 0;
   const fontFamily = settings?.font_family ?? "Cascadia Code";
   const fontSize = settings?.font_size ?? 14;
   const verticalTabs = settings?.vertical_tabs ?? false;
@@ -381,7 +380,6 @@ function AppContent() {
                     effortIdx={tab.effortIdx ?? 0}
                     skipPerms={tab.skipPerms ?? false}
                     systemPrompt={systemPrompt}
-                    themeColors={THEMES[themeIdx]?.colors ?? THEMES[0].colors}
                     fontFamily={fontFamily}
                     fontSize={fontSize}
                     isActive={isActive}
@@ -389,9 +387,7 @@ function AppContent() {
                     onNewOutput={handleNewOutput}
                     onExit={handleExit}
                     onError={handleError}
-                    onRequestClose={closeTab}
                     onTaglineChange={handleTaglineChange}
-                    autocompleteEnabled={settings?.autocomplete_enabled !== false}
                     resumeSessionId={tab.resumeSessionId}
                     forkSessionId={tab.forkSessionId}
                   />

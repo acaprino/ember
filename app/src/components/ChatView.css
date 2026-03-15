@@ -47,6 +47,10 @@
 
 .chat-msg--tool { font-size: var(--text-sm); }
 
+.chat-msg--permission { max-width: 90%; }
+
+.chat-msg--thinking { padding: var(--space-1) 0; }
+
 .chat-msg--error {
   color: var(--red);
   font-size: var(--text-sm);
@@ -220,6 +224,7 @@
 
 .perm-card.resolved.allowed .perm-card-icon { color: var(--green); }
 .perm-card.resolved.denied .perm-card-icon { color: var(--red); }
+.perm-card-label { color: var(--text-dim); word-break: break-all; }
 
 .perm-card-question {
   color: var(--yellow);

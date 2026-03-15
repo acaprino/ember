@@ -1,16 +1,13 @@
 import { memo, useEffect, useRef, useState } from "react";
 import { spawnAgent, resumeAgent, forkAgent, sendAgentMessage, killAgent, respondPermission } from "../hooks/useAgentSession";
 import { MODELS, EFFORTS } from "../types";
-import type { AgentEvent, ThemeColors, ChatMessage, PermissionSuggestion } from "../types";
+import type { AgentEvent, ChatMessage, PermissionSuggestion } from "../types";
 import MessageBubble from "./chat/MessageBubble";
 import ToolCard from "./chat/ToolCard";
 import PermissionCard from "./chat/PermissionCard";
 import ThinkingIndicator from "./chat/ThinkingIndicator";
 import ResultBar from "./chat/ResultBar";
 import "./ChatView.css";
-
-let msgCounter = 0;
-const nextId = () => `msg-${++msgCounter}`;
 
 /** Strip non-BMP characters (emoji etc.) that cause issues in agent messages. */
 function stripNonBmp(text: string): string {
@@ -24,7 +21,6 @@ interface ChatViewProps {
   effortIdx: number;
   skipPerms: boolean;
   systemPrompt: string;
-  themeColors: ThemeColors;
   fontFamily: string;
   fontSize: number;
   isActive: boolean;
@@ -32,19 +28,15 @@ interface ChatViewProps {
   onNewOutput: (tabId: string) => void;
   onExit: (tabId: string, code: number) => void;
   onError: (tabId: string, msg: string) => void;
-  onRequestClose: (tabId: string) => void;
-  onAgentResult?: (tabId: string, event: AgentEvent) => void;
   onTaglineChange?: (tabId: string, tagline: string) => void;
-  autocompleteEnabled?: boolean;
   resumeSessionId?: string;
   forkSessionId?: string;
 }
 
 export default memo(function ChatView({
   tabId, projectPath, modelIdx, effortIdx, skipPerms, systemPrompt,
-  themeColors: _themeColors, fontFamily, fontSize, isActive,
-  onSessionCreated, onNewOutput, onExit, onError, onRequestClose: _onRequestClose,
-  onAgentResult, onTaglineChange,
+  fontFamily, fontSize, isActive,
+  onSessionCreated, onNewOutput, onExit, onError, onTaglineChange,
   resumeSessionId, forkSessionId,
 }: ChatViewProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -55,6 +47,8 @@ export default memo(function ChatView({
   const exitedRef = useRef(false);
   const agentStartedRef = useRef(false);
   const tabIdRef = useRef(tabId);
+  const idCounterRef = useRef(0);
+  const nextId = () => `msg-${tabId}-${++idCounterRef.current}`;
 
   // Callback refs to avoid stale closures in useEffect
   const onSessionCreatedRef = useRef(onSessionCreated);
@@ -65,8 +59,6 @@ export default memo(function ChatView({
   onExitRef.current = onExit;
   const onErrorRef = useRef(onError);
   onErrorRef.current = onError;
-  const onAgentResultRef = useRef(onAgentResult);
-  onAgentResultRef.current = onAgentResult;
   const onTaglineChangeRef = useRef(onTaglineChange);
   onTaglineChangeRef.current = onTaglineChange;
   const isActiveRef = useRef(isActive);
@@ -199,15 +191,19 @@ export default memo(function ChatView({
           ...prev.filter(m => m.role !== "thinking"),
           { id: nextId(), role: "result", ...event, timestamp: Date.now() },
         ]);
-        onAgentResultRef.current?.(tabIdRef.current, event);
         onTaglineChangeRef.current?.(tabIdRef.current, "");
       } else if (event.type === "error") {
         setMessages(prev => [...prev, { id: nextId(), role: "error", code: event.code, message: event.message, timestamp: Date.now() }]);
       } else if (event.type === "exit") {
         exitedRef.current = true;
         onExitRef.current(tabIdRef.current, event.code);
-      } else if (event.type === "status") {
-        if (event.status && event.status !== "null") {
+      } else if (event.type === "progress") {
+        // Tool progress — show as transient status
+        onTaglineChangeRef.current?.(tabIdRef.current, event.message);
+      } else if (event.type === "autocomplete" || event.type === "status") {
+        // autocomplete: not implemented yet for chat UI
+        // status: only show non-null statuses
+        if (event.type === "status" && event.status && event.status !== "null") {
           setMessages(prev => [...prev, { id: nextId(), role: "status", status: event.status, model: event.model, timestamp: Date.now() }]);
         }
       }
