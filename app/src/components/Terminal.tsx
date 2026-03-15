@@ -507,11 +507,22 @@ export default memo(function Terminal({
       // (ESC[row;colH), so we offset all row numbers by the difference.
       // Reset to 0 on screen clear (ESC[2J/3J) since Claude redraws from scratch.
       let cupRowOffset = 0;
+      /** Detect screen-clear in a chunk. Returns the index after the clear
+       *  sequence, or -1 if none found. */
+      const screenClearIdx = (s: string): number => {
+        for (const seq of ["\x1b[2J", "\x1b[3J"]) {
+          const i = s.indexOf(seq);
+          if (i !== -1) return i + seq.length;
+        }
+        return -1;
+      };
       /** Adjust absolute cursor positioning sequences in data by cupRowOffset. */
       const adjustCup = (s: string): string => {
         if (cupRowOffset === 0) return s;
-        // Reset offset on screen clear — Claude redraws everything
-        if (s.includes("\x1b[2J") || s.includes("\x1b[3J")) {
+        // On screen clear, Claude redraws its entire TUI including its banner.
+        // Reset offset; banner re-interception is handled in the data callback.
+        const clearEnd = screenClearIdx(s);
+        if (clearEnd !== -1) {
           cupRowOffset = 0;
           return s;
         }
@@ -545,6 +556,21 @@ export default memo(function Terminal({
               xtermRef.current?.write(ANSI_LOGO + "\r\n" + adjustCup(rest));
             }
             return;
+          }
+          // On screen clear (resize redraw), Claude redraws its banner.
+          // Split at the clear: write the clear to the terminal, then
+          // re-activate banner buffering for what follows.
+          if (toolIdx === 0) {
+            const clearEnd = screenClearIdx(data);
+            if (clearEnd !== -1) {
+              cupRowOffset = 0;
+              // Write everything up to and including the clear sequence
+              const pre = data.slice(0, clearEnd);
+              xtermRef.current?.write(pre);
+              // Buffer the remainder for banner interception
+              bannerBuf = data.slice(clearEnd);
+              return;
+            }
           }
           // Adjust cursor positioning for the taller logo
           data = adjustCup(data);
