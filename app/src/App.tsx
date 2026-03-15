@@ -1,5 +1,6 @@
-import { useEffect, useCallback, useMemo, useRef } from "react";
+import { useEffect, useCallback, useMemo, useRef, useState } from "react";
 import { SystemPrompt, THEMES } from "./types";
+import { getSidecarStatus } from "./hooks/useAgentSession";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { useTabManager } from "./hooks/useTabManager";
 import { ProjectsProvider, useProjectsContext } from "./contexts/ProjectsContext";
@@ -35,6 +36,22 @@ function AppContent() {
   } = useTabManager();
 
   const { settings, setFilter, updateSettings } = useProjectsContext();
+  const [sidecarAvailable, setSidecarAvailable] = useState(false);
+  const [sidecarReason, setSidecarReason] = useState<string | null>(null);
+  const sidecarAvailableRef = useRef(false);
+
+  // Check sidecar status on mount
+  useEffect(() => {
+    getSidecarStatus().then((status) => {
+      setSidecarAvailable(status.available);
+      setSidecarReason(status.reason);
+      sidecarAvailableRef.current = status.available;
+    }).catch(() => {
+      setSidecarAvailable(false);
+      sidecarAvailableRef.current = false;
+    });
+  }, []);
+
   const themeIdx = settings?.theme_idx ?? 0;
   const fontFamily = settings?.font_family ?? "Cascadia Code";
   const fontSize = settings?.font_size ?? 14;
@@ -106,8 +123,10 @@ function AppContent() {
 
   const handleLaunch = useCallback(
     (tabId: string, projectPath: string, projectName: string, toolIdx: number, modelIdx: number, effortIdx: number, skipPerms: boolean, autocompact: boolean, temporary?: boolean) => {
+      // Claude (toolIdx 0) always uses agent SDK; Gemini uses PTY
+      const useAgent = toolIdx === 0;
       updateTab(tabId, {
-        type: "terminal",
+        type: useAgent ? "agent" : "terminal",
         projectPath,
         projectName,
         toolIdx,
@@ -118,7 +137,7 @@ function AppContent() {
         temporary: temporary || false,
       });
     },
-    [updateTab],
+    [updateTab, settings?.use_agent_sdk],
   );
 
   // H1: Use markNewOutput which guards against redundant array creation
