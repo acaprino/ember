@@ -55,9 +55,11 @@ const ANSI_LOGO_PARTS = [
   `${LOGO_COLORS.OUTLINE}     ${LOGO_COLORS.BLUE}██▓▓▓▓▓▓▓▓▓▓▓▓▓██`,
 ];
 const ANSI_LOGO = ANSI_LOGO_PARTS.join("\r\n") + LOGO_COLORS.R;
-/** Claude's banner is 3 lines; compute offset for CUP row adjustment. */
-const CLAUDE_BANNER_LINES = 3;
-const CUP_ROW_OFFSET = ANSI_LOGO_PARTS.length - CLAUDE_BANNER_LINES;
+/** CUP row offset = full logo height.  Claude's CUP row 1 must map to the
+ *  first real row AFTER the logo so nothing overwrites the anvil art.
+ *  Using the full logo length (not subtracting a banner-line guess) makes
+ *  this independent of how many lines Claude's own banner occupies. */
+const CUP_ROW_OFFSET = ANSI_LOGO_PARTS.length;
 
 /** Strip characters outside the Basic Multilingual Plane (emoji, supplementary chars)
  *  that become surrogate pairs in UTF-16.  On Windows, passing these through command-line
@@ -567,7 +569,7 @@ export default memo(function Terminal({
               bannerBuf = null;
               if (endMatch) {
                 cupRowOffset = CUP_ROW_OFFSET;
-                xtermRef.current?.write(ANSI_LOGO + "\r\n" + adjustCup(rest));
+                xtermRef.current?.write(ESC_CURSOR_HIDE + ANSI_LOGO + "\r\n" + adjustCup(rest));
               } else {
                 // Overflow fallback — no logo substitution, no offset
                 cupRowOffset = 0;
