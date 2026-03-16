@@ -25,8 +25,9 @@ async function handleCreate(cmd) {
   const { tabId, cwd, model, effort, systemPrompt, skipPerms, allowedTools } = cmd;
 
   if (sessions.has(tabId)) {
-    emit({ evt: "error", tabId, code: "duplicate", message: "Session already exists for this tab" });
-    return;
+    // Kill existing session (React 18 StrictMode sends create→create→kill)
+    log(`Replacing existing session for tab ${tabId}`);
+    handleKill({ tabId }, true); // Silent — don't emit exit (would remove Channel)
   }
 
   const abortController = new AbortController();
@@ -82,7 +83,7 @@ async function handleCreate(cmd) {
     options.canUseTool = async (toolName, input, opts) => {
       const description = toolName === "Bash"
         ? (input.command || "").slice(0, 200)
-        : toolName === "Edit" || toolName === "Write"
+        : toolName === "Edit" || toolName === "Write" || toolName === "Read"
           ? (input.file_path || "")
           : JSON.stringify(input).slice(0, 200);
 
@@ -96,7 +97,7 @@ async function handleCreate(cmd) {
       });
 
       // Wait for permission response from frontend
-      return new Promise((resolve) => {
+      const result = await new Promise((resolve) => {
         const session = sessions.get(tabId);
         if (session) {
           session.pendingPermission = { resolve, toolUseId: opts.toolUseID };
@@ -104,6 +105,7 @@ async function handleCreate(cmd) {
           resolve({ behavior: "deny", message: "Session not found" });
         }
       });
+      return result;
     };
   }
 
@@ -147,11 +149,14 @@ async function handleCreate(cmd) {
   };
 
   // Consume the async generator and emit events
-  consumeQuery(tabId, q).catch((err) => {
-    log(`Error in session ${tabId}:`, err.message);
-    emit({ evt: "error", tabId, code: "query_error", message: err.message });
-    emit({ evt: "exit", tabId, code: 1 });
-    sessions.delete(tabId);
+  consumeQuery(tabId, q, session).catch((err) => {
+    // Only report if we're still the active session
+    if (sessions.get(tabId) === session) {
+      log(`Error in session ${tabId}:`, err.message);
+      emit({ evt: "error", tabId, code: "query_error", message: err.message });
+      emit({ evt: "exit", tabId, code: 1 });
+      sessions.delete(tabId);
+    }
   });
 
   emit({ evt: "status", tabId, status: "started", model: model || "default" });
@@ -159,7 +164,7 @@ async function handleCreate(cmd) {
   emit({ evt: "input_required", tabId });
 }
 
-async function consumeQuery(tabId, q) {
+async function consumeQuery(tabId, q, sessionRef) {
   // Track whether we've streamed text for the current turn — if so, skip
   // re-emitting the complete assistant message (which would duplicate it).
   let hasStreamedText = false;
@@ -167,7 +172,7 @@ async function consumeQuery(tabId, q) {
   try {
     for await (const msg of q) {
       const session = sessions.get(tabId);
-      if (!session) break;
+      if (!session || session !== sessionRef) break; // Different session replaced us
 
       switch (msg.type) {
         case "assistant": {
@@ -293,9 +298,10 @@ async function consumeQuery(tabId, q) {
       }
     }
   } finally {
-    // Query finished (generator exhausted)
-    const session = sessions.get(tabId);
-    if (session) {
+    // Query finished — only clean up if WE are still the active session.
+    // A replacement session (from StrictMode re-mount) may have taken over.
+    const current = sessions.get(tabId);
+    if (current && current === sessionRef) {
       sessions.delete(tabId);
       emit({ evt: "exit", tabId, code: 0 });
     }
@@ -311,7 +317,7 @@ function handleSend(cmd) {
   session._pushInput(cmd.text);
 }
 
-function handleKill(cmd) {
+function handleKill(cmd, silent = false) {
   const session = sessions.get(cmd.tabId);
   if (!session) return;
 
@@ -328,7 +334,9 @@ function handleKill(cmd) {
   session.query?.close();
   sessions.delete(cmd.tabId);
   autocompleteTimestamps.delete(cmd.tabId);
-  emit({ evt: "exit", tabId: cmd.tabId, code: -1 });
+  // Silent mode: don't emit exit (used when replacing a session in handleCreate,
+  // because the exit event would cause Rust to remove the Channel).
+  if (!silent) emit({ evt: "exit", tabId: cmd.tabId, code: -1 });
 }
 
 function handlePermissionResponse(cmd) {
