@@ -2,10 +2,11 @@ import { memo, useState } from "react";
 import type { ChatMessage } from "../../types";
 import BookmarkPanel from "./BookmarkPanel";
 import MinimapPanel from "./MinimapPanel";
+import TodoPanel from "./TodoPanel";
 import ThinkingPanel from "./ThinkingPanel";
 import "./RightSidebar.css";
 
-type SidebarTab = "bookmarks" | "minimap" | "thinking";
+type SidebarTab = "bookmarks" | "minimap" | "todos" | "thinking";
 
 interface Props {
   messages: ChatMessage[];
@@ -18,6 +19,7 @@ export default memo(function RightSidebar({ messages, onScrollToMessage }: Props
   const tabs: { id: SidebarTab; icon: string; title: string }[] = [
     { id: "bookmarks", icon: "\uD83D\uDCD1", title: "Bookmarks" },
     { id: "minimap", icon: "\uD83D\uDDFA", title: "Minimap" },
+    { id: "todos", icon: "\u2611", title: "Todos" },
     { id: "thinking", icon: "\uD83E\uDDE0", title: "Thinking" },
   ];
 
@@ -41,6 +43,9 @@ export default memo(function RightSidebar({ messages, onScrollToMessage }: Props
         )}
         {activeTab === "minimap" && (
           <MinimapPanel messages={messages} onScrollToMessage={onScrollToMessage} />
+        )}
+        {activeTab === "todos" && (
+          <TodoPanel messages={messages} />
         )}
         {activeTab === "thinking" && (
           <ThinkingPanel messages={messages} />

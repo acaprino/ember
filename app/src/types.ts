@@ -235,6 +235,7 @@ export type AgentEvent =
   | { type: "status"; status: string; model: string }
   | { type: "progress"; message: string }
   | { type: "result"; cost: number; inputTokens: number; outputTokens: number; cacheReadTokens: number; cacheWriteTokens: number; turns: number; durationMs: number; isError: boolean; sessionId: string }
+  | { type: "todo"; todos: TodoItem[] }
   | { type: "autocomplete"; suggestions: string[]; seq: number }
   | { type: "error"; code: string; message: string }
   | { type: "exit"; code: number };
@@ -250,7 +251,8 @@ export type ChatMessage =
   | { id: string; role: "thinking"; text: string; ended?: boolean; timestamp: number }
   | { id: string; role: "result"; cost: number; inputTokens: number; outputTokens: number; cacheReadTokens: number; cacheWriteTokens: number; turns: number; durationMs: number; isError: boolean; sessionId: string; timestamp: number }
   | { id: string; role: "error"; code: string; message: string; timestamp: number }
-  | { id: string; role: "status"; status: string; model: string; timestamp: number };
+  | { id: string; role: "status"; status: string; model: string; timestamp: number }
+  | { id: string; role: "todo"; todos: TodoItem[]; timestamp: number };
 
 export interface SessionInfo {
   id: string;
@@ -262,6 +264,13 @@ export interface SessionInfo {
   createdAt: number;
   customTitle: string;
   fileSize: number;
+}
+
+export interface TodoItem {
+  id: string;
+  title: string;
+  status: "pending" | "in_progress" | "completed";
+  category?: string;
 }
 
 export interface Attachment {

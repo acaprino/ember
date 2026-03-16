@@ -183,6 +183,15 @@
   font-size: var(--text-sm);
 }
 
+.chat-mini-input-hint {
+  color: var(--text-dim);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.chat-mini-input-hint:hover { opacity: 1; }
+
 /* ── Command / Mention Menu ────────────────────────────────────── */
 .command-menu-wrapper {
   position: relative;

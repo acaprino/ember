@@ -183,3 +183,52 @@
   max-height: 200px;
   overflow-y: auto;
 }
+
+/* ── Todo Panel ────────────────────────────────────────────────── */
+.todo-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.todo-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  font-size: var(--text-xs);
+  border-radius: var(--radius-sm);
+}
+
+.todo-check {
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+
+.todo-pending .todo-check { color: var(--text-dim); }
+.todo-in_progress .todo-check { color: var(--accent); animation: todo-pulse 1.5s ease-in-out infinite; }
+.todo-completed .todo-check { color: var(--green); }
+
+@keyframes todo-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.todo-title {
+  flex: 1;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.todo-title.done {
+  text-decoration: line-through;
+  color: var(--green);
+  opacity: 0.6;
+}
+
+.todo-category {
+  font-size: 9px;
+  color: var(--overlay0);
+  flex-shrink: 0;
+}

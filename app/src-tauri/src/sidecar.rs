@@ -36,6 +36,7 @@ pub enum AgentEvent {
         is_error: bool,
         session_id: String,
     },
+    Todo { todos: serde_json::Value },
     Autocomplete { suggestions: Vec<String>, seq: u32 },
     Error { code: String, message: String },
     Exit { code: i32 },
@@ -97,6 +98,9 @@ struct SidecarEvent {
     // For get_messages response
     #[serde(default)]
     messages: Option<serde_json::Value>,
+    // For todo events
+    #[serde(default)]
+    todos: Option<serde_json::Value>,
     // For autocomplete response
     #[serde(default)]
     suggestions: Option<Vec<String>>,
@@ -336,6 +340,7 @@ impl SidecarManager {
                             is_error: event.is_error,
                             session_id: event.session_id,
                         },
+                        "todo" => AgentEvent::Todo { todos: event.todos.unwrap_or(serde_json::Value::Array(vec![])) },
                         "error" => AgentEvent::Error { code: event.code, message: event.message },
                         "exit" => AgentEvent::Exit { code: event.code.parse().unwrap_or(-1) },
                         "autocomplete" => AgentEvent::Autocomplete {

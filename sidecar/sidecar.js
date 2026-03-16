@@ -192,6 +192,15 @@ async function consumeQuery(tabId, q, sessionRef) {
                 input: block.input,
                 toolUseId: block.id,
               });
+              // Intercept TodoWrite/TodoRead to forward structured todo events
+              if (block.name === "TodoWrite" || block.name === "TodoRead") {
+                try {
+                  const todoInput = typeof block.input === "string" ? JSON.parse(block.input) : block.input;
+                  if (todoInput.todos || todoInput.items) {
+                    emit({ evt: "todo", tabId, todos: todoInput.todos || todoInput.items });
+                  }
+                } catch { /* ignore parse errors */ }
+              }
             } else if (block.type === "thinking") {
               if (!hasStreamedText) {
                 emit({ evt: "thinking", tabId, text: block.thinking || "" });

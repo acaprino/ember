@@ -44,6 +44,7 @@ export default memo(function ChatView({
   const [isDragging, setIsDragging] = useState(false);
   const [droppedFiles, setDroppedFiles] = useState<string[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showMiniInput, setShowMiniInput] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const exitedRef = useRef(false);
   const agentStartedRef = useRef(false);
@@ -79,6 +80,19 @@ export default memo(function ChatView({
       messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
     }
   }, [messages]);
+
+  // Track scroll position for terminal mode floating mini-input
+  useEffect(() => {
+    if (inputStyle !== "terminal") return;
+    const el = chatContainerRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      const dist = el.scrollHeight - el.scrollTop - el.clientHeight;
+      setShowMiniInput(dist > 200);
+    };
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [inputStyle]);
 
   // ── Agent lifecycle ─────────────────────────────────────────────
   useEffect(() => {
@@ -201,6 +215,17 @@ export default memo(function ChatView({
       } else if (event.type === "progress") {
         // Tool progress — show as transient status
         onTaglineChangeRef.current?.(tabIdRef.current, event.message);
+      } else if (event.type === "todo") {
+        // Update or create todo list message
+        setMessages(prev => {
+          const existing = prev.findIndex(m => m.role === "todo");
+          if (existing >= 0) {
+            const next = [...prev];
+            next[existing] = { ...next[existing], todos: event.todos, timestamp: Date.now() } as ChatMessage;
+            return next;
+          }
+          return [...prev, { id: nextId(), role: "todo", todos: event.todos, timestamp: Date.now() }];
+        });
       } else if (event.type === "autocomplete" || event.type === "status") {
         // autocomplete: not implemented yet for chat UI
         // status: only show non-null statuses
@@ -422,6 +447,15 @@ export default memo(function ChatView({
           droppedFiles={droppedFiles}
           onDroppedFilesConsumed={() => setDroppedFiles([])}
         />
+      )}
+      {/* Floating mini-input for terminal mode when scrolled up */}
+      {inputStyle === "terminal" && showMiniInput && inputState === "awaiting_input" && (
+        <div className="chat-mini-input" onClick={() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+          setShowMiniInput(false);
+        }}>
+          <span className="chat-mini-input-hint">Scroll down to input</span>
+        </div>
       )}
       </div>{/* end chat-main-col */}
       {sidebarOpen && (
