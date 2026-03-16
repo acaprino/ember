@@ -495,6 +495,61 @@
 
 .perm-card-type-icon { margin-right: var(--space-1); }
 
+/* ── Usage Progress Bars ──────────────────────────────────────── */
+.chat-usage-bars {
+  display: flex;
+  gap: var(--space-3);
+  padding: 2px var(--space-3);
+  border-top: 1px solid color-mix(in srgb, var(--overlay0) 15%, transparent);
+  background: var(--mantle);
+}
+
+.chat-usage-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-usage-bar-label {
+  font-size: 9px;
+  color: var(--text-dim);
+  opacity: 0.5;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+  width: 42px;
+}
+
+.chat-usage-bar-track {
+  flex: 1;
+  height: 3px;
+  background: color-mix(in srgb, var(--overlay0) 20%, transparent);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+.chat-usage-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 1px;
+  transition: width 0.4s ease-out;
+}
+
+.chat-usage-bar-fill.warn {
+  background: var(--yellow);
+}
+
+.chat-usage-bar-pct {
+  font-size: 9px;
+  color: var(--text-dim);
+  opacity: 0.5;
+  flex-shrink: 0;
+  min-width: 28px;
+  text-align: right;
+}
+
 /* ── Message highlight (scroll-to-message from sidebar) ────────── */
 .msg-highlight {
   animation: msg-flash 0.8s ease-out;
