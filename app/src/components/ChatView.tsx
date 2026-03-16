@@ -9,6 +9,7 @@ import ToolCard from "./chat/ToolCard";
 import PermissionCard from "./chat/PermissionCard";
 import ThinkingBlock from "./chat/ThinkingBlock";
 import ResultBar from "./chat/ResultBar";
+import RightSidebar from "./chat/RightSidebar";
 import "./ChatView.css";
 
 interface ChatViewProps {
@@ -40,6 +41,7 @@ export default memo(function ChatView({
   const [inputState, setInputState] = useState<"idle" | "awaiting_input" | "processing">("idle");
   const [isDragging, setIsDragging] = useState(false);
   const [droppedFiles, setDroppedFiles] = useState<string[]>([]);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const exitedRef = useRef(false);
   const agentStartedRef = useRef(false);
@@ -275,10 +277,24 @@ export default memo(function ChatView({
     });
   };
 
-  // ── Keyboard: Ctrl+C to interrupt ───────────────────────────────
+  // ── Scroll to message (for sidebar navigation) ─────────────────
+  const handleScrollToMessage = (msgId: string) => {
+    const el = document.getElementById(`msg-${msgId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.classList.add("msg-highlight");
+      setTimeout(() => el.classList.remove("msg-highlight"), 1000);
+    }
+  };
+
+  // ── Keyboard: Ctrl+C to interrupt, Ctrl+B toggle sidebar ──────
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.ctrlKey && e.key === "c" && inputState === "processing") {
       killAgent(tabId).catch(() => {});
+    }
+    if (e.ctrlKey && e.key === "b") {
+      e.preventDefault();
+      setSidebarOpen(prev => !prev);
     }
   };
 
@@ -318,6 +334,8 @@ export default memo(function ChatView({
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
+      <div className="chat-main-row">
+      <div className="chat-main-col">
       <div ref={chatContainerRef} className="chat-messages">
         {messages.length === 0 && inputState === "idle" && (
           <div className="chat-msg chat-msg--status">Starting agent...</div>
@@ -325,26 +343,26 @@ export default memo(function ChatView({
         {messages.map((msg) => {
           switch (msg.role) {
             case "user":
-              return <div key={msg.id} className="chat-msg chat-msg--user">{msg.text}</div>;
+              return <div key={msg.id} id={`msg-${msg.id}`} className="chat-msg chat-msg--user">{msg.text}</div>;
             case "assistant":
               return (
-                <div key={msg.id} className="chat-msg chat-msg--assistant">
+                <div key={msg.id} id={`msg-${msg.id}`} className="chat-msg chat-msg--assistant">
                   <MessageBubble text={msg.text} streaming={msg.streaming} />
                   {msg.streaming && <div className="streaming-bar" />}
                 </div>
               );
             case "tool":
-              return <div key={msg.id} className="chat-msg chat-msg--tool"><ToolCard tool={msg.tool} input={msg.input} output={msg.output} success={msg.success} /></div>;
+              return <div key={msg.id} id={`msg-${msg.id}`} className="chat-msg chat-msg--tool"><ToolCard tool={msg.tool} input={msg.input} output={msg.output} success={msg.success} /></div>;
             case "permission":
-              return <div key={msg.id} className="chat-msg chat-msg--permission"><PermissionCard tool={msg.tool} description={msg.description} suggestions={msg.suggestions} resolved={msg.resolved} allowed={msg.allowed} onRespond={(allow, sugg) => handlePermissionRespond(msg.id, allow, sugg)} /></div>;
+              return <div key={msg.id} id={`msg-${msg.id}`} className="chat-msg chat-msg--permission"><PermissionCard tool={msg.tool} description={msg.description} suggestions={msg.suggestions} resolved={msg.resolved} allowed={msg.allowed} onRespond={(allow, sugg) => handlePermissionRespond(msg.id, allow, sugg)} /></div>;
             case "thinking":
-              return <div key={msg.id} className="chat-msg chat-msg--thinking"><ThinkingBlock text={msg.text} ended={msg.ended} /></div>;
+              return <div key={msg.id} id={`msg-${msg.id}`} className="chat-msg chat-msg--thinking"><ThinkingBlock text={msg.text} ended={msg.ended} /></div>;
             case "result":
-              return <div key={msg.id} className="chat-msg chat-msg--result"><ResultBar cost={msg.cost} inputTokens={msg.inputTokens} outputTokens={msg.outputTokens} cacheReadTokens={msg.cacheReadTokens} turns={msg.turns} durationMs={msg.durationMs} /></div>;
+              return <div key={msg.id} id={`msg-${msg.id}`} className="chat-msg chat-msg--result"><ResultBar cost={msg.cost} inputTokens={msg.inputTokens} outputTokens={msg.outputTokens} cacheReadTokens={msg.cacheReadTokens} turns={msg.turns} durationMs={msg.durationMs} /></div>;
             case "error":
-              return <div key={msg.id} className="chat-msg chat-msg--error">{msg.code === "rate_limit" ? "\u23F3" : "\u26A0"} {msg.message}</div>;
+              return <div key={msg.id} id={`msg-${msg.id}`} className="chat-msg chat-msg--error">{msg.code === "rate_limit" ? "\u23F3" : "\u26A0"} {msg.message}</div>;
             case "status":
-              return <div key={msg.id} className="chat-msg chat-msg--status">[{msg.model}] {msg.status}</div>;
+              return <div key={msg.id} id={`msg-${msg.id}`} className="chat-msg chat-msg--status">[{msg.model}] {msg.status}</div>;
             default:
               return null;
           }
@@ -371,6 +389,11 @@ export default memo(function ChatView({
           onDroppedFilesConsumed={() => setDroppedFiles([])}
         />
       )}
+      </div>{/* end chat-main-col */}
+      {sidebarOpen && (
+        <RightSidebar messages={messages} onScrollToMessage={handleScrollToMessage} />
+      )}
+      </div>{/* end chat-main-row */}
       {isDragging && (
         <div className="chat-drop-overlay">
           <span className="chat-drop-overlay-text">Drop files here</span>

@@ -1,0 +1,185 @@
+/* ── Right Sidebar ─────────────────────────────────────────────── */
+.right-sidebar {
+  width: 220px;
+  min-width: 150px;
+  max-width: 350px;
+  border-left: 1px solid color-mix(in srgb, var(--overlay0) 30%, transparent);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.right-sidebar-tabs {
+  display: flex;
+  gap: 2px;
+  padding: var(--space-1);
+  border-bottom: 1px solid color-mix(in srgb, var(--overlay0) 30%, transparent);
+}
+
+.right-sidebar-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-1);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  opacity: 0.5;
+  transition: opacity 0.1s, background 0.1s;
+}
+
+.right-sidebar-tab:hover {
+  opacity: 0.8;
+  background: var(--hover-overlay-subtle);
+}
+
+.right-sidebar-tab.active {
+  opacity: 1;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.right-sidebar-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-1);
+}
+
+.right-sidebar-content::-webkit-scrollbar { width: 4px; }
+.right-sidebar-content::-webkit-scrollbar-thumb {
+  background: var(--overlay0);
+  border-radius: 2px;
+}
+
+.sidebar-empty {
+  color: var(--text-dim);
+  font-size: var(--text-xs);
+  text-align: center;
+  padding: var(--space-4) var(--space-2);
+  opacity: 0.5;
+}
+
+/* ── Bookmark Panel ────────────────────────────────────────────── */
+.bookmark-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.bookmark-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-1);
+  background: none;
+  border: none;
+  padding: var(--space-1) var(--space-1);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  border-radius: var(--radius-sm);
+  transition: background 0.1s;
+  width: 100%;
+}
+
+.bookmark-item:hover {
+  background: var(--hover-overlay-subtle);
+  color: var(--text);
+}
+
+.bookmark-arrow {
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+
+.bookmark-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.bookmark-time {
+  font-size: 9px;
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+
+/* ── Minimap Panel ─────────────────────────────────────────────── */
+.minimap-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-1);
+}
+
+.minimap-block {
+  width: 100%;
+  min-height: 3px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: opacity 0.1s;
+}
+
+.minimap-block:hover { opacity: 1 !important; }
+
+/* ── Thinking History Panel ────────────────────────────────────── */
+.thinking-history-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.thinking-entry {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.thinking-entry-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  background: none;
+  border: none;
+  padding: var(--space-1);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  width: 100%;
+  text-align: left;
+  border-radius: var(--radius-sm);
+  transition: background 0.1s;
+}
+
+.thinking-entry-header:hover {
+  background: var(--hover-overlay-subtle);
+}
+
+.thinking-entry-time {
+  opacity: 0.4;
+  flex-shrink: 0;
+  font-size: 9px;
+}
+
+.thinking-entry-preview {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.thinking-entry-toggle { opacity: 0.4; }
+
+.thinking-entry-body {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  font-style: italic;
+  white-space: pre-wrap;
+  background: color-mix(in srgb, var(--surface) 50%, transparent);
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
