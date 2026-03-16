@@ -429,7 +429,9 @@ pub fn agent_kill(
     tab_id: String,
 ) -> Result<(), String> {
     log_info!("agent_kill: tab={tab_id}");
-    sidecar.unregister_channel(&tab_id);
+    // Don't unregister channel here — the exit event from the sidecar
+    // handles cleanup (sidecar.rs:360). Eagerly unregistering breaks
+    // React 18 StrictMode where kill + re-spawn race on the same tabId.
     sidecar.send_command(&serde_json::json!({
         "cmd": "kill",
         "tabId": tab_id,

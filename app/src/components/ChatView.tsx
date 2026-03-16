@@ -237,16 +237,7 @@ export default memo(function ChatView({
 
     return () => {
       cancelled = true;
-      // Delay kill to avoid React 18 StrictMode race: in dev mode, effects
-      // run → cleanup → re-run. The cleanup's killAgent would unregister the
-      // Channel that the re-run just registered. Deferring lets the re-run's
-      // spawnAgent overwrite the channel first; if no re-run happens (real
-      // unmount), the kill fires normally after the timeout.
-      const tid = tabIdRef.current;
-      const started = agentStartedRef.current;
-      setTimeout(() => {
-        if (started) killAgent(tid).catch(() => {});
-      }, 100);
+      if (agentStartedRef.current) killAgent(tabIdRef.current).catch(() => {});
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
