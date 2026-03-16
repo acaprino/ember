@@ -1,31 +1,29 @@
 import { memo, useState, useEffect, useRef } from "react";
-import { MODELS } from "../../types";
+import type { AgentInfoSDK } from "../../types";
 
 export interface Mention {
   name: string;
   display: string;
-  modelId: string;
 }
-
-const MENTION_OPTIONS: Mention[] = MODELS.map((m) => ({
-  name: `@${m.display.replace(/\s/g, "")}`,
-  display: m.display,
-  modelId: m.id,
-}));
 
 interface Props {
   filter: string;
+  agents?: AgentInfoSDK[];
   onSelect: (mention: Mention) => void;
   onDismiss: () => void;
 }
 
-export default memo(function MentionMenu({ filter, onSelect, onDismiss }: Props) {
+export default memo(function MentionMenu({ filter, agents = [], onSelect, onDismiss }: Props) {
   const [selectedIdx, setSelectedIdx] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
 
-  const filtered = MENTION_OPTIONS.filter((m) =>
-    m.name.toLowerCase().includes(filter.toLowerCase()) ||
-    m.display.toLowerCase().includes(filter.toLowerCase())
+  const options: Mention[] = agents.map((a) => ({
+    name: `@${a.name}`,
+    display: a.description,
+  }));
+
+  const filtered = options.filter(
+    (m) => m.name.toLowerCase().includes(filter.toLowerCase()) || m.display.toLowerCase().includes(filter.toLowerCase()),
   );
 
   useEffect(() => { setSelectedIdx(0); }, [filter]);

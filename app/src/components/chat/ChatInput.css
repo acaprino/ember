@@ -1,12 +1,10 @@
 /* ── Input Bar Container: shell prompt style ─────────────────────── */
 .chat-input-container {
-  border-top: 1px solid color-mix(in srgb, var(--overlay0) 25%, transparent);
   padding: var(--space-1) var(--space-3);
 }
 
-/* Terminal mode: no border, blends with message flow */
+/* Terminal mode: blends with message flow */
 .chat-input-container.terminal-mode {
-  border-top: none;
   padding-top: var(--space-1);
 }
 
@@ -69,7 +67,7 @@
 
 .chat-input-attach-btn {
   background: none;
-  border: 1px solid color-mix(in srgb, var(--overlay0) 40%, transparent);
+  border: none;
   border-radius: 0;
   color: var(--text-dim);
   width: 28px;
@@ -80,12 +78,11 @@
   cursor: pointer;
   font-size: var(--text-sm);
   flex-shrink: 0;
-  transition: border-color 0.1s, color 0.1s;
-  opacity: 0.5;
+  transition: color 0.1s;
+  opacity: 0.4;
 }
 
 .chat-input-attach-btn:hover {
-  border-color: var(--accent);
   color: var(--accent);
   opacity: 1;
 }
@@ -95,7 +92,6 @@
   background: none;
   color: var(--text);
   border: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--overlay0) 30%, transparent);
   border-radius: 0;
   padding: var(--space-1) var(--space-2);
   font-family: inherit;
@@ -105,26 +101,21 @@
   box-sizing: border-box;
   max-height: calc(var(--text-base) * 1.5 * 6 + var(--space-1) * 2);
   overflow-y: auto;
-  line-height: 1.5;
+  line-height: 1.6;
+  caret-color: var(--accent);
 }
 
-.chat-input-textarea:focus {
-  border-bottom-color: var(--accent);
-}
+/* No focus border — terminal style */
+.chat-input-textarea:focus {}
 
-/* Processing state: subtle accent pulse on bottom border */
+/* Processing state: no animation */
 .chat-input-container.processing .chat-input-textarea {
-  animation: input-pulse 2s ease-in-out infinite;
-}
-
-@keyframes input-pulse {
-  0%, 100% { border-bottom-color: color-mix(in srgb, var(--overlay0) 30%, transparent); }
-  50% { border-bottom-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+  opacity: 0.4;
 }
 
 .chat-input-send-btn {
   background: none;
-  border: 1px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  border: none;
   border-radius: 0;
   color: var(--accent);
   width: 28px;
@@ -137,11 +128,12 @@
   font-weight: 700;
   flex-shrink: 0;
   transition: opacity 0.1s;
+  opacity: 0.5;
 }
 
-.chat-input-send-btn:hover { opacity: 0.85; }
+.chat-input-send-btn:hover { opacity: 1; }
 .chat-input-send-btn:active { transform: translateY(1px); }
-.chat-input-send-btn:disabled { opacity: 0.2; cursor: default; }
+.chat-input-send-btn:disabled { opacity: 0.15; cursor: default; }
 
 /* ── Drag & Drop Overlay ──────────────────────────────────────── */
 .chat-drop-overlay {
@@ -173,12 +165,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  animation: mini-in 0.15s ease-out;
-}
-
-@keyframes mini-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 .chat-mini-input .chat-input-textarea {
@@ -212,12 +198,28 @@
   max-height: 240px;
   overflow-y: auto;
   z-index: var(--z-modal);
-  animation: menu-in 0.08s ease-out;
 }
 
-@keyframes menu-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+.command-menu::-webkit-scrollbar { width: 3px; }
+.command-menu::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--overlay0) 40%, transparent);
+}
+
+.command-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  opacity: 0.4;
+  user-select: none;
+}
+
+.command-section-header .rule {
+  flex: 1;
+  height: 1px;
+  background: color-mix(in srgb, var(--overlay0) 25%, transparent);
 }
 
 .command-item {
@@ -235,6 +237,18 @@
   background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
+.command-item-indicator {
+  width: 8px;
+  font-size: var(--text-xs);
+  color: var(--accent);
+  flex-shrink: 0;
+  opacity: 0;
+}
+
+.command-item.selected .command-item-indicator {
+  opacity: 1;
+}
+
 .command-name {
   color: var(--accent);
   font-weight: 600;
@@ -245,4 +259,40 @@
   color: var(--text-dim);
   font-size: var(--text-xs);
   opacity: 0.6;
+}
+
+/* ── Command Menu Section Headers ────────────────────────────── */
+.command-section-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 2px var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-dim);
+  opacity: 0.4;
+  user-select: none;
+}
+
+.command-section-header .rule {
+  flex: 1;
+  height: 1px;
+  background: color-mix(in srgb, var(--overlay0) 25%, transparent);
+}
+
+.command-item-indicator {
+  width: 8px;
+  font-size: var(--text-xs);
+  color: var(--accent);
+  flex-shrink: 0;
+  opacity: 0;
+}
+
+.command-item.selected .command-item-indicator {
+  opacity: 1;
+}
+
+.command-arg-hint {
+  color: var(--text-dim);
+  opacity: 0.4;
+  font-style: italic;
 }

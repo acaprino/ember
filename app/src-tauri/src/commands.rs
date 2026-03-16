@@ -508,3 +508,22 @@ pub async fn get_agent_messages(
 
     rx.await.map_err(|_| "Sidecar did not respond".to_string())
 }
+
+#[tauri::command]
+pub async fn refresh_commands(
+    sidecar: State<'_, Arc<SidecarManager>>,
+    tab_id: String,
+) -> Result<serde_json::Value, String> {
+    if !sidecar.available() {
+        return Err("Agent SDK not available".to_string());
+    }
+    let key = format!("_commands_{}", uuid::Uuid::new_v4());
+    let rx = sidecar.register_oneshot(&key);
+    sidecar.send_command(&serde_json::json!({
+        "cmd": "refreshCommands",
+        "tabId": key,
+        "sessionTabId": tab_id,
+    }))?;
+
+    rx.await.map_err(|_| "Sidecar did not respond".to_string())
+}

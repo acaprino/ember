@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef, useState } from "react";
-import { spawnAgent, resumeAgent, forkAgent, sendAgentMessage, killAgent, respondPermission } from "../hooks/useAgentSession";
+import { spawnAgent, resumeAgent, forkAgent, sendAgentMessage, killAgent, respondPermission, refreshCommands } from "../hooks/useAgentSession";
 import { MODELS, EFFORTS } from "../types";
-import type { AgentEvent, Attachment, ChatMessage, PermissionSuggestion } from "../types";
+import type { AgentEvent, Attachment, ChatMessage, PermissionSuggestion, SlashCommand, AgentInfoSDK } from "../types";
 import { sanitizeInput } from "../utils/sanitizeInput";
 import ChatInput from "./chat/ChatInput";
 import type { Command } from "./chat/CommandMenu";
@@ -37,7 +37,7 @@ export default memo(function ChatView({
   tabId, projectPath, modelIdx, effortIdx, skipPerms, systemPrompt,
   fontFamily, fontSize, isActive,
   onSessionCreated, onNewOutput, onExit, onError, onTaglineChange,
-  inputStyle = "chat", resumeSessionId, forkSessionId,
+  inputStyle = "terminal", resumeSessionId, forkSessionId,
 }: ChatViewProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputState, setInputState] = useState<"idle" | "awaiting_input" | "processing">("idle");
@@ -48,9 +48,12 @@ export default memo(function ChatView({
   const [rateLimitUtil, setRateLimitUtil] = useState(0);
   const [sessionTokens, setSessionTokens] = useState(0);
   const [contextWindow, setContextWindow] = useState(0);
+  const [sdkCommands, setSdkCommands] = useState<SlashCommand[]>([]);
+  const [sdkAgents, setSdkAgents] = useState<AgentInfoSDK[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const exitedRef = useRef(false);
   const agentStartedRef = useRef(false);
+  const refreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const tabIdRef = useRef(tabId);
   const dragCounterRef = useRef(0);
   // StrictMode kill-cancellation: cleanup sets true, re-mount sets false.
@@ -234,6 +237,9 @@ export default memo(function ChatView({
         });
       } else if (event.type === "rateLimit") {
         setRateLimitUtil(event.utilization);
+      } else if (event.type === "commandsInit") {
+        setSdkCommands(event.commands);
+        setSdkAgents(event.agents);
       } else if (event.type === "autocomplete" || event.type === "status") {
         // autocomplete: not implemented yet for chat UI
         // status: only show non-null statuses
@@ -260,6 +266,15 @@ export default memo(function ChatView({
         if (cancelled) return;
         agentStartedRef.current = true;
         onSessionCreatedRef.current(tabIdRef.current, tabId);
+        // Start periodic refresh of commands/agents (every 60s)
+        refreshIntervalRef.current = setInterval(() => {
+          refreshCommands(tabId).then((data) => {
+            setSdkCommands(data.commands || []);
+            setSdkAgents(data.agents || []);
+          }).catch(() => {
+            // Keep last known lists on failure
+          });
+        }, 60_000);
       })
       .catch((err) => {
         if (cancelled) return;
@@ -268,6 +283,11 @@ export default memo(function ChatView({
 
     return () => {
       cancelled = true;
+      // Clear commands/agents refresh interval
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+        refreshIntervalRef.current = null;
+      }
       // Defer kill so StrictMode re-mount can cancel it.
       // pendingKillRef persists across mounts — re-mount sets it to false.
       pendingKillRef.current = true;
@@ -335,16 +355,32 @@ export default memo(function ChatView({
 
   // ── Slash commands ─────────────────────────────────────────────
   const handleCommand = (command: Command) => {
-    if (command.name === "/clear") {
-      setMessages([]);
-    } else if (command.name === "/sidebar") {
-      setSidebarOpen(prev => !prev);
-    } else if (command.name === "/compact") {
-      // Send compact command to agent
-      sendAgentMessage(tabId, "/compact").catch(console.error);
+    if (command.source === "skill") {
+      // SDK skill — send as slash command text to agent
+      sendAgentMessage(tabId, command.name).catch(console.error);
       setInputState("processing");
+      return;
     }
-    // Other commands can be added here
+    // Local commands
+    switch (command.name) {
+      case "/clear":
+        setMessages([]);
+        break;
+      case "/sidebar":
+        setSidebarOpen((prev) => !prev);
+        break;
+      case "/compact":
+      case "/help":
+        sendAgentMessage(tabId, command.name).catch(console.error);
+        setInputState("processing");
+        break;
+      case "/theme":
+        window.dispatchEvent(new CustomEvent("anvil:open-settings"));
+        break;
+      case "/sessions":
+        window.dispatchEvent(new CustomEvent("anvil:open-sessions"));
+        break;
+    }
   };
 
   // ── Drag & Drop ─────────────────────────────────────────────────
@@ -397,7 +433,6 @@ export default memo(function ChatView({
               return (
                 <div key={msg.id} id={`msg-${msg.id}`} className="chat-msg chat-msg--assistant">
                   <MessageBubble text={msg.text} streaming={msg.streaming} />
-                  {msg.streaming && <div className="streaming-bar" />}
                 </div>
               );
             case "tool":
@@ -409,7 +444,7 @@ export default memo(function ChatView({
             case "result":
               return <div key={msg.id} id={`msg-${msg.id}`} className="chat-msg chat-msg--result"><ResultBar cost={msg.cost} inputTokens={msg.inputTokens} outputTokens={msg.outputTokens} cacheReadTokens={msg.cacheReadTokens} turns={msg.turns} durationMs={msg.durationMs} /></div>;
             case "error":
-              return <div key={msg.id} id={`msg-${msg.id}`} className="chat-msg chat-msg--error">{msg.code === "rate_limit" ? "\u23F3" : "\u26A0"} {msg.message}</div>;
+              return <div key={msg.id} id={`msg-${msg.id}`} className="chat-msg chat-msg--error"><strong>error:</strong> {msg.message}</div>;
             case "status":
               return <div key={msg.id} id={`msg-${msg.id}`} className="chat-msg chat-msg--status">[{msg.model}] {msg.status}</div>;
             default:
@@ -425,6 +460,8 @@ export default memo(function ChatView({
             processing={false}
             isActive={isActive}
             inputStyle="terminal"
+            sdkCommands={sdkCommands}
+            sdkAgents={sdkAgents}
             droppedFiles={droppedFiles}
             onDroppedFilesConsumed={() => setDroppedFiles([])}
           />
@@ -440,6 +477,8 @@ export default memo(function ChatView({
           processing={false}
           isActive={isActive}
           inputStyle="chat"
+          sdkCommands={sdkCommands}
+          sdkAgents={sdkAgents}
           droppedFiles={droppedFiles}
           onDroppedFilesConsumed={() => setDroppedFiles([])}
         />
@@ -452,6 +491,8 @@ export default memo(function ChatView({
           processing={true}
           isActive={isActive}
           inputStyle={inputStyle}
+          sdkCommands={sdkCommands}
+          sdkAgents={sdkAgents}
           droppedFiles={droppedFiles}
           onDroppedFilesConsumed={() => setDroppedFiles([])}
         />

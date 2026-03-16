@@ -6,17 +6,18 @@ import { saveClipboardImage } from "../../hooks/useAgentSession";
 import AttachmentChip from "./AttachmentChip";
 import CommandMenu, { type Command } from "./CommandMenu";
 import MentionMenu, { type Mention } from "./MentionMenu";
-import type { Attachment } from "../../types";
+import type { Attachment, SlashCommand, AgentInfoSDK } from "../../types";
 import "./ChatInput.css";
 
 interface Props {
   onSubmit: (text: string, attachments: Attachment[]) => void;
   onCommand?: (command: Command) => void;
-  onMention?: (mention: Mention) => void;
   disabled: boolean;
   processing: boolean;
   isActive: boolean;
   inputStyle?: "chat" | "terminal";
+  sdkCommands?: SlashCommand[];
+  sdkAgents?: AgentInfoSDK[];
   /** File paths from drag-drop on ChatView — consumed and cleared via onDroppedFilesConsumed */
   droppedFiles?: string[];
   onDroppedFilesConsumed?: () => void;
@@ -32,7 +33,7 @@ function extToType(name: string): "file" | "image" {
   return ["png", "jpg", "jpeg", "gif", "webp", "bmp", "svg"].includes(ext) ? "image" : "file";
 }
 
-export default memo(function ChatInput({ onSubmit, onCommand, onMention, disabled, processing, isActive, inputStyle = "chat", droppedFiles, onDroppedFilesConsumed }: Props) {
+export default memo(function ChatInput({ onSubmit, onCommand, disabled, processing, isActive, inputStyle = "chat", sdkCommands, sdkAgents, droppedFiles, onDroppedFilesConsumed }: Props) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [showCommandMenu, setShowCommandMenu] = useState(false);
@@ -137,11 +138,9 @@ export default memo(function ChatInput({ onSubmit, onCommand, onMention, disable
 
   const handleMentionSelect = (mention: Mention) => {
     setShowMentionMenu(false);
-    // Replace the @... text with the mention
     const atIdx = text.lastIndexOf("@");
     const before = text.slice(0, atIdx);
     setText(before + mention.name + " ");
-    onMention?.(mention);
     textareaRef.current?.focus();
   };
 
@@ -221,6 +220,7 @@ export default memo(function ChatInput({ onSubmit, onCommand, onMention, disable
         {showCommandMenu && (
           <CommandMenu
             filter={menuFilter}
+            sdkCommands={sdkCommands}
             onSelect={handleCommandSelect}
             onDismiss={() => { setShowCommandMenu(false); setText(""); }}
           />
@@ -228,6 +228,7 @@ export default memo(function ChatInput({ onSubmit, onCommand, onMention, disable
         {showMentionMenu && (
           <MentionMenu
             filter={menuFilter}
+            agents={sdkAgents}
             onSelect={handleMentionSelect}
             onDismiss={() => setShowMentionMenu(false)}
           />
@@ -248,7 +249,7 @@ export default memo(function ChatInput({ onSubmit, onCommand, onMention, disable
             onChange={handleTextChange}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
-            placeholder="Type a message... (/ for commands, @ for models)"
+            placeholder="Type a message... (/ for commands, @ for agents)"
             rows={1}
             disabled={disabled}
           />

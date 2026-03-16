@@ -40,6 +40,7 @@ pub enum AgentEvent {
     Todo { todos: serde_json::Value },
     Autocomplete { suggestions: Vec<String>, seq: u32 },
     RateLimit { utilization: f64 },
+    CommandsInit { commands: serde_json::Value, agents: serde_json::Value },
     Error { code: String, message: String },
     Exit { code: i32 },
 }
@@ -115,6 +116,11 @@ struct SidecarEvent {
     // For rate limit events
     #[serde(default)]
     utilization: f64,
+    // For commands/agents responses
+    #[serde(default)]
+    commands: Option<serde_json::Value>,
+    #[serde(default)]
+    agents: Option<serde_json::Value>,
 }
 
 type ChannelMap = Arc<Mutex<HashMap<String, Channel<AgentEvent>>>>;
@@ -311,14 +317,19 @@ impl SidecarManager {
 
                     let tab_id = &event.tab_id;
 
-                    // Handle oneshot responses (list_sessions, get_messages)
-                    if event.evt == "sessions" || event.evt == "messages" {
+                    // Handle oneshot responses (list_sessions, get_messages, commands)
+                    if event.evt == "sessions" || event.evt == "messages" || event.evt == "commands" {
                         let value = if event.evt == "sessions" {
                             event.list.unwrap_or(serde_json::Value::Array(vec![]))
-                        } else {
+                        } else if event.evt == "messages" {
                             serde_json::json!({
                                 "sessionId": event.session_id,
                                 "messages": event.messages.unwrap_or(serde_json::Value::Array(vec![]))
+                            })
+                        } else {
+                            serde_json::json!({
+                                "commands": event.commands.unwrap_or(serde_json::Value::Array(vec![])),
+                                "agents": event.agents.unwrap_or(serde_json::Value::Array(vec![]))
                             })
                         };
 
@@ -352,6 +363,10 @@ impl SidecarManager {
                         },
                         "todo" => AgentEvent::Todo { todos: event.todos.unwrap_or(serde_json::Value::Array(vec![])) },
                         "rateLimit" => AgentEvent::RateLimit { utilization: event.utilization },
+                        "commands_init" => AgentEvent::CommandsInit {
+                            commands: event.commands.unwrap_or(serde_json::Value::Array(vec![])),
+                            agents: event.agents.unwrap_or(serde_json::Value::Array(vec![])),
+                        },
                         "error" => AgentEvent::Error { code: event.code.as_str().unwrap_or("unknown").to_string(), message: event.message },
                         "exit" => AgentEvent::Exit { code: event.code.as_i64().unwrap_or_else(|| event.code.as_str().and_then(|s| s.parse().ok()).unwrap_or(-1)) as i32 },
                         "autocomplete" => AgentEvent::Autocomplete {

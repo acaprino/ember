@@ -1,5 +1,5 @@
 import { invoke, Channel } from "@tauri-apps/api/core";
-import type { AgentEvent, SessionInfo, PermissionSuggestion } from "../types";
+import type { AgentEvent, SessionInfo, PermissionSuggestion, SlashCommand, AgentInfoSDK } from "../types";
 
 export async function spawnAgent(
   tabId: string,
@@ -107,4 +107,8 @@ export async function requestAutocomplete(
   seq: number,
 ): Promise<void> {
   await invoke("agent_autocomplete", { tabId, input, context, seq });
+}
+
+export async function refreshCommands(tabId: string): Promise<{ commands: SlashCommand[]; agents: AgentInfoSDK[] }> {
+  return invoke("refresh_commands", { tabId });
 }

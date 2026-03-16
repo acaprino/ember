@@ -278,6 +278,16 @@ async function consumeQuery(tabId, q, sessionRef) {
             if (sid) {
               emit({ evt: "status", tabId, status: "init", model: "", sessionId: sid });
             }
+            // Fetch available commands and agents from the SDK
+            try {
+              const [commands, agents] = await Promise.all([
+                q.supportedCommands(),
+                q.supportedAgents(),
+              ]);
+              emit({ evt: "commands_init", tabId, commands, agents });
+            } catch (err) {
+              log(`Failed to fetch commands/agents for ${tabId}:`, err.message);
+            }
           } else if (msg.subtype === "status") {
             emit({ evt: "status", tabId, status: msg.status || "idle", model: "" });
           }
@@ -404,6 +414,25 @@ async function handleSetModel(cmd) {
     emit({ evt: "status", tabId: cmd.tabId, status: "model_changed", model: cmd.model });
   } catch (err) {
     emit({ evt: "error", tabId: cmd.tabId, code: "set_model_error", message: err.message });
+  }
+}
+
+async function handleRefreshCommands(cmd) {
+  const sessionTabId = cmd.sessionTabId || cmd.tabId;
+  const session = sessions.get(sessionTabId);
+  if (!session?.query) {
+    emit({ evt: "commands", tabId: cmd.tabId, commands: [], agents: [] });
+    return;
+  }
+  try {
+    const [commands, agents] = await Promise.all([
+      session.query.supportedCommands(),
+      session.query.supportedAgents(),
+    ]);
+    emit({ evt: "commands", tabId: cmd.tabId, commands, agents });
+  } catch (err) {
+    log(`refreshCommands error for ${sessionTabId}:`, err.message);
+    emit({ evt: "commands", tabId: cmd.tabId, commands: [], agents: [] });
   }
 }
 
@@ -650,6 +679,9 @@ rl.on("line", async (line) => {
         break;
       case "autocomplete":
         await handleAutocomplete(cmd);
+        break;
+      case "refreshCommands":
+        await handleRefreshCommands(cmd);
         break;
       default:
         log("Unknown command:", cmd.cmd);

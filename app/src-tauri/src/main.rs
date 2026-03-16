@@ -139,6 +139,7 @@ fn main() {
             commands::list_agent_sessions,
             commands::get_agent_messages,
             commands::agent_autocomplete,
+            commands::refresh_commands,
             autocomplete::autocomplete_files,
         ])
         .on_window_event(move |window, event| {

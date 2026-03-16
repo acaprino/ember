@@ -225,6 +225,20 @@ export interface PermissionSuggestion {
   directories?: string[];
 }
 
+/** Slash command from Agent SDK (skill invoked via /command syntax). */
+export interface SlashCommand {
+  name: string;
+  description: string;
+  argumentHint: string;
+}
+
+/** Agent info from Agent SDK (subagent invoked via @agent syntax). */
+export interface AgentInfoSDK {
+  name: string;
+  description: string;
+  model?: string;
+}
+
 export type AgentEvent =
   | { type: "assistant"; text: string; streaming: boolean }
   | { type: "toolUse"; tool: string; input: unknown }
@@ -238,6 +252,7 @@ export type AgentEvent =
   | { type: "todo"; todos: TodoItem[] }
   | { type: "autocomplete"; suggestions: string[]; seq: number }
   | { type: "rateLimit"; utilization: number }
+  | { type: "commandsInit"; commands: SlashCommand[]; agents: AgentInfoSDK[] }
   | { type: "error"; code: string; message: string }
   | { type: "exit"; code: number };
 
