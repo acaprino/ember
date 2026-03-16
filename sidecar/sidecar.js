@@ -149,11 +149,14 @@ async function handleCreate(cmd) {
   };
 
   // Consume the async generator and emit events
-  consumeQuery(tabId, q).catch((err) => {
-    log(`Error in session ${tabId}:`, err.message);
-    emit({ evt: "error", tabId, code: "query_error", message: err.message });
-    emit({ evt: "exit", tabId, code: 1 });
-    sessions.delete(tabId);
+  consumeQuery(tabId, q, session).catch((err) => {
+    // Only report if we're still the active session
+    if (sessions.get(tabId) === session) {
+      log(`Error in session ${tabId}:`, err.message);
+      emit({ evt: "error", tabId, code: "query_error", message: err.message });
+      emit({ evt: "exit", tabId, code: 1 });
+      sessions.delete(tabId);
+    }
   });
 
   emit({ evt: "status", tabId, status: "started", model: model || "default" });
@@ -161,7 +164,7 @@ async function handleCreate(cmd) {
   emit({ evt: "input_required", tabId });
 }
 
-async function consumeQuery(tabId, q) {
+async function consumeQuery(tabId, q, sessionRef) {
   // Track whether we've streamed text for the current turn — if so, skip
   // re-emitting the complete assistant message (which would duplicate it).
   let hasStreamedText = false;
@@ -169,7 +172,7 @@ async function consumeQuery(tabId, q) {
   try {
     for await (const msg of q) {
       const session = sessions.get(tabId);
-      if (!session) break;
+      if (!session || session !== sessionRef) break; // Different session replaced us
 
       switch (msg.type) {
         case "assistant": {
@@ -295,9 +298,10 @@ async function consumeQuery(tabId, q) {
       }
     }
   } finally {
-    // Query finished (generator exhausted)
-    const session = sessions.get(tabId);
-    if (session) {
+    // Query finished — only clean up if WE are still the active session.
+    // A replacement session (from StrictMode re-mount) may have taken over.
+    const current = sessions.get(tabId);
+    if (current && current === sessionRef) {
       sessions.delete(tabId);
       emit({ evt: "exit", tabId, code: 0 });
     }
