@@ -16,6 +16,12 @@ import ResultBar from "./chat/ResultBar";
 import RightSidebar from "./chat/RightSidebar";
 import "./ChatView.css";
 
+function fmtBarTokens(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
+  return n.toString();
+}
+
 /** Patterns for parsing user message attachments */
 const FILE_TAG_RE = /<file\s+path="([^"]*)"[^>]*>\n?([\s\S]{0,1048576}?)\n?<\/file>/;
 const IMAGE_TAG_RE = /\[Attached image: ([^\]]+)\]/;
@@ -105,6 +111,13 @@ export default memo(function ChatView({
   const [rateLimitUtil, setRateLimitUtil] = useState(0);
   const [sessionTokens, setSessionTokens] = useState(0);
   const [contextWindow, setContextWindow] = useState(0);
+  const [sessionCost, setSessionCost] = useState(0);
+  const [sessionInputTokens, setSessionInputTokens] = useState(0);
+  const [sessionOutputTokens, setSessionOutputTokens] = useState(0);
+  const [sessionCacheReadTokens, setSessionCacheReadTokens] = useState(0);
+  const [sessionCacheWriteTokens, setSessionCacheWriteTokens] = useState(0);
+  const [sessionTurns, setSessionTurns] = useState(0);
+  const [sessionDurationMs, setSessionDurationMs] = useState(0);
   const [sdkCommands, setSdkCommands] = useState<SlashCommand[]>([]);
   const [sdkAgents, setSdkAgents] = useState<AgentInfoSDK[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -279,6 +292,14 @@ export default memo(function ChatView({
         // Accumulate session token count for context bar
         setSessionTokens(prev => prev + (event.inputTokens || 0) + (event.outputTokens || 0));
         if (event.contextWindow > 0) setContextWindow(event.contextWindow);
+        // Accumulate session-level stats
+        setSessionCost(prev => prev + (event.cost || 0));
+        setSessionInputTokens(prev => prev + (event.inputTokens || 0));
+        setSessionOutputTokens(prev => prev + (event.outputTokens || 0));
+        setSessionCacheReadTokens(prev => prev + (event.cacheReadTokens || 0));
+        setSessionCacheWriteTokens(prev => prev + (event.cacheWriteTokens || 0));
+        setSessionTurns(prev => prev + (event.turns || 0));
+        setSessionDurationMs(prev => prev + (event.durationMs || 0));
         // Mark thinking messages as ended (collapsed), add result
         setMessages(prev => [
           ...prev.map(m => m.role === "thinking" && !m.ended ? { ...m, ended: true } as ChatMessage : m),
@@ -696,6 +717,19 @@ export default memo(function ChatView({
           <span className="chat-bottom-bar-sep">|</span>
           <span className={`chat-bottom-bar-effort ${EFFORTS[effortIdx] || "high"}`}>{EFFORTS[effortIdx] || "high"}</span>
         </div>
+        {sessionCost > 0 && (
+          <div className="chat-bottom-bar-stats">
+            <span className="chat-bottom-bar-cost">${sessionCost.toFixed(3)}</span>
+            <span className="chat-bottom-bar-sep">&middot;</span>
+            <span className="chat-bottom-bar-stat" title={`In: ${fmtBarTokens(sessionInputTokens)} · Out: ${fmtBarTokens(sessionOutputTokens)} · Cache R: ${fmtBarTokens(sessionCacheReadTokens)} · Cache W: ${fmtBarTokens(sessionCacheWriteTokens)}`}>
+              {fmtBarTokens(sessionInputTokens + sessionOutputTokens + sessionCacheReadTokens + sessionCacheWriteTokens)} tok
+            </span>
+            <span className="chat-bottom-bar-sep">&middot;</span>
+            <span className="chat-bottom-bar-stat">{sessionTurns} turn{sessionTurns !== 1 ? "s" : ""}</span>
+            <span className="chat-bottom-bar-sep">&middot;</span>
+            <span className="chat-bottom-bar-stat">{(sessionDurationMs / 1000).toFixed(0)}s</span>
+          </div>
+        )}
         <div className="chat-bottom-bar-meters">
           {sessionTokens > 0 && contextWindow > 0 && (
             <div className="chat-usage-bar" title={`Context: ${(sessionTokens / 1000).toFixed(0)}k / ${(contextWindow / 1000).toFixed(0)}k tokens`}>

@@ -581,6 +581,23 @@
 .chat-bottom-bar-effort.medium { color: var(--yellow); }
 .chat-bottom-bar-effort.low { color: var(--red); }
 
+.chat-bottom-bar-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
+.chat-bottom-bar-cost {
+  color: var(--green);
+  font-weight: 600;
+}
+
+.chat-bottom-bar-stat {
+  color: var(--text-dim);
+}
+
 .chat-bottom-bar-meters {
   display: flex;
   gap: var(--space-3);
