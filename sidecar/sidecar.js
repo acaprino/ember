@@ -25,8 +25,9 @@ async function handleCreate(cmd) {
   const { tabId, cwd, model, effort, systemPrompt, skipPerms, allowedTools } = cmd;
 
   if (sessions.has(tabId)) {
-    emit({ evt: "error", tabId, code: "duplicate", message: "Session already exists for this tab" });
-    return;
+    // Kill existing session (React 18 StrictMode sends create→create→kill)
+    log(`Replacing existing session for tab ${tabId}`);
+    handleKill({ tabId });
   }
 
   const abortController = new AbortController();
