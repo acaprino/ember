@@ -1,4 +1,4 @@
-import { memo, useState, useEffect, useRef } from "react";
+import { memo, useState, useEffect, useRef, useMemo } from "react";
 import type { SlashCommand } from "../../types";
 
 export interface Command {
@@ -31,26 +31,29 @@ export default memo(function CommandMenu({ filter, sdkCommands = [], onSelect, o
   const [selectedIdx, setSelectedIdx] = useState(0);
   const listRef = useRef<HTMLDivElement>(null);
 
-  // Merge: local commands + SDK commands (filtering collisions)
-  const sdkMapped: Command[] = sdkCommands
-    .filter((c) => !LOCAL_NAMES.has("/" + c.name))
-    .map((c) => ({
-      name: "/" + c.name,
-      description: c.description,
-      argumentHint: c.argumentHint || undefined,
-      source: "skill" as const,
-    }));
-
   const lowerFilter = filter.toLowerCase();
-  const filteredLocal = LOCAL_COMMANDS.filter(
-    (c) => c.name.toLowerCase().includes(lowerFilter) || c.description.toLowerCase().includes(lowerFilter),
-  );
-  const filteredSdk = sdkMapped.filter(
-    (c) => c.name.toLowerCase().includes(lowerFilter) || c.description.toLowerCase().includes(lowerFilter),
-  );
 
-  // Build flat selectable list (no headers)
-  const selectableItems = [...filteredLocal, ...filteredSdk];
+  // Memoize merged + filtered lists to stabilize useEffect deps
+  const { filteredLocal, filteredSdk, selectableItems } = useMemo(() => {
+    const sdkMapped: Command[] = sdkCommands
+      .filter((c) => !LOCAL_NAMES.has("/" + c.name))
+      .reduce<Command[]>((acc, c) => {
+        const name = "/" + c.name;
+        if (!acc.some((x) => x.name === name)) {
+          acc.push({ name, description: c.description, argumentHint: c.argumentHint || undefined, source: "skill" });
+        }
+        return acc;
+      }, []);
+
+    const local = LOCAL_COMMANDS.filter(
+      (c) => c.name.toLowerCase().includes(lowerFilter) || c.description.toLowerCase().includes(lowerFilter),
+    );
+    const sdk = sdkMapped.filter(
+      (c) => c.name.toLowerCase().includes(lowerFilter) || c.description.toLowerCase().includes(lowerFilter),
+    );
+
+    return { filteredLocal: local, filteredSdk: sdk, selectableItems: [...local, ...sdk] };
+  }, [sdkCommands, lowerFilter]);
 
   useEffect(() => { setSelectedIdx(0); }, [filter]);
 
@@ -81,7 +84,8 @@ export default memo(function CommandMenu({ filter, sdkCommands = [], onSelect, o
 
   if (selectableItems.length === 0) return null;
 
-  let globalIdx = 0;
+  // SDK items start at this offset in selectableItems
+  const sdkOffset = filteredLocal.length;
 
   return (
     <div className="command-menu" ref={listRef}>
@@ -92,21 +96,18 @@ export default memo(function CommandMenu({ filter, sdkCommands = [], onSelect, o
             <span>Anvil</span>
             <span className="rule" />
           </div>
-          {filteredLocal.map((cmd) => {
-            const idx = globalIdx++;
-            return (
-              <div
-                key={cmd.name}
-                className={`command-item${idx === selectedIdx ? " selected" : ""}`}
-                onClick={() => onSelect(cmd)}
-                onMouseEnter={() => setSelectedIdx(idx)}
-              >
-                <span className="command-item-indicator">&gt;</span>
-                <span className="command-name">{cmd.name}</span>
-                <span className="command-desc">{cmd.description}</span>
-              </div>
-            );
-          })}
+          {filteredLocal.map((cmd, i) => (
+            <div
+              key={cmd.name}
+              className={`command-item${i === selectedIdx ? " selected" : ""}`}
+              onClick={() => onSelect(cmd)}
+              onMouseEnter={() => setSelectedIdx(i)}
+            >
+              <span className="command-item-indicator">&gt;</span>
+              <span className="command-name">{cmd.name}</span>
+              <span className="command-desc">{cmd.description}</span>
+            </div>
+          ))}
         </>
       )}
       {filteredSdk.length > 0 && (
@@ -116,8 +117,8 @@ export default memo(function CommandMenu({ filter, sdkCommands = [], onSelect, o
             <span>Skills</span>
             <span className="rule" />
           </div>
-          {filteredSdk.map((cmd) => {
-            const idx = globalIdx++;
+          {filteredSdk.map((cmd, i) => {
+            const idx = sdkOffset + i;
             return (
               <div
                 key={cmd.name}
