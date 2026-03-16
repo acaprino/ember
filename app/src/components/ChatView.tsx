@@ -774,6 +774,14 @@ export default memo(function ChatView({
             +
           </button>
         )}
+        <button
+          className={`chat-bottom-bar-sidebar-toggle${sidebarOpen ? " active" : ""}`}
+          title={sidebarOpen ? "Hide sidebar (Ctrl+Shift+S)" : "Show sidebar (Ctrl+Shift+S)"}
+          aria-label="Toggle right sidebar"
+          onClick={() => setSidebarOpen(prev => !prev)}
+        >
+          &#9776;
+        </button>
       </div>
       {isDragging && (
         <div className="chat-drop-overlay">

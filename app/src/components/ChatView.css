@@ -625,6 +625,32 @@
   border-color: color-mix(in srgb, var(--overlay0) 60%, transparent);
 }
 
+.chat-bottom-bar-sidebar-toggle {
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--overlay0) 30%, transparent);
+  color: var(--text-dim);
+  font-size: var(--text-xs);
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.chat-bottom-bar-sidebar-toggle:hover {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--overlay0) 60%, transparent);
+}
+.chat-bottom-bar-sidebar-toggle.active {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
 .chat-usage-bar {
   display: flex;
   align-items: center;
