@@ -43,7 +43,7 @@ export default memo(function ChatView({
   const [inputState, setInputState] = useState<"idle" | "awaiting_input" | "processing">("idle");
   const [isDragging, setIsDragging] = useState(false);
   const [droppedFiles, setDroppedFiles] = useState<string[]>([]);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showMiniInput, setShowMiniInput] = useState(false);
   const [rateLimitUtil, setRateLimitUtil] = useState(0);
   const [sessionTokens, setSessionTokens] = useState(0);
