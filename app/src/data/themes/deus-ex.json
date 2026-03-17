@@ -1,0 +1,9 @@
+{
+  "name": "Deus Ex",
+  "colors": {
+    "bg": "#0a0a08", "surface": "#1a1810", "mantle": "#060604", "crust": "#030302",
+    "text": "#d4a843", "textDim": "#8a7030", "overlay0": "#2a2418", "overlay1": "#3a3220",
+    "accent": "#e8b830", "red": "#c83030", "green": "#68a040", "yellow": "#e8b830",
+    "cursor": "#d4a843", "selection": "#2a2010"
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "name": "daisyUI Retro [retro]",
+  "retro": true,
+  "colors": {
+    "bg": "#1c1810", "surface": "#2c2518", "mantle": "#15100a", "crust": "#0e0a06",
+    "text": "#d8c8a0", "textDim": "#907858", "overlay0": "#605038", "overlay1": "#6a5842",
+    "accent": "#c87060", "red": "#c85040", "green": "#6a9860", "yellow": "#c89838",
+    "cursor": "#c87868", "selection": "#382818"
+  }
+}

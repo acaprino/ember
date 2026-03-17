@@ -1,0 +1,10 @@
+{
+  "name": "Matrix [retro]",
+  "retro": true,
+  "colors": {
+    "bg": "#0a0a0a", "surface": "#0f1a0f", "mantle": "#050505", "crust": "#020202",
+    "text": "#00ff41", "textDim": "#00802a", "overlay0": "#0a2a0a", "overlay1": "#0f380f",
+    "accent": "#00ff41", "red": "#ff0040", "green": "#00ff41", "yellow": "#80ff00",
+    "cursor": "#00ff41", "selection": "#003a00"
+  }
+}

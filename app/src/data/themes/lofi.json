@@ -1,0 +1,9 @@
+{
+  "name": "Lofi",
+  "colors": {
+    "bg": "#1a1820", "surface": "#242030", "mantle": "#121018", "crust": "#0a0810",
+    "text": "#c8b8d0", "textDim": "#706880", "overlay0": "#302840", "overlay1": "#3a3048",
+    "accent": "#d0a0c0", "red": "#c07880", "green": "#90b8a0", "yellow": "#c8b888",
+    "cursor": "#d0a8c0", "selection": "#282038"
+  }
+}

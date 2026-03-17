@@ -1,0 +1,9 @@
+{
+  "name": "Monokai",
+  "colors": {
+    "bg": "#181810", "surface": "#272822", "mantle": "#101010", "crust": "#0a0a08",
+    "text": "#f8f8f2", "textDim": "#75715e", "overlay0": "#3e3d32", "overlay1": "#49483e",
+    "accent": "#66d9ef", "red": "#f92672", "green": "#a6e22e", "yellow": "#e6db74",
+    "cursor": "#f8f8f0", "selection": "#49483e"
+  }
+}

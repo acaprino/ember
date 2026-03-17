@@ -1,0 +1,9 @@
+{
+  "name": "Wizard's Library",
+  "colors": {
+    "bg": "#0c0818", "surface": "#161030", "mantle": "#080414", "crust": "#04020a",
+    "text": "#c8c0e0", "textDim": "#6858a0", "overlay0": "#201848", "overlay1": "#282058",
+    "accent": "#9070e8", "red": "#d04860", "green": "#50b880", "yellow": "#e0c050",
+    "cursor": "#a080f0", "selection": "#181040"
+  }
+}

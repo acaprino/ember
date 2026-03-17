@@ -1,0 +1,9 @@
+{
+  "name": "Rosé Pine",
+  "colors": {
+    "bg": "#141020", "surface": "#191724", "mantle": "#0e0a18", "crust": "#080612",
+    "text": "#e0def4", "textDim": "#6e6a86", "overlay0": "#26233a", "overlay1": "#2a2740",
+    "accent": "#c4a7e7", "red": "#eb6f92", "green": "#9ccfd8", "yellow": "#f6c177",
+    "cursor": "#e0def4", "selection": "#2a283e"
+  }
+}

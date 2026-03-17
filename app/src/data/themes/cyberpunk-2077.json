@@ -1,0 +1,9 @@
+{
+  "name": "Cyberpunk 2077",
+  "colors": {
+    "bg": "#0a0810", "surface": "#161422", "mantle": "#050410", "crust": "#020208",
+    "text": "#e8e0f0", "textDim": "#6860a0", "overlay0": "#282440", "overlay1": "#302c48",
+    "accent": "#fcee09", "red": "#ff003c", "green": "#00f0b5", "yellow": "#fcee09",
+    "cursor": "#fcee09", "selection": "#20183a"
+  }
+}

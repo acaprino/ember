@@ -1,0 +1,9 @@
+{
+  "name": "Kanagawa",
+  "colors": {
+    "bg": "#161620", "surface": "#1f1f28", "mantle": "#10101a", "crust": "#0a0a12",
+    "text": "#dcd7ba", "textDim": "#727169", "overlay0": "#2a2a37", "overlay1": "#363646",
+    "accent": "#7e9cd8", "red": "#c34043", "green": "#76946a", "yellow": "#c0a36e",
+    "cursor": "#c8c093", "selection": "#2d4f67"
+  }
+}

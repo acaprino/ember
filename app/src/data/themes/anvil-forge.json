@@ -1,0 +1,10 @@
+{
+  "name": "Anvil Forge [retro]",
+  "retro": true,
+  "colors": {
+    "bg": "#1a1610", "surface": "#2a2218", "mantle": "#140f0a", "crust": "#0e0a06",
+    "text": "#d0b890", "textDim": "#907860", "overlay0": "#605040", "overlay1": "#685848",
+    "accent": "#d08030", "red": "#d05838", "green": "#80a050", "yellow": "#d0a830",
+    "cursor": "#d89038", "selection": "#382c20"
+  }
+}

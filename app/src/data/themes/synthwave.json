@@ -1,0 +1,9 @@
+{
+  "name": "Synthwave",
+  "colors": {
+    "bg": "#13091e", "surface": "#1e1038", "mantle": "#0a0412", "crust": "#05020a",
+    "text": "#f0e0ff", "textDim": "#7a68a0", "overlay0": "#2a1850", "overlay1": "#362060",
+    "accent": "#ff6ac1", "red": "#fe4450", "green": "#72f1b8", "yellow": "#fede5d",
+    "cursor": "#ff6ac1", "selection": "#2a1848"
+  }
+}
