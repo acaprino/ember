@@ -38,6 +38,7 @@ export async function resumeAgent(
   projectPath: string,
   model: string,
   effort: string,
+  permMode: string,
   plugins: string[],
   onEvent: (event: AgentEvent) => void,
 ): Promise<Channel<AgentEvent>> {
@@ -50,6 +51,7 @@ export async function resumeAgent(
     projectPath,
     model,
     effort,
+    permMode,
     plugins,
     onEvent: channel,
   });
@@ -63,6 +65,7 @@ export async function forkAgent(
   projectPath: string,
   model: string,
   effort: string,
+  permMode: string,
   plugins: string[],
   onEvent: (event: AgentEvent) => void,
 ): Promise<Channel<AgentEvent>> {
@@ -75,6 +78,7 @@ export async function forkAgent(
     projectPath,
     model,
     effort,
+    permMode,
     plugins,
     onEvent: channel,
   });

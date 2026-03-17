@@ -25,15 +25,20 @@ const BATCH_INTERVAL_MS = 16; // ~1 frame
 const _batchBuf = new Map();
 let _batchTimer = null;
 
+/** Write buffered text/thinking for a single tab to stdout. */
+function _writeBuf(tabId, buf) {
+  if (buf.text) {
+    process.stdout.write(JSON.stringify({ evt: "assistant", tabId, text: buf.text, streaming: true }) + "\n");
+  }
+  if (buf.thinking) {
+    process.stdout.write(JSON.stringify({ evt: "thinking", tabId, text: buf.thinking }) + "\n");
+  }
+}
+
 function _flushBatch() {
   _batchTimer = null;
   for (const [tabId, buf] of _batchBuf) {
-    if (buf.text) {
-      process.stdout.write(JSON.stringify({ evt: "assistant", tabId, text: buf.text, streaming: true }) + "\n");
-    }
-    if (buf.thinking) {
-      process.stdout.write(JSON.stringify({ evt: "thinking", tabId, text: buf.thinking }) + "\n");
-    }
+    _writeBuf(tabId, buf);
   }
   _batchBuf.clear();
 }
@@ -58,12 +63,7 @@ function emitThinkingDelta(tabId, text) {
 function flushTab(tabId) {
   const buf = _batchBuf.get(tabId);
   if (buf) {
-    if (buf.text) {
-      process.stdout.write(JSON.stringify({ evt: "assistant", tabId, text: buf.text, streaming: true }) + "\n");
-    }
-    if (buf.thinking) {
-      process.stdout.write(JSON.stringify({ evt: "thinking", tabId, text: buf.thinking }) + "\n");
-    }
+    _writeBuf(tabId, buf);
     _batchBuf.delete(tabId);
   }
 }
@@ -138,14 +138,17 @@ async function handleCreate(cmd) {
   }
 
   // Resolve permission mode from the new permMode string or legacy skipPerms boolean
-  const resolvedPermMode = permMode || (skipPerms ? "bypassPermissions" : "default");
+  const VALID_PERM_MODES = new Set(["plan", "acceptEdits", "bypassPermissions"]);
+  const rawPermMode = permMode || (skipPerms ? "bypassPermissions" : null);
+  const resolvedPermMode = rawPermMode && VALID_PERM_MODES.has(rawPermMode) ? rawPermMode : null;
 
   if (resolvedPermMode === "bypassPermissions") {
     options.permissionMode = "bypassPermissions";
     options.allowDangerouslySkipPermissions = true;
-  } else if (resolvedPermMode === "plan" || resolvedPermMode === "acceptEdits") {
+  } else if (resolvedPermMode) {
     options.permissionMode = resolvedPermMode;
   }
+  // else: no explicit permissionMode — SDK uses its default
 
   // For all modes except bypassPermissions, route permission requests to Anvil UI
   if (resolvedPermMode !== "bypassPermissions") {
@@ -897,6 +900,9 @@ rl.on("line", async (line) => {
 
 rl.on("close", () => {
   log("stdin closed, shutting down");
+  // Flush any pending batched streaming data
+  if (_batchTimer) { clearTimeout(_batchTimer); _batchTimer = null; }
+  _flushBatch();
   // Kill all active sessions
   for (const [tabId, session] of sessions) {
     session._pushInput(null);

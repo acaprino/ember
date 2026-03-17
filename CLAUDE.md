@@ -55,10 +55,10 @@ sonnet / opus / haiku / sonnet [1M] / opus [1M]
 - **Ctrl+Shift+S**: Toggle session panel
 
 ### Project Picker (NewTabPage active, no modal open)
-- **Tab**: Cycle model
+- **Tab**: Cycle permission mode (plan/accept edits/skip all)
 - **F2**: Cycle effort level (high/medium/low)
 - **F3**: Cycle sort order (alpha/last used/most used)
-- **F4**: Toggle skip-permissions
+- **F4**: Cycle model
 - **F5**: Create new project
 - **F6**: Open project in Explorer
 - **F8**: Label selected project

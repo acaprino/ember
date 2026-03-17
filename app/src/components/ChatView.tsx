@@ -493,9 +493,9 @@ export default memo(function ChatView({
     let channelRef: { onmessage: ((event: AgentEvent) => void) | null } | null = null;
 
     const launchPromise = resumeSessionId
-      ? resumeAgent(tabId, resumeSessionId, projectPath, modelId, effortId, plugins, handleAgentEvent)
+      ? resumeAgent(tabId, resumeSessionId, projectPath, modelId, effortId, permMode, plugins, handleAgentEvent)
       : forkSessionId
-        ? forkAgent(tabId, forkSessionId, projectPath, modelId, effortId, plugins, handleAgentEvent)
+        ? forkAgent(tabId, forkSessionId, projectPath, modelId, effortId, permMode, plugins, handleAgentEvent)
         : spawnAgent(tabId, projectPath, modelId, effortId, sanitizeInput(systemPrompt), permMode, plugins, handleAgentEvent);
 
     launchPromise
@@ -892,7 +892,7 @@ export default memo(function ChatView({
         </div>
         {/* Thinking rendered outside virtual list — avoids O(n) array copy per delta */}
         {thinkingIdRef.current && !hideThinking && (
-          <div className="chat-msg chat-msg--thinking">
+          <div className="chat-msg chat-msg--thinking" style={{ maxHeight: "60vh", overflowY: "auto" }}>
             <ThinkingBlock text={thinkingTextRef.current} ended={false} />
           </div>
         )}

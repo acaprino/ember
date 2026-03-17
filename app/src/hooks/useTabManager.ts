@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { Tab } from "../types";
+import { Tab, PERM_MODES } from "../types";
 
 const SESSION_SAVE_DEBOUNCE_MS = 500;
 
@@ -56,7 +56,7 @@ export function useTabManager() {
             projectName: typeof s.projectName === "string" ? s.projectName : "Terminal",
             modelIdx: typeof s.modelIdx === "number" ? s.modelIdx : 0,
             effortIdx: typeof s.effortIdx === "number" ? s.effortIdx : 0,
-            permModeIdx: typeof s.permModeIdx === "number" ? s.permModeIdx : (s.skipPerms === true ? 2 : 0),
+            permModeIdx: typeof s.permModeIdx === "number" ? s.permModeIdx : (s.skipPerms === true ? PERM_MODES.findIndex(m => m.sdk === "bypassPermissions") : 0),
             temporary: s.temporary === true,
           }));
         if (restoredTabs.length > 0) {

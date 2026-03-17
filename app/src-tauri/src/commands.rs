@@ -295,6 +295,18 @@ pub async fn delete_prompt(id: String) -> Result<(), String> {
 
 // ── Agent SDK commands ──────────────────────────────────────────────
 
+const ALLOWED_PERM_MODES: &[&str] = &["plan", "acceptEdits", "bypassPermissions"];
+
+/// Validate a permission mode string, falling back to "plan" for unknown values.
+fn validate_perm_mode(mode: &str) -> &str {
+    if mode.is_empty() || ALLOWED_PERM_MODES.contains(&mode) {
+        mode
+    } else {
+        log_warn!("Invalid perm_mode '{}', falling back to 'plan'", mode);
+        "plan"
+    }
+}
+
 #[tauri::command]
 pub fn spawn_agent(
     sidecar: State<'_, Arc<SidecarManager>>,
@@ -319,6 +331,7 @@ pub fn spawn_agent(
     if system_prompt.len() > 100_000 {
         return Err(format!("System prompt too large (max 100000 bytes)"));
     }
+    let perm_mode = validate_perm_mode(&perm_mode);
     log_info!("spawn_agent: tab={tab_id}, project={project_path}, model={model}");
 
     sidecar.register_channel(&tab_id, on_event);
@@ -372,6 +385,7 @@ pub fn agent_resume(
     project_path: String,
     model: String,
     effort: String,
+    perm_mode: String,
     plugins: Vec<String>,
     on_event: Channel<AgentEvent>,
 ) -> Result<(), String> {
@@ -384,6 +398,7 @@ pub fn agent_resume(
     if !std::path::Path::new(&project_path).is_dir() {
         return Err("Project path does not exist or is not a directory".to_string());
     }
+    let perm_mode = validate_perm_mode(&perm_mode);
     log_info!("agent_resume: tab={tab_id}, session={session_id}");
     sidecar.register_channel(&tab_id, on_event);
     sidecar.send_command(&serde_json::json!({
@@ -393,6 +408,7 @@ pub fn agent_resume(
         "cwd": project_path,
         "model": if model.is_empty() { serde_json::Value::Null } else { serde_json::Value::String(model) },
         "effort": effort,
+        "permMode": perm_mode,
         "plugins": plugins,
     }))
 }
@@ -405,6 +421,7 @@ pub fn agent_fork(
     project_path: String,
     model: String,
     effort: String,
+    perm_mode: String,
     plugins: Vec<String>,
     on_event: Channel<AgentEvent>,
 ) -> Result<(), String> {
@@ -417,6 +434,7 @@ pub fn agent_fork(
     if !std::path::Path::new(&project_path).is_dir() {
         return Err("Project path does not exist or is not a directory".to_string());
     }
+    let perm_mode = validate_perm_mode(&perm_mode);
     log_info!("agent_fork: tab={tab_id}, session={session_id}");
     sidecar.register_channel(&tab_id, on_event);
     sidecar.send_command(&serde_json::json!({
@@ -426,6 +444,7 @@ pub fn agent_fork(
         "cwd": project_path,
         "model": if model.is_empty() { serde_json::Value::Null } else { serde_json::Value::String(model) },
         "effort": effort,
+        "permMode": perm_mode,
         "plugins": plugins,
     }))
 }
