@@ -6,6 +6,7 @@ import { fmtTokens } from "../utils/format";
 import type { SessionViewProps } from "./SessionViewProps";
 import ChatInput from "./chat/ChatInput";
 import AskQuestionCard from "./chat/AskQuestionCard";
+import RightSidebar from "./chat/RightSidebar";
 import TermToolLine from "./terminal/TermToolLine";
 import TermToolGroup from "./terminal/TermToolGroup";
 import TermPermPrompt from "./terminal/TermPermPrompt";
@@ -44,8 +45,8 @@ export default memo(function TerminalView(props: SessionViewProps) {
   } = props;
 
   const {
-    messages, displayItems,
-    inputState, stats, sdkCommands, sdkAgents,
+    messages, displayItems, deferredMessages,
+    inputState, stats, agentTasks, sdkCommands, sdkAgents,
     hasUnresolvedPermission,
     streamingTextRef, streamingIdRef, streamingTick,
     thinkingTextRef, thinkingIdRef, thinkingTick,
@@ -56,6 +57,7 @@ export default memo(function TerminalView(props: SessionViewProps) {
   } = ctrl;
 
   const [isDragging, setIsDragging] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll
@@ -86,6 +88,9 @@ export default memo(function TerminalView(props: SessionViewProps) {
     if (e.ctrlKey && e.key === "c") {
       if (window.getSelection()?.toString()) return;
       handleInterrupt();
+    } else if (e.ctrlKey && e.key === "b") {
+      e.preventDefault();
+      setSidebarOpen(prev => !prev);
     }
   }, [handleInterrupt]);
 
@@ -143,6 +148,7 @@ export default memo(function TerminalView(props: SessionViewProps) {
       onClick={handleClick}
       tabIndex={0}
     >
+      <div className="tv-main-row">
       <div ref={scrollRef} className="tv-scroll" role="log" aria-live="polite" aria-label="Conversation">
         {messages.length === 0 && !streamingIdRef.current && !thinkingIdRef.current && inputState === "idle" && (
           <div className="tv-line">
@@ -245,6 +251,10 @@ export default memo(function TerminalView(props: SessionViewProps) {
         )}
         <div ref={messagesEndRef} />
       </div>
+      {sidebarOpen && (
+        <RightSidebar messages={deferredMessages} agentTasks={agentTasks} onScrollToMessage={() => {}} scrollContainerRef={scrollRef} />
+      )}
+      </div>{/* end tv-main-row */}
       {/* Bottom bar */}
       <div className="tv-bottom">
         <span className="tv-bottom-model">{MODELS[modelIdx]?.display || "?"}</span>
@@ -280,6 +290,14 @@ export default memo(function TerminalView(props: SessionViewProps) {
         )}
         <span className="tv-bottom-spacer" />
         <button className="tv-bottom-attach" title="Attach files" onClick={handleAttachClick}>+</button>
+        <button
+          className={`tv-bottom-sidebar-toggle${sidebarOpen ? " active" : ""}`}
+          title={sidebarOpen ? "Hide sidebar (Ctrl+B)" : "Show sidebar (Ctrl+B)"}
+          aria-label="Toggle right sidebar"
+          onClick={() => setSidebarOpen(prev => !prev)}
+        >
+          &#9776;
+        </button>
       </div>
       {isDragging && (
         <div className="chat-drop-overlay">
