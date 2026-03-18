@@ -566,7 +566,9 @@ function handlePermissionResponse(cmd) {
   session.pendingPermission = null;
 
   if (cmd.allow) {
-    const result = { behavior: "allow" };
+    // updatedInput is required by the SDK's internal Zod schema (ao6/iMz)
+    // even though the TypeScript type marks it optional — omitting it causes ZodError
+    const result = { behavior: "allow", updatedInput: {} };
     if (Array.isArray(cmd.updatedPermissions) && cmd.updatedPermissions.length > 0) {
       result.updatedPermissions = cmd.updatedPermissions;
     }
