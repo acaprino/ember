@@ -941,6 +941,17 @@
   flex-shrink: 0;
 }
 
+.chat-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--overlay0);
+  flex-shrink: 0;
+}
+
+.chat-status-dot.active { background: var(--green); }
+.chat-status-dot.idle { background: var(--accent); }
+
 .chat-bottom-bar-model {
   color: var(--accent);
   font-weight: 600;

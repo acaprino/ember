@@ -27,6 +27,7 @@ function SystemPromptPage({ tabId, onRequestClose, isActive, prompts, onPromptsC
   const [editDescription, setEditDescription] = useState("");
   const [editContent, setEditContent] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const nameInputRef = useRef<HTMLInputElement>(null);
   const contentRef = useRef<HTMLTextAreaElement>(null);
@@ -97,7 +98,7 @@ function SystemPromptPage({ tabId, onRequestClose, isActive, prompts, onPromptsC
     }
   }, [editName, editDescription, editContent, isCreating, editingId, activeIds, updateSettings, onPromptsChanged]);
 
-  const handleDelete = useCallback(async (id: string) => {
+  const handleDeleteConfirmed = useCallback(async (id: string) => {
     try {
       await invoke("delete_prompt", { id });
       updateSettings({
@@ -110,6 +111,7 @@ function SystemPromptPage({ tabId, onRequestClose, isActive, prompts, onPromptsC
     if (editingId === id) {
       setEditingId(null);
     }
+    setConfirmDeleteId(null);
   }, [activeIds, editingId, updateSettings, onPromptsChanged]);
 
   const handleToggleActive = useCallback((id: string) => {
@@ -170,7 +172,15 @@ function SystemPromptPage({ tabId, onRequestClose, isActive, prompts, onPromptsC
                   <span className="sp-item-name">{prompt.name}</span>
                   <span className="sp-item-size">{prompt.content.length} chars</span>
                   <button className="sp-btn sp-btn-edit" onClick={() => handleEdit(prompt)} title="Edit">edit</button>
-                  <button className="sp-btn sp-btn-delete" onClick={() => handleDelete(prompt.id)} title="Delete">del</button>
+                  {confirmDeleteId === prompt.id ? (
+                    <>
+                      <span className="sp-confirm-text">Delete?</span>
+                      <button className="sp-btn sp-btn-delete" onClick={() => handleDeleteConfirmed(prompt.id)}>yes</button>
+                      <button className="sp-btn" onClick={() => setConfirmDeleteId(null)}>no</button>
+                    </>
+                  ) : (
+                    <button className="sp-btn sp-btn-delete" onClick={() => setConfirmDeleteId(prompt.id)} title="Delete">del</button>
+                  )}
                 </div>
                 {prompt.description && (
                   <div className="sp-item-description">{prompt.description}</div>

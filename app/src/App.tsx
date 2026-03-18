@@ -80,6 +80,17 @@ function AppContent() {
   // Shortcuts overlay
   const [showShortcuts, setShowShortcuts] = useState(false);
 
+  // Close confirmation for running agent tabs
+  const [pendingCloseTabId, setPendingCloseTabId] = useState<string | null>(null);
+  const safeCloseTab = useCallback((tabId: string) => {
+    const tab = tabsRef.current.find((t) => t.id === tabId);
+    if (tab?.type === "agent" && tab.exitCode == null) {
+      setPendingCloseTabId(tabId);
+    } else {
+      closeTab(tabId);
+    }
+  }, [closeTab]);
+
   // Load bundled marketplace plugin paths (Anvil-exclusive by default)
   const [pluginPaths, setPluginPaths] = useState<string[]>([]);
   useEffect(() => {
@@ -132,7 +143,7 @@ function AppContent() {
         addTabAndResetFilter();
       } else if (e.ctrlKey && e.key === "F4") {
         e.preventDefault();
-        closeTab(activeTabId);
+        safeCloseTab(activeTabId);
       } else if (e.ctrlKey && !e.shiftKey && e.key === "Tab") {
         e.preventDefault();
         nextTab();
@@ -168,7 +179,7 @@ function AppContent() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [addTabAndResetFilter, toggleAboutTab, toggleUsageTab, toggleSystemPromptTab, toggleSessionsTab, updateSettings, closeTab, activeTabId, nextTab, prevTab]);
+  }, [addTabAndResetFilter, toggleAboutTab, toggleUsageTab, toggleSystemPromptTab, toggleSessionsTab, updateSettings, safeCloseTab, activeTabId, nextTab, prevTab]);
 
   const handleLaunch = useCallback(
     (tabId: string, projectPath: string, projectName: string, modelIdx: number, effortIdx: number, permModeIdx: number, autocompact: boolean, temporary?: boolean) => {
@@ -295,7 +306,7 @@ function AppContent() {
             activeTabId={activeTabId}
             sidebarWidth={sidebarWidth}
             onActivate={activateTab}
-            onClose={closeTab}
+            onClose={safeCloseTab}
             onAdd={addTabAndResetFilter}
             onSaveToProjects={handleSaveToProjects}
             onToggleAbout={toggleAboutTab}
@@ -322,7 +333,7 @@ function AppContent() {
             tabs={tabs}
             activeTabId={activeTabId}
             onActivate={activateTab}
-            onClose={closeTab}
+            onClose={safeCloseTab}
             onAdd={addTabAndResetFilter}
             onSaveToProjects={handleSaveToProjects}
             onToggleAbout={toggleAboutTab}
@@ -452,6 +463,17 @@ function AppContent() {
         })}
       </div>
       {showShortcuts && <ShortcutsOverlay onClose={() => setShowShortcuts(false)} />}
+      {pendingCloseTabId && (
+        <div className="confirm-overlay" onClick={() => setPendingCloseTabId(null)}>
+          <div className="confirm-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="confirm-text">Agent is still running. Close tab and kill agent?</div>
+            <div className="confirm-actions">
+              <button className="confirm-btn confirm-btn-danger" onClick={() => { closeTab(pendingCloseTabId); setPendingCloseTabId(null); }}>Close tab</button>
+              <button className="confirm-btn" onClick={() => setPendingCloseTabId(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

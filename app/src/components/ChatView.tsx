@@ -424,6 +424,7 @@ export default memo(function ChatView(props: SessionViewProps) {
       </div>{/* end chat-main-row */}
       <div className="chat-bottom-bar">
         <div className="chat-bottom-bar-info">
+          <span className={`chat-status-dot${inputState === "processing" ? " active" : inputState === "awaiting_input" ? " idle" : ""}`} title={inputState === "processing" ? "Processing" : inputState === "awaiting_input" ? "Ready" : "Connecting"} />
           <span className="chat-bottom-bar-model">{MODELS[modelIdx]?.display || "?"}</span>
           <span className="chat-bottom-bar-sep">|</span>
           <span className={`chat-bottom-bar-effort ${EFFORTS[effortIdx] || "high"}`}>{EFFORTS[effortIdx] || "high"}</span>

@@ -298,6 +298,54 @@ button, input, select {
   to { opacity: 1; }
 }
 
+/* ── Confirm dialog ───────────────────────────────────────────────── */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--backdrop);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-dialog {
+  background: var(--surface);
+  border: 1px solid var(--overlay0);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  max-width: 360px;
+  box-shadow: var(--shadow-modal);
+}
+
+.confirm-text {
+  font-size: var(--text-sm);
+  color: var(--text);
+  margin-bottom: var(--space-4);
+  line-height: 1.5;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.confirm-btn {
+  background: none;
+  border: 1px solid var(--overlay0);
+  border-radius: var(--radius-sm);
+  color: var(--text-dim);
+  font-size: var(--text-sm);
+  padding: var(--space-1) var(--space-4);
+  cursor: pointer;
+}
+
+.confirm-btn:hover { color: var(--text); border-color: var(--overlay1); }
+.confirm-btn:active { transform: scale(0.97); }
+.confirm-btn-danger { color: var(--red); border-color: var(--red); }
+.confirm-btn-danger:hover { background: color-mix(in srgb, var(--red) 10%, transparent); }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

@@ -147,6 +147,12 @@
   background: color-mix(in srgb, var(--accent) 10%, transparent);
 }
 
+.sp-confirm-text {
+  color: var(--red);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
 /* ━━━ Editor ━━━ */
 .sp-editor {
   border: 1px solid var(--overlay0);
