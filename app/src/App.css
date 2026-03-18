@@ -302,8 +302,13 @@ button, input, select {
 /* In light themes, elements using opacity for dimming need higher base
    opacity since dark-on-light has less inherent contrast than light-on-dark. */
 .light-theme .tool-card-status.pending { color: var(--yellow); }
-.light-theme .tool-card-preview { opacity: 0.6; }
-.light-theme .tool-card-toggle { opacity: 0.4; }
+.light-theme .tool-card-preview { opacity: 0.7; }
+.light-theme .tool-card-toggle { opacity: 0.5; }
+.light-theme .tool-card-header { color: var(--text); }
+.light-theme .tool-card-icon { color: var(--overlay1); }
+.light-theme .chat-usage-bar-label { opacity: 0.6; }
+.light-theme .chat-usage-bar-pct { opacity: 0.6; }
+.light-theme .chat-bottom-bar-sep { opacity: 0.5; }
 
 /* ── Confirm dialog ───────────────────────────────────────────────── */
 .confirm-overlay {

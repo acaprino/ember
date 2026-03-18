@@ -429,32 +429,30 @@ export default memo(function ChatView(props: SessionViewProps) {
           <span className="chat-bottom-bar-sep">|</span>
           <span className={`chat-bottom-bar-effort ${EFFORTS[effortIdx] || "high"}`}>{EFFORTS[effortIdx] || "high"}</span>
         </div>
-        {stats.cost > 0 && (
-          <div className="chat-bottom-bar-stats">
-            <span className="chat-bottom-bar-cost">${stats.cost.toFixed(3)}</span>
-            <span className="chat-bottom-bar-sep">&middot;</span>
-            <span className="chat-bottom-bar-stat" title={`In: ${fmtTokens(stats.inputTokens)} · Out: ${fmtTokens(stats.outputTokens)} · Cache R: ${fmtTokens(stats.cacheReadTokens)} · Cache W: ${fmtTokens(stats.cacheWriteTokens)}`}>
-              {fmtTokens(stats.inputTokens + stats.outputTokens + stats.cacheReadTokens + stats.cacheWriteTokens)} tok
-            </span>
-            <span className="chat-bottom-bar-sep">&middot;</span>
-            <span className="chat-bottom-bar-stat">{stats.turns} turn{stats.turns !== 1 ? "s" : ""}</span>
-            <span className="chat-bottom-bar-sep">&middot;</span>
-            <span className="chat-bottom-bar-stat">{(stats.durationMs / 1000).toFixed(0)}s</span>
-          </div>
-        )}
+        <div className="chat-bottom-bar-stats">
+          <span className="chat-bottom-bar-cost">${stats.cost.toFixed(3)}</span>
+          <span className="chat-bottom-bar-sep">&middot;</span>
+          <span className="chat-bottom-bar-stat" title={`In: ${fmtTokens(stats.inputTokens)} · Out: ${fmtTokens(stats.outputTokens)} · Cache R: ${fmtTokens(stats.cacheReadTokens)} · Cache W: ${fmtTokens(stats.cacheWriteTokens)}`}>
+            {fmtTokens(stats.inputTokens + stats.outputTokens + stats.cacheReadTokens + stats.cacheWriteTokens)} tok
+          </span>
+          <span className="chat-bottom-bar-sep">&middot;</span>
+          <span className="chat-bottom-bar-stat">{stats.turns}t</span>
+          <span className="chat-bottom-bar-sep">&middot;</span>
+          <span className="chat-bottom-bar-stat">{(stats.durationMs / 1000).toFixed(0)}s</span>
+        </div>
         <div className="chat-bottom-bar-meters">
-          {stats.tokens > 0 && stats.contextWindow > 0 && (
-            <div className="chat-usage-bar" title={`Context: ${(stats.tokens / 1000).toFixed(0)}k / ${(stats.contextWindow / 1000).toFixed(0)}k tokens`}>
-              <span className="chat-usage-bar-label">context</span>
-              <div className="chat-usage-bar-track">
+          <div className="chat-usage-bar" title={stats.contextWindow > 0 ? `Context: ${(stats.tokens / 1000).toFixed(0)}k / ${(stats.contextWindow / 1000).toFixed(0)}k tokens` : "Context window"}>
+            <span className="chat-usage-bar-label">ctx</span>
+            <div className="chat-usage-bar-track">
+              {stats.contextWindow > 0 && (
                 <div
                   className={`chat-usage-bar-fill${stats.tokens / stats.contextWindow > 0.8 ? " warn" : ""}`}
                   style={{ width: `${Math.min((stats.tokens / stats.contextWindow) * 100, 100)}%` }}
                 />
-              </div>
-              <span className="chat-usage-bar-pct">{Math.round((stats.tokens / stats.contextWindow) * 100)}%</span>
+              )}
             </div>
-          )}
+            <span className="chat-usage-bar-pct">{stats.contextWindow > 0 ? `${Math.round((stats.tokens / stats.contextWindow) * 100)}%` : "—"}</span>
+          </div>
           {stats.rateLimitUtil > 0 && (
             <div className="chat-usage-bar" title={`Rate limit: ${Math.round(stats.rateLimitUtil * 100)}%`}>
               <span className="chat-usage-bar-label">quota</span>
