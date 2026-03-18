@@ -1,6 +1,8 @@
 {
   "name": "daisyUI Retro [retro]",
   "retro": true,
+  "fontFamily": "Consolas",
+  "fontSize": 14,
   "colors": {
     "bg": "#1c1810",
     "surface": "#2c2518",

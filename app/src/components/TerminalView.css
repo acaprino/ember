@@ -389,10 +389,10 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-3);
   border-top: 1px solid color-mix(in srgb, var(--overlay0) 12%, transparent);
   background: var(--crust);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
   flex-shrink: 0;
 }
 
@@ -414,14 +414,49 @@
 .tv-bottom-warn { color: var(--yellow); }
 .tv-bottom-spacer { flex: 1; }
 
+/* Context saturation bar */
+.tv-ctx {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.tv-ctx-label {
+  color: var(--text-dim);
+}
+
+.tv-ctx-bar {
+  width: 48px;
+  height: 6px;
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.tv-ctx-fill {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s ease-out;
+}
+
+.tv-ctx-fill--low { background: var(--green); }
+.tv-ctx-fill--mid { background: var(--yellow); }
+.tv-ctx-fill--high { background: var(--red); }
+
+.tv-ctx-pct {
+  color: var(--text-dim);
+  min-width: 28px;
+}
+
 /* ── Bottom bar buttons (shared base) ────────────────────────── */
 .tv-bottom-btn {
   background: none;
   border: 1px solid color-mix(in srgb, var(--overlay0) 30%, transparent);
   color: var(--text-dim);
-  font-size: var(--text-sm);
-  width: 20px;
-  height: 20px;
+  font-size: var(--text-base);
+  width: 24px;
+  height: 24px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;

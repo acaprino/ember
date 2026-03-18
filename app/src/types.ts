@@ -111,6 +111,8 @@ export interface Theme {
   name: string;
   colors: ThemeColors;
   retro?: boolean;
+  fontFamily?: string;
+  fontSize?: number;
 }
 
 // Themes are loaded from individual JSON files in data/themes/

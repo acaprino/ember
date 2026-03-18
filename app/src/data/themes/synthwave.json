@@ -1,5 +1,7 @@
 {
   "name": "Synthwave",
+  "fontFamily": "Cascadia Code",
+  "fontSize": 14,
   "colors": {
     "bg": "#13091e",
     "surface": "#1e1038",

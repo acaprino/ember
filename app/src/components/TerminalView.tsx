@@ -99,14 +99,13 @@ export default memo(function TerminalView(props: SessionViewProps) {
   // ── Turn collapsing: hide tool/thinking/permission/status noise from previous turns ──
   // A "turn" starts at each user message. Only the last turn shows full detail.
   // Previous turns keep user + assistant messages, everything else is hidden.
-  const NOISE_ROLES = new Set(["tool", "tool-group", "thinking", "permission", "status", "result"]);
+  const NOISE_ROLES = new Set(["tool", "tool-group", "thinking", "permission", "result"]);
   const visibleItems = useMemo((): DisplayItem[] => {
     // Find the last user message index
     let lastUserIdx = -1;
     for (let i = displayItems.length - 1; i >= 0; i--) {
       if (displayItems[i].role === "user") { lastUserIdx = i; break; }
     }
-    if (lastUserIdx <= 0) return displayItems; // No previous turns to collapse
 
     const result: DisplayItem[] = [];
     for (let i = 0; i < displayItems.length; i++) {
@@ -338,14 +337,22 @@ export default memo(function TerminalView(props: SessionViewProps) {
             <span className="tv-bottom-stat">{(stats.durationMs / 1000).toFixed(0)}s</span>
           </>
         )}
-        {stats.tokens > 0 && stats.contextWindow > 0 && (
-          <>
-            <span className="tv-bottom-sep">{"\u00b7"}</span>
-            <span className="tv-bottom-stat" title={`Context: ${(stats.tokens / 1000).toFixed(0)}k / ${(stats.contextWindow / 1000).toFixed(0)}k`}>
-              ctx {Math.round((stats.tokens / stats.contextWindow) * 100)}%
-            </span>
-          </>
-        )}
+        {stats.tokens > 0 && stats.contextWindow > 0 && (() => {
+          const pct = Math.min(Math.round((stats.tokens / stats.contextWindow) * 100), 100);
+          const level = pct > 80 ? "high" : pct > 50 ? "mid" : "low";
+          return (
+            <>
+              <span className="tv-bottom-sep">{"\u00b7"}</span>
+              <span className="tv-ctx" title={`Context: ${(stats.tokens / 1000).toFixed(0)}k / ${(stats.contextWindow / 1000).toFixed(0)}k`}>
+                <span className="tv-ctx-label">ctx</span>
+                <span className="tv-ctx-bar">
+                  <span className={`tv-ctx-fill tv-ctx-fill--${level}`} style={{ width: `${pct}%` }} />
+                </span>
+                <span className="tv-ctx-pct">{pct}%</span>
+              </span>
+            </>
+          );
+        })()}
         {stats.rateLimitUtil > 0 && (
           <>
             <span className="tv-bottom-sep">{"\u00b7"}</span>

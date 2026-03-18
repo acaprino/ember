@@ -1,5 +1,7 @@
 {
   "name": "Cyberpunk 2077",
+  "fontFamily": "Cascadia Code",
+  "fontSize": 14,
   "colors": {
     "bg": "#0a0810",
     "surface": "#161422",

@@ -1,6 +1,8 @@
 {
   "name": "Matrix [retro]",
   "retro": true,
+  "fontFamily": "Cascadia Mono",
+  "fontSize": 14,
   "colors": {
     "bg": "#0a0a0a",
     "surface": "#0f1a0f",

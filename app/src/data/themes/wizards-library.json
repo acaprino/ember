@@ -1,5 +1,7 @@
 {
   "name": "Wizard's Library",
+  "fontFamily": "Cascadia Code",
+  "fontSize": 14,
   "colors": {
     "bg": "#0c0818",
     "surface": "#161030",

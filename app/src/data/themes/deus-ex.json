@@ -1,5 +1,7 @@
 {
   "name": "Deus Ex",
+  "fontFamily": "Cascadia Mono",
+  "fontSize": 14,
   "colors": {
     "bg": "#0a0a08",
     "surface": "#1a1810",

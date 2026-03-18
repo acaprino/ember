@@ -136,7 +136,11 @@ export default memo(function SettingsModal({ settings, onClose, onUpdate }: Sett
                 onClick={() => onUpdate({ theme_idx: idx })}
                 title={theme.name}
               >
-                <div className="theme-preview-colors" style={{ background: theme.colors.bg }}>
+                <div className="theme-preview-colors" style={{
+                  background: theme.colors.bg,
+                  fontFamily: theme.fontFamily ? `"${theme.fontFamily}", monospace` : undefined,
+                  fontSize: theme.fontSize ? `${theme.fontSize}px` : undefined,
+                }}>
                   <div className="theme-swatch-row">
                     <span style={{ color: theme.colors.text }}>text</span>
                     <span style={{ color: theme.colors.accent }}>accent</span>
