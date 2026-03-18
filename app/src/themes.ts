@@ -19,16 +19,28 @@ export function applyTheme(themeIdx: number): void {
   root.style.setProperty("--green", c.green);
   root.style.setProperty("--yellow", c.yellow);
 
-  // Theme-specific font overrides
-  if (theme.fontFamily) {
-    root.style.setProperty("--font-mono", `"${theme.fontFamily}", "Consolas", monospace`);
+  // Terminal font
+  if (theme.termFont) {
+    root.style.setProperty("--font-mono", `"${theme.termFont}", "Consolas", monospace`);
   } else {
     root.style.removeProperty("--font-mono");
   }
-  if (theme.fontSize) {
-    root.style.setProperty("--text-base", `${theme.fontSize}px`);
+  if (theme.termFontSize) {
+    root.style.setProperty("--text-base", `${theme.termFontSize}px`);
   } else {
     root.style.removeProperty("--text-base");
+  }
+
+  // UI / chat font
+  if (theme.uiFont) {
+    root.style.setProperty("--chat-font-family", `"${theme.uiFont}", "Segoe UI", system-ui, sans-serif`);
+  } else {
+    root.style.removeProperty("--chat-font-family");
+  }
+  if (theme.uiFontSize) {
+    root.style.setProperty("--chat-font-size", `${theme.uiFontSize}px`);
+  } else {
+    root.style.removeProperty("--chat-font-size");
   }
 
   const isRetro = !!theme.retro;

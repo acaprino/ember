@@ -1,5 +1,9 @@
 {
   "name": "Tokyo Night",
+  "termFont": "JetBrains Mono",
+  "termFontSize": 13,
+  "uiFont": "Segoe UI",
+  "uiFontSize": 14,
   "colors": {
     "bg": "#12131e",
     "surface": "#1a1b26",

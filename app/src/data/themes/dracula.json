@@ -1,5 +1,9 @@
 {
   "name": "Dracula",
+  "termFont": "Fira Code",
+  "termFontSize": 14,
+  "uiFont": "Segoe UI",
+  "uiFontSize": 14,
   "colors": {
     "bg": "#1a1c28",
     "surface": "#282a36",

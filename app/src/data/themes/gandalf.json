@@ -1,8 +1,10 @@
 {
   "name": "Gandalf [retro]",
   "retro": true,
-  "fontFamily": "Consolas",
-  "fontSize": 14,
+  "termFont": "Consolas",
+  "termFontSize": 14,
+  "uiFont": "Consolas",
+  "uiFontSize": 14,
   "colors": {
     "bg": "#141010",
     "surface": "#221c18",

@@ -138,8 +138,8 @@ export default memo(function SettingsModal({ settings, onClose, onUpdate }: Sett
               >
                 <div className="theme-preview-colors" style={{
                   background: theme.colors.bg,
-                  fontFamily: theme.fontFamily ? `"${theme.fontFamily}", monospace` : undefined,
-                  fontSize: theme.fontSize ? `${theme.fontSize}px` : undefined,
+                  fontFamily: theme.termFont ? `"${theme.termFont}", monospace` : undefined,
+                  fontSize: theme.termFontSize ? `${theme.termFontSize}px` : undefined,
                 }}>
                   <div className="theme-swatch-row">
                     <span style={{ color: theme.colors.text }}>text</span>

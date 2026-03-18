@@ -1,5 +1,9 @@
 {
   "name": "Kanagawa",
+  "termFont": "Cascadia Code",
+  "termFontSize": 14,
+  "uiFont": "Segoe UI",
+  "uiFontSize": 14,
   "colors": {
     "bg": "#161620",
     "surface": "#1f1f28",

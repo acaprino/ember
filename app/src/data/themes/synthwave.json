@@ -1,7 +1,9 @@
 {
   "name": "Synthwave",
-  "fontFamily": "Cascadia Code",
-  "fontSize": 14,
+  "termFont": "Cascadia Code",
+  "termFontSize": 14,
+  "uiFont": "Segoe UI",
+  "uiFontSize": 14,
   "colors": {
     "bg": "#13091e",
     "surface": "#1e1038",

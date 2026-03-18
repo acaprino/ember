@@ -1,5 +1,9 @@
 {
   "name": "Lofi",
+  "termFont": "Cascadia Code",
+  "termFontSize": 14,
+  "uiFont": "Segoe UI",
+  "uiFontSize": 14,
   "colors": {
     "bg": "#1a1820",
     "surface": "#242030",

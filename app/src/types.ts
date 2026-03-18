@@ -111,8 +111,12 @@ export interface Theme {
   name: string;
   colors: ThemeColors;
   retro?: boolean;
-  fontFamily?: string;
-  fontSize?: number;
+  /** Terminal / monospace font */
+  termFont?: string;
+  termFontSize?: number;
+  /** UI / chat font */
+  uiFont?: string;
+  uiFontSize?: number;
 }
 
 // Themes are loaded from individual JSON files in data/themes/

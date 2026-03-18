@@ -1,5 +1,9 @@
 {
   "name": "Anvil",
+  "termFont": "Cascadia Code",
+  "termFontSize": 14,
+  "uiFont": "Segoe UI",
+  "uiFontSize": 14,
   "colors": {
     "bg": "#181620",
     "surface": "#262432",

@@ -23,7 +23,7 @@ pub struct Settings {
     pub effort_idx: usize,
     #[serde(default)]
     pub sort_idx: usize,
-    #[serde(default)]
+    #[serde(default = "default_theme_idx")]
     pub theme_idx: usize,
     #[serde(default = "default_font_family")]
     pub font_family: String,
@@ -58,6 +58,8 @@ fn default_true() -> bool {
     true
 }
 
+fn default_theme_idx() -> usize { 1 }
+
 fn default_font_family() -> String {
     "Cascadia Code".to_string()
 }
@@ -83,7 +85,7 @@ impl Default for Settings {
             model_idx: 0,
             effort_idx: 0,
             sort_idx: 0,
-            theme_idx: 0,
+            theme_idx: default_theme_idx(),
             font_family: default_font_family(),
             font_size: default_font_size(),
             perm_mode_idx: 0,

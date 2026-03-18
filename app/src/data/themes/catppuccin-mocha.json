@@ -1,5 +1,9 @@
 {
   "name": "Catppuccin Mocha",
+  "termFont": "JetBrains Mono",
+  "termFontSize": 13,
+  "uiFont": "Inter",
+  "uiFontSize": 14,
   "colors": {
     "bg": "#161622",
     "surface": "#1e1e2e",

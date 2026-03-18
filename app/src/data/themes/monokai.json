@@ -1,5 +1,9 @@
 {
   "name": "Monokai",
+  "termFont": "Fira Code",
+  "termFontSize": 14,
+  "uiFont": "Segoe UI",
+  "uiFontSize": 14,
   "colors": {
     "bg": "#181810",
     "surface": "#272822",

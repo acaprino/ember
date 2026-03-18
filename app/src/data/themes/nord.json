@@ -1,5 +1,9 @@
 {
   "name": "Nord",
+  "termFont": "Cascadia Code",
+  "termFontSize": 14,
+  "uiFont": "Segoe UI",
+  "uiFontSize": 14,
   "colors": {
     "bg": "#1e2430",
     "surface": "#2e3440",

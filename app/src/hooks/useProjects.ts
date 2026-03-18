@@ -63,7 +63,7 @@ export function useProjects() {
   }, []);
 
   // Apply theme whenever theme_idx changes
-  const themeIdx = settings?.theme_idx ?? 0;
+  const themeIdx = settings?.theme_idx ?? 1;
   useEffect(() => {
     applyTheme(themeIdx);
   }, [themeIdx]);
