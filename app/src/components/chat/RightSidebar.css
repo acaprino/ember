@@ -58,6 +58,9 @@
   position: relative;
 }
 
+.light-theme .right-sidebar-tab { opacity: 0.7; }
+.light-theme .right-sidebar-tab:hover { opacity: 0.9; }
+
 .right-sidebar-tab.active {
   opacity: 1;
   background: color-mix(in srgb, var(--accent) 10%, transparent);
@@ -126,6 +129,8 @@
   padding: var(--space-4) var(--space-2);
   opacity: 0.5;
 }
+
+.light-theme .sidebar-empty { opacity: 0.7; }
 
 /* ── Bookmark Panel ────────────────────────────────────────────── */
 .bookmark-panel {

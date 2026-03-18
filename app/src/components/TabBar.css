@@ -242,6 +242,8 @@
   transition: background 0.1s ease-out, color 0.1s ease-out;
 }
 
+.light-theme .win-btn { color: var(--overlay1); }
+
 .win-btn:hover {
   background: var(--hover-overlay);
   color: var(--text);

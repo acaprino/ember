@@ -33,6 +33,8 @@
   transition: background 0.1s ease-out, color 0.1s ease-out;
 }
 
+.light-theme .title-bar .win-btn { color: var(--overlay1); }
+
 .title-bar .win-btn:hover {
   background: var(--hover-overlay);
   color: var(--text);

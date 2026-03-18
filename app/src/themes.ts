@@ -53,6 +53,8 @@ export function applyTheme(themeIdx: number): void {
   const isLight = isLightColor(c.bg);
   root.style.colorScheme = isLight ? "light" : "dark";
 
+  root.classList.toggle("light-theme", isLight);
+
   const isRetro = !!theme.retro;
   root.classList.toggle("retro", isRetro);
   invoke("set_window_corner_preference", { retro: isRetro }).catch(() => {});

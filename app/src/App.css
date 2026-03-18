@@ -298,6 +298,13 @@ button, input, select {
   to { opacity: 1; }
 }
 
+/* ── Light theme overrides ────────────────────────────────────────── */
+/* In light themes, elements using opacity for dimming need higher base
+   opacity since dark-on-light has less inherent contrast than light-on-dark. */
+.light-theme .tool-card-status.pending { color: var(--yellow); }
+.light-theme .tool-card-preview { opacity: 0.6; }
+.light-theme .tool-card-toggle { opacity: 0.4; }
+
 /* ── Confirm dialog ───────────────────────────────────────────────── */
 .confirm-overlay {
   position: fixed;
