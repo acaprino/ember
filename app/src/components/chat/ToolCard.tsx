@@ -1,5 +1,6 @@
 import { memo, useMemo, useState } from "react";
 import { Collapsible } from "radix-ui";
+import DiffView from "./DiffView";
 
 interface Props {
   tool: string;
@@ -15,6 +16,7 @@ export default memo(function ToolCard({ tool, input, output, success }: Props) {
     [input],
   );
   const truncatedInput = inputStr.length > 300 ? inputStr.slice(0, 300) + "..." : inputStr;
+  const isDiffTool = tool === "Edit" || tool === "Write";
   const pending = success === undefined;
 
   return (
@@ -30,7 +32,10 @@ export default memo(function ToolCard({ tool, input, output, success }: Props) {
       </Collapsible.Trigger>
       <Collapsible.Content>
         <div className="tool-card-body">
-          <pre className="tool-card-input">{inputStr}</pre>
+          {isDiffTool
+            ? <DiffView tool={tool as "Edit" | "Write"} input={input as any} />
+            : <pre className="tool-card-input">{inputStr}</pre>
+          }
           {output && (
             <div className="tool-card-output">
               <span className="tool-result-prefix">{"\u23BF"}</span>
