@@ -230,6 +230,8 @@ export function useSessionController(props: SessionControllerProps): SessionCont
 
       if (event.type === "assistant") {
         if (event.streaming) {
+          // If thinking was active, finalize it before appending more text
+          finalizeThinking();
           if (!streamingIdRef.current) {
             streamingIdRef.current = nextId();
             streamingTextRef.current = event.text;
@@ -316,7 +318,9 @@ export function useSessionController(props: SessionControllerProps): SessionCont
         }
         onTaglineChangeRef.current?.(tabIdRef.current, "");
       } else if (event.type === "thinking") {
-        finalizeStreaming();
+        // Don't finalize streaming text here — text and thinking can interleave
+        // within the same assistant turn. Finalizing would split one message into
+        // two separate bubbles with a thinking block between them.
         if (!thinkingIdRef.current) {
           thinkingIdRef.current = nextId();
           thinkingTextRef.current = event.text;
