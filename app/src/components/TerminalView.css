@@ -396,26 +396,6 @@
   flex-shrink: 0;
 }
 
-.tv-bottom-pill {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: inherit;
-  padding: 1px var(--space-1);
-  border-radius: var(--radius-sm);
-  transition: background 0.15s ease-out;
-}
-
-.tv-bottom-pill:hover {
-  background: color-mix(in srgb, var(--text) 10%, transparent);
-}
-
-.tv-bottom-pill:active {
-  transform: scale(0.95);
-  transition-duration: 0.05s;
-}
-
 .tv-bottom-model {
   color: var(--accent);
   font-weight: 600;

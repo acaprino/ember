@@ -199,9 +199,9 @@ export default memo(function TerminalView(props: SessionViewProps) {
 
   // Scroll to a message by ID (used by bookmark panel)
   const handleScrollToMessage = useCallback((msgId: string) => {
-    const idx = visibleItems.findIndex(item => item.id === msgId);
+    const idx = displayItemsRef.current.findIndex(item => item.id === msgId);
     if (idx >= 0) virtualizer.scrollToIndex(idx, { align: "center" });
-  }, [visibleItems, virtualizer]);
+  }, [virtualizer]);
 
   // Click anywhere -> refocus textarea
   const handleClick = useCallback((e: React.MouseEvent) => {
@@ -328,22 +328,22 @@ export default memo(function TerminalView(props: SessionViewProps) {
       </div>{/* end tv-main-row */}
       {/* Bottom bar */}
       <div className="tv-bottom">
-        {backgrounded && <span className="chat-bottom-bar-bg-badge">BG</span>}
-        {queueLength > 0 && <span className="chat-bottom-bar-queue-badge">{queueLength} queued</span>}
+        {backgrounded && <span className="bottom-bg-badge">BG</span>}
+        {queueLength > 0 && <span className="bottom-queue-badge">{queueLength} queued</span>}
         <button
-          className="tv-bottom-pill tv-bottom-model"
+          className="bottom-pill tv-bottom-model"
           title="Click to cycle model (F4)"
           onClick={() => onConfigChange?.({ modelIdx: (modelIdx + 1) % MODELS.length })}
         >{MODELS[modelIdx]?.display || "?"}</button>
         <span className="tv-bottom-sep">|</span>
         <button
-          className={`tv-bottom-pill tv-bottom-effort tv-bottom-effort--${EFFORTS[effortIdx] || "high"}`}
+          className={`bottom-pill tv-bottom-effort tv-bottom-effort--${EFFORTS[effortIdx] || "high"}`}
           title="Click to cycle effort (F2)"
           onClick={() => onConfigChange?.({ effortIdx: (effortIdx + 1) % EFFORTS.length })}
         >{EFFORTS[effortIdx] || "high"}</button>
         <span className="tv-bottom-sep">|</span>
         <button
-          className={`tv-bottom-pill tv-bottom-perm tv-bottom-perm--${PERM_MODES[permModeIdx]?.sdk || "plan"}`}
+          className={`bottom-pill tv-bottom-perm tv-bottom-perm--${PERM_MODES[permModeIdx]?.sdk || "plan"}`}
           title="Click to cycle permission mode (Tab)"
           onClick={() => onConfigChange?.({ permModeIdx: (permModeIdx + 1) % PERM_MODES.length })}
         >{PERM_MODES[permModeIdx]?.display || "plan"}</button>

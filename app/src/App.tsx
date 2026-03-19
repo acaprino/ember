@@ -466,7 +466,7 @@ function AppContent() {
                     plugins={pluginPaths}
                     resumeSessionId={tab.resumeSessionId}
                     forkSessionId={tab.forkSessionId}
-                    onConfigChange={(update) => handleConfigChange(tab.id, update)}
+                    onConfigChange={handleConfigChange}
                   />
                 </ErrorBoundary>
               ) : (

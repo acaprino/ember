@@ -418,22 +418,22 @@ export default memo(function ChatView(props: SessionViewProps) {
       <div className="chat-bottom-bar">
         <div className="chat-bottom-bar-info">
           <span className={`chat-status-dot${inputState === "processing" ? " active" : inputState === "awaiting_input" ? " idle" : ""}`} title={inputState === "processing" ? "Processing" : inputState === "awaiting_input" ? "Ready" : "Connecting"} />
-          {backgrounded && <span className="chat-bottom-bar-bg-badge">BG</span>}
-          {queueLength > 0 && <span className="chat-bottom-bar-queue-badge">{queueLength} queued</span>}
+          {backgrounded && <span className="bottom-bg-badge">BG</span>}
+          {queueLength > 0 && <span className="bottom-queue-badge">{queueLength} queued</span>}
           <button
-            className="chat-bottom-bar-pill"
+            className="bottom-pill chat-bottom-bar-model"
             title="Click to cycle model (F4)"
             onClick={() => onConfigChange?.({ modelIdx: (modelIdx + 1) % MODELS.length })}
           >{MODELS[modelIdx]?.display || "?"}</button>
           <span className="chat-bottom-bar-sep">|</span>
           <button
-            className={`chat-bottom-bar-pill chat-bottom-bar-effort ${EFFORTS[effortIdx] || "high"}`}
+            className={`bottom-pill chat-bottom-bar-effort ${EFFORTS[effortIdx] || "high"}`}
             title="Click to cycle effort (F2)"
             onClick={() => onConfigChange?.({ effortIdx: (effortIdx + 1) % EFFORTS.length })}
           >{EFFORTS[effortIdx] || "high"}</button>
           <span className="chat-bottom-bar-sep">|</span>
           <button
-            className={`chat-bottom-bar-pill chat-bottom-bar-perm ${PERM_MODES[permModeIdx]?.sdk || "plan"}`}
+            className={`bottom-pill chat-bottom-bar-perm ${PERM_MODES[permModeIdx]?.sdk || "plan"}`}
             title="Click to cycle permission mode (Tab)"
             onClick={() => onConfigChange?.({ permModeIdx: (permModeIdx + 1) % PERM_MODES.length })}
           >{PERM_MODES[permModeIdx]?.display || "plan"}</button>

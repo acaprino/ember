@@ -1,13 +1,15 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import { useSessionController } from "../hooks/useSessionController";
 import type { SessionControllerProps } from "../hooks/useSessionController";
 import ChatView from "./ChatView";
 import TerminalView from "./TerminalView";
 
+type ConfigUpdate = { modelIdx?: number; effortIdx?: number; permModeIdx?: number };
+
 interface AgentViewProps extends SessionControllerProps {
   viewStyle: "terminal" | "chat";
   hideThinking?: boolean;
-  onConfigChange?: (update: { modelIdx?: number; effortIdx?: number; permModeIdx?: number }) => void;
+  onConfigChange?: (tabId: string, update: ConfigUpdate) => void;
 }
 
 /**
@@ -20,6 +22,11 @@ export default memo(function AgentView({
 }: AgentViewProps) {
   const controller = useSessionController(controllerProps);
 
+  // Bind tabId so views get a stable callback that doesn't change on parent re-renders
+  const handleConfigChange = useCallback((update: ConfigUpdate) => {
+    onConfigChange?.(controllerProps.tabId, update);
+  }, [onConfigChange, controllerProps.tabId]);
+
   const viewProps = {
     tabId: controllerProps.tabId,
     modelIdx: controllerProps.modelIdx,
@@ -28,7 +35,7 @@ export default memo(function AgentView({
     isActive: controllerProps.isActive,
     hideThinking,
     controller,
-    onConfigChange,
+    onConfigChange: handleConfigChange,
   };
 
   if (viewStyle === "terminal") {

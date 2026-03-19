@@ -310,6 +310,51 @@ button, input, select {
 .light-theme .chat-usage-bar-pct { opacity: 0.6; }
 .light-theme .chat-bottom-bar-sep { opacity: 0.5; }
 
+/* ── Shared bottom-bar styles (used by ChatView + TerminalView) ── */
+.bottom-bg-badge {
+  font-size: var(--text-xs);
+  color: var(--yellow);
+  border: 1px solid color-mix(in srgb, var(--yellow) 40%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 0 3px;
+  line-height: 1.4;
+  animation: bg-pulse 2s ease-in-out infinite;
+}
+
+@keyframes bg-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.bottom-queue-badge {
+  font-size: var(--text-xs);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: var(--radius-sm);
+  padding: 0 3px;
+  line-height: 1.4;
+}
+
+.bottom-pill {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 1px var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s ease-out;
+}
+
+.bottom-pill:hover {
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+}
+
+.bottom-pill:active {
+  transform: scale(0.95);
+  transition-duration: 0.05s;
+}
+
 /* ── Confirm dialog ───────────────────────────────────────────────── */
 .confirm-overlay {
   position: fixed;

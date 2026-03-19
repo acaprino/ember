@@ -83,6 +83,7 @@ function log(...args) {
 // ── Constants ───────────────────────────────────────────────────────
 
 const VALID_PERM_MODES = new Set(["plan", "acceptEdits", "bypassPermissions"]);
+const ACCEPT_EDITS_TOOLS = new Set(["Write", "Edit", "Read", "Glob", "Grep"]);
 
 // ── Command handlers ────────────────────────────────────────────────
 
@@ -152,9 +153,6 @@ async function handleCreate(cmd) {
     options.permissionMode = resolvedPermMode;
   }
   // else: no explicit permissionMode — SDK uses its default
-
-  // Tools that are auto-approved in acceptEdits mode
-  const ACCEPT_EDITS_TOOLS = new Set(["Write", "Edit", "Read", "Glob", "Grep", "NotebookEdit"]);
 
   // Always register canUseTool to route permission decisions through Anvil UI.
   // For bypassPermissions, auto-allow everything without prompting.
