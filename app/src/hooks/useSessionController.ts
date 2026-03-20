@@ -147,6 +147,7 @@ export function useSessionController(props: SessionControllerProps): SessionCont
   }, []);
   const agentTasksRef = useRef<AgentTask[]>([]);
   const taskFlushRafRef = useRef(0);
+  const agentTaskCounterRef = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const exitedRef = useRef(false);
   const agentStartedRef = useRef(false);
@@ -265,6 +266,19 @@ export function useSessionController(props: SessionControllerProps): SessionCont
             ? (inp?.file_path || "").split(/[/\\]/).pop() || ""
             : "";
         onTaglineChangeRef.current?.(tabIdRef.current, detail ? `${event.tool}: ${detail}` : event.tool);
+        // Synthesize AgentTask for Agent tool invocations
+        if (event.tool === "Agent") {
+          const taskId = `agent-${++agentTaskCounterRef.current}`;
+          const prompt = inp?.prompt || inp?.task || "";
+          const desc = prompt ? prompt.slice(0, 120) : "Subagent";
+          const taskType = inp?.subagent_type || "agent";
+          const newTask: AgentTask = {
+            taskId, description: desc, taskType,
+            status: "running", totalTokens: 0, toolUses: 0, durationMs: 0, lastToolName: "", summary: "",
+          };
+          agentTasksRef.current = [...agentTasksRef.current, newTask];
+          setAgentTasks(agentTasksRef.current);
+        }
       } else if (event.type === "toolResult") {
         setMessages(prev => {
           for (let i = prev.length - 1; i >= 0; i--) {
@@ -277,6 +291,19 @@ export function useSessionController(props: SessionControllerProps): SessionCont
           }
           return prev;
         });
+        // Complete synthesized AgentTask when Agent tool finishes
+        if (event.tool === "Agent") {
+          const idx = agentTasksRef.current.findLastIndex(t => t.status === "running" && t.taskId.startsWith("agent-"));
+          if (idx >= 0) {
+            const output = typeof event.output === "string" ? event.output : JSON.stringify(event.output ?? "");
+            agentTasksRef.current = agentTasksRef.current.map((t, i) => i === idx ? {
+              ...t,
+              status: event.success ? "completed" : "failed",
+              summary: output.slice(0, 100),
+            } : t);
+            setAgentTasks(agentTasksRef.current);
+          }
+        }
       } else if (event.type === "permission") {
         // In bypass mode, auto-approve any permission the SDK still emits
         // Use ref (not closure) so live perm mode changes are respected
@@ -387,6 +414,13 @@ export function useSessionController(props: SessionControllerProps): SessionCont
         // Interrupted — session will be resumed by sidecar, just update UI
         setMessages(prev => [...prev, { id: nextId(), role: "status", status: "Interrupted", model: "", timestamp: Date.now() }]);
         // Don't change inputState — the resumed session will emit input_required or start processing
+        // Mark any running synthesized agent tasks as stopped
+        if (agentTasksRef.current.some(t => t.status === "running")) {
+          agentTasksRef.current = agentTasksRef.current.map(t =>
+            t.status === "running" ? { ...t, status: "stopped" as const } : t
+          );
+          setAgentTasks(agentTasksRef.current);
+        }
       } else if (event.type === "exit") {
         finalizeStreaming();
         finalizeThinking();
@@ -546,6 +580,7 @@ export function useSessionController(props: SessionControllerProps): SessionCont
       cancelAnimationFrame(taskFlushRafRef.current);
       taskFlushRafRef.current = 0;
       agentTasksRef.current = [];
+      agentTaskCounterRef.current = 0;
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
         refreshIntervalRef.current = null;
