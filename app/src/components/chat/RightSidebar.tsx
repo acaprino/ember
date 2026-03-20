@@ -11,8 +11,8 @@ import "./RightSidebar.css";
 
 type SidebarTab = "bookmarks" | "minimap" | "todos" | "thinking" | "agents";
 
-const RS_MIN = 150;
-const RS_MAX = 400;
+const RS_MIN = 220;
+const RS_MAX = 420;
 
 const SIDEBAR_TABS: { id: SidebarTab; icon: React.ReactNode; title: string }[] = [
   { id: "bookmarks", icon: <IconBookmark />, title: "Bookmarks" },

@@ -1,8 +1,8 @@
 /* ── Right Sidebar ─────────────────────────────────────────────── */
 .right-sidebar {
   width: var(--right-sidebar-width);
-  min-width: 150px;
-  max-width: 400px;
+  min-width: 220px;
+  max-width: 420px;
   border-left: 1px solid color-mix(in srgb, var(--overlay0) 30%, transparent);
   display: flex;
   flex-direction: column;
@@ -37,8 +37,8 @@
 
 .right-sidebar-tabs {
   display: flex;
-  gap: var(--space-0);
-  padding: var(--space-1);
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-2);
   border-bottom: 1px solid color-mix(in srgb, var(--overlay0) 30%, transparent);
 }
 
@@ -47,13 +47,16 @@
   background: none;
   border: none;
   border-radius: var(--radius-sm);
-  padding: var(--space-1);
+  padding: var(--space-2) var(--space-1);
   cursor: pointer;
   font-size: var(--text-sm);
   color: var(--text);
   opacity: 0.5;
   transition: opacity 0.15s ease-out, background 0.15s ease-out, transform 0.15s ease-out;
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .right-sidebar-tab:active { transform: scale(0.93); transition-duration: 0.05s; }
@@ -105,7 +108,7 @@
 }
 
 .right-sidebar-viewport {
-  padding: var(--space-1);
+  padding: var(--space-2);
   height: 100%;
 }
 
@@ -142,15 +145,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   color: var(--text-dim);
   font-size: var(--text-sm);
   text-align: center;
-  padding: var(--space-8) var(--space-4);
+  padding: var(--space-12) var(--space-4);
   opacity: 0.5;
+  line-height: 1.5;
 }
 .sidebar-empty-icon {
-  font-size: var(--text-xl);
+  font-size: 24px;
   opacity: 0.4;
 }
 
@@ -166,10 +170,10 @@
 .bookmark-item {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-1);
+  gap: var(--space-2);
   background: none;
   border: none;
-  padding: var(--space-1) var(--space-1);
+  padding: var(--space-2) var(--space-2);
   cursor: pointer;
   text-align: left;
   font-family: inherit;
@@ -197,8 +201,8 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--overlay0);
-  padding: var(--space-1);
-  margin-bottom: var(--space-1);
+  padding: var(--space-2) var(--space-2) var(--space-1);
+  margin-bottom: var(--space-2);
   border-bottom: 1px solid color-mix(in srgb, var(--overlay0) 20%, transparent);
 }
 
@@ -212,7 +216,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
 .bookmark-time {
@@ -298,10 +302,10 @@
 .thinking-entry-header {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   background: none;
   border: none;
-  padding: var(--space-1);
+  padding: var(--space-2);
   cursor: pointer;
   font-family: inherit;
   font-size: var(--text-xs);
@@ -364,8 +368,8 @@
 .todo-item {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-1);
-  padding: var(--space-1);
+  gap: var(--space-2);
+  padding: var(--space-2);
   font-size: var(--text-xs);
   border-radius: var(--radius-sm);
   transition: background 0.15s ease-out;
@@ -454,7 +458,7 @@
 .agent-task-header {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   min-width: 0;
 }
 
