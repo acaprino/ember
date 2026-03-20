@@ -102,10 +102,6 @@ export async function respondAskUser(tabId: string, answers: Record<string, stri
   await invoke("agent_ask_response", { tabId, answers });
 }
 
-export async function setAgentModel(tabId: string, model: string): Promise<void> {
-  await invoke("agent_set_model", { tabId, model });
-}
-
 export async function setAgentPermMode(tabId: string, permMode: string): Promise<void> {
   await invoke("agent_set_perm_mode", { tabId, permMode });
 }
@@ -120,15 +116,6 @@ export async function getAgentMessages(sessionId: string, dir?: string): Promise
 
 export async function saveClipboardImage(): Promise<string> {
   return invoke<string>("save_clipboard_image");
-}
-
-export async function requestAutocomplete(
-  tabId: string,
-  input: string,
-  context: Array<{ role: string; content: string }>,
-  seq: number,
-): Promise<void> {
-  await invoke("agent_autocomplete", { tabId, input, context, seq });
 }
 
 export async function refreshCommands(tabId: string): Promise<{ commands: SlashCommand[]; agents: AgentInfoSDK[] }> {
