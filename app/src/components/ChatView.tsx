@@ -1,9 +1,10 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { MODELS, EFFORTS, PERM_MODES } from "../types";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { save } from "@tauri-apps/plugin-dialog";
+import { useStickyScroll } from "../hooks/useStickyScroll";
 import { fmtTokens } from "../utils/format";
 import { messagesToMarkdown } from "../utils/exportSession";
 import type { SessionViewProps } from "./SessionViewProps";
@@ -125,50 +126,15 @@ export default memo(function ChatView(props: SessionViewProps) {
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<ChatInputHandle>(null);
 
-  // Sticky auto-scroll: stay pinned to bottom unless user scrolls up
-  const stickyRef = useRef(true);
-  const lastScrollTopRef = useRef(0);
-  // Guard: counter-based — incremented on programmatic scroll, checked in handler.
-  // Unlike a boolean, a counter survives multiple scroll events from one scrollTop assignment.
-  const programmaticScrollGenRef = useRef(0);
-  const lastSeenScrollGenRef = useRef(0);
+  const { stickyRef, scrollToBottom } = useStickyScroll(chatContainerRef);
 
-  const scrollToBottom = useCallback(() => {
-    const el = chatContainerRef.current;
-    if (!el) return;
-    programmaticScrollGenRef.current++;
-    el.scrollTop = el.scrollHeight;
-  }, []);
-
-  useEffect(() => {
-    const el = chatContainerRef.current;
-    if (!el) return;
-    const handleScroll = () => {
-      // If the generation changed, this scroll event was triggered programmatically
-      if (programmaticScrollGenRef.current !== lastSeenScrollGenRef.current) {
-        lastSeenScrollGenRef.current = programmaticScrollGenRef.current;
-        lastScrollTopRef.current = el.scrollTop;
-        return;
-      }
-      const { scrollTop, scrollHeight, clientHeight } = el;
-      const atBottom = scrollHeight - scrollTop - clientHeight < 60;
-      if (scrollTop < lastScrollTopRef.current && !atBottom) {
-        // User scrolled up — disengage auto-scroll
-        stickyRef.current = false;
-      } else if (atBottom) {
-        // User scrolled back to bottom — re-engage
-        stickyRef.current = true;
-      }
-      lastScrollTopRef.current = scrollTop;
-    };
-    el.addEventListener("scroll", handleScroll, { passive: true });
-    return () => el.removeEventListener("scroll", handleScroll);
-  }, []);
+  // Search: defer the query so the expensive scan doesn't block input
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   // Search: find matching displayItem indices
   const searchMatches = useMemo(() => {
-    if (!searchQuery) return [];
-    const q = searchQuery.toLowerCase();
+    if (!deferredSearchQuery) return [];
+    const q = deferredSearchQuery.toLowerCase();
     const matches: number[] = [];
     displayItems.forEach((item, i) => {
       if (item.role === "tool-group") {
@@ -186,7 +152,7 @@ export default memo(function ChatView(props: SessionViewProps) {
       }
     });
     return matches;
-  }, [displayItems, searchQuery]);
+  }, [displayItems, deferredSearchQuery]);
 
   // Auto-scroll on new messages or streaming updates (only when sticky)
   useEffect(() => {

@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { MODELS, EFFORTS, PERM_MODES } from "../types";
+import { useStickyScroll } from "../hooks/useStickyScroll";
 import type { DisplayItem } from "../hooks/useSessionController";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { fmtTokens } from "../utils/format";
@@ -99,43 +100,7 @@ export default memo(function TerminalView(props: SessionViewProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Sticky auto-scroll: stay pinned to bottom unless user scrolls up
-  const stickyRef = useRef(true);
-  const lastScrollTopRef = useRef(0);
-  // Guard: counter-based — incremented on programmatic scroll, checked in handler.
-  // Unlike a boolean, a counter survives multiple scroll events from one scrollTop assignment.
-  const programmaticScrollGenRef = useRef(0);
-  const lastSeenScrollGenRef = useRef(0);
-
-  const scrollToBottom = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    programmaticScrollGenRef.current++;
-    el.scrollTop = el.scrollHeight;
-  }, []);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const handleScroll = () => {
-      // If the generation changed, this scroll event was triggered programmatically
-      if (programmaticScrollGenRef.current !== lastSeenScrollGenRef.current) {
-        lastSeenScrollGenRef.current = programmaticScrollGenRef.current;
-        lastScrollTopRef.current = el.scrollTop;
-        return;
-      }
-      const { scrollTop, scrollHeight, clientHeight } = el;
-      const atBottom = scrollHeight - scrollTop - clientHeight < 60;
-      if (scrollTop < lastScrollTopRef.current && !atBottom) {
-        stickyRef.current = false;
-      } else if (atBottom) {
-        stickyRef.current = true;
-      }
-      lastScrollTopRef.current = scrollTop;
-    };
-    el.addEventListener("scroll", handleScroll, { passive: true });
-    return () => el.removeEventListener("scroll", handleScroll);
-  }, []);
+  const { stickyRef, scrollToBottom } = useStickyScroll(scrollRef);
 
   // ── Turn collapsing: hide tool/thinking/permission/status noise from previous turns ──
   // A "turn" starts at each user message. Only the last turn shows full detail.
