@@ -177,13 +177,20 @@ export default memo(function ChatView(props: SessionViewProps) {
 
   // Scroll to bottom when session becomes ready (e.g. after resume)
   // Focus is owned by ChatInput's own effect
+  // Retry several times because heavy message rendering (markdown, syntax
+  // highlighting) can cause the layout to shift after the first scrollIntoView.
   useEffect(() => {
     if (inputState === "awaiting_input") {
       stickyRef.current = true;
-      const id = requestAnimationFrame(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
-      });
-      return () => cancelAnimationFrame(id);
+      const scroll = () => messagesEndRef.current?.scrollIntoView({ behavior: "instant" });
+      scroll();
+      const rafId = requestAnimationFrame(scroll);
+      // Escalating delays to catch layout shifts from markdown/syntax-highlight rendering
+      const timeoutIds = [50, 150, 400].map(ms => window.setTimeout(scroll, ms));
+      return () => {
+        cancelAnimationFrame(rafId);
+        timeoutIds.forEach(clearTimeout);
+      };
     }
   }, [inputState]);
 
