@@ -17,6 +17,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { sanitizeInput } from "../utils/sanitizeInput";
 import { notifyAttention } from "../utils/notify";
+import { pruneMessages, PRUNE_THRESHOLD } from "../utils/pruneMessages";
 import type { Command } from "../components/chat/CommandMenu";
 import { useStreamingText } from "./useStreamingText";
 import { useThinkingText } from "./useThinkingText";
@@ -678,6 +679,13 @@ export function useSessionController(props: SessionControllerProps): SessionCont
       }
     } catch (err) { console.debug("[session] file dialog cancelled or failed:", err); }
   }, []);
+
+  // ── Message pruning for long sessions ──────────────────────────
+  useEffect(() => {
+    if (messages.length > PRUNE_THRESHOLD) {
+      setMessages(prev => pruneMessages(prev));
+    }
+  }, [messages.length > PRUNE_THRESHOLD]);
 
   // ── Derived state ──────────────────────────────────────────────
   const hasUnresolvedPermission = useMemo(() => {

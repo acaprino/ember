@@ -815,3 +815,91 @@ pub fn set_marketplace_global(enabled: bool) -> Result<(), String> {
         crate::marketplace::disable_global()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+
+    #[test]
+    fn blocked_dirs_blocks_ssh() {
+        let path = Path::new("C:\\Users\\test\\.ssh\\id_rsa");
+        let has_blocked = path.components().any(|c| {
+            if let std::path::Component::Normal(s) = c {
+                let s = s.to_string_lossy();
+                BLOCKED_DIRS.iter().any(|b| s.eq_ignore_ascii_case(b))
+            } else {
+                false
+            }
+        });
+        assert!(has_blocked);
+    }
+
+    #[test]
+    fn blocked_dirs_blocks_git() {
+        let path = Path::new("C:\\Projects\\repo\\.git\\config");
+        let has_blocked = path.components().any(|c| {
+            if let std::path::Component::Normal(s) = c {
+                let s = s.to_string_lossy();
+                BLOCKED_DIRS.iter().any(|b| s.eq_ignore_ascii_case(b))
+            } else {
+                false
+            }
+        });
+        assert!(has_blocked);
+    }
+
+    #[test]
+    fn blocked_dirs_allows_normal_paths() {
+        let path = Path::new("C:\\Projects\\myapp\\src\\main.rs");
+        let has_blocked = path.components().any(|c| {
+            if let std::path::Component::Normal(s) = c {
+                let s = s.to_string_lossy();
+                BLOCKED_DIRS.iter().any(|b| s.eq_ignore_ascii_case(b))
+            } else {
+                false
+            }
+        });
+        assert!(!has_blocked);
+    }
+
+    #[test]
+    fn blocked_files_blocks_env() {
+        let name = ".env";
+        assert!(BLOCKED_FILES.iter().any(|b| name.eq_ignore_ascii_case(b)));
+    }
+
+    #[test]
+    fn blocked_files_blocks_env_local() {
+        let name = ".env.local";
+        assert!(BLOCKED_FILES.iter().any(|b| name.eq_ignore_ascii_case(b)));
+    }
+
+    #[test]
+    fn blocked_files_blocks_ssh_keys() {
+        for key in &["id_rsa", "id_ed25519", "id_ecdsa", "id_dsa"] {
+            assert!(BLOCKED_FILES.iter().any(|b| key.eq_ignore_ascii_case(b)), "should block {key}");
+        }
+    }
+
+    #[test]
+    fn blocked_files_allows_normal_files() {
+        for name in &["main.rs", "index.ts", "README.md", ".gitignore"] {
+            assert!(!BLOCKED_FILES.iter().any(|b| name.eq_ignore_ascii_case(b)), "should allow {name}");
+        }
+    }
+
+    #[test]
+    fn blocked_dirs_case_insensitive() {
+        let path = Path::new("C:\\Users\\test\\.SSH\\known_hosts");
+        let has_blocked = path.components().any(|c| {
+            if let std::path::Component::Normal(s) = c {
+                let s = s.to_string_lossy();
+                BLOCKED_DIRS.iter().any(|b| s.eq_ignore_ascii_case(b))
+            } else {
+                false
+            }
+        });
+        assert!(has_blocked);
+    }
+}

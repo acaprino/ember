@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import type { Theme } from "./types";
 
 /** Strip characters unsafe for CSS font-family interpolation */
-function sanitizeFontName(name: string): string {
+export function sanitizeFontName(name: string): string {
   return name.replace(/[^a-zA-Z0-9\s\-_.]/g, "");
 }
 
