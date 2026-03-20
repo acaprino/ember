@@ -198,7 +198,7 @@
   overflow-y: auto;
 }
 
-.tv-tool-output::-webkit-scrollbar { width: 2px; }
+.tv-tool-output::-webkit-scrollbar { width: 4px; }
 .tv-tool-output::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--overlay0) 30%, transparent);
 }

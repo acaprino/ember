@@ -37,10 +37,10 @@
 
 .diff-gutter {
   flex-shrink: 0;
-  width: 16px;
+  width: 20px;
   text-align: center;
   user-select: none;
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .diff-text {
@@ -52,6 +52,6 @@
 
 .diff-meta { color: var(--text-dim); font-weight: 600; }
 .diff-hunk { color: var(--accent); opacity: 0.6; }
-.diff-add { background: color-mix(in srgb, var(--green) 12%, transparent); color: var(--green); }
-.diff-del { background: color-mix(in srgb, var(--red) 12%, transparent); color: var(--red); }
+.diff-add { background: color-mix(in srgb, var(--green) 18%, transparent); color: var(--green); }
+.diff-del { background: color-mix(in srgb, var(--red) 18%, transparent); color: var(--red); }
 .diff-ctx { color: var(--text-dim); }

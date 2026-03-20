@@ -30,9 +30,9 @@
   --text-xs: 12px;
   --text-sm: 13px;
   --text-base: 14px;
-  --text-md: 15px;
-  --text-lg: 16px;
-  --text-xl: 18px;
+  --text-md: 16px;
+  --text-lg: 17px;
+  --text-xl: 19px;
   --font-mono: "Cascadia Code", "JetBrains Mono", "Fira Code", "Consolas", monospace;
   --info-strip-height: 32px;
   --backdrop: color-mix(in srgb, var(--crust) 85%, transparent);
@@ -322,6 +322,13 @@ button, input, select {
 .light-theme .chat-usage-bar-label { opacity: 0.6; }
 .light-theme .chat-usage-bar-pct { opacity: 0.6; }
 .light-theme .chat-bottom-bar-sep { opacity: 0.5; }
+.light-theme .thinking-block-text { opacity: 0.65; }
+.light-theme .result-bar { opacity: 0.6; }
+.light-theme .chat-msg--status { opacity: 0.55; }
+.light-theme .chat-msg--history { opacity: 0.65; }
+.light-theme .code-block-lang { opacity: 0.6; }
+.light-theme .code-block-copy { opacity: 0.5; }
+.light-theme .code-block-wrapper .react-syntax-highlighter-line-number { opacity: 0.5; }
 
 /* ── Shared bottom-bar styles (used by ChatView + TerminalView) ── */
 .bottom-bg-badge {

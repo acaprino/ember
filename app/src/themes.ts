@@ -34,9 +34,9 @@ export function applyTheme(themes: Theme[], themeIdx: number): void {
   root.style.setProperty("--text-xs", `${base - 2}px`);
   root.style.setProperty("--text-sm", `${base - 1}px`);
   root.style.setProperty("--text-base", `${base}px`);
-  root.style.setProperty("--text-md", `${base + 1}px`);
-  root.style.setProperty("--text-lg", `${base + 2}px`);
-  root.style.setProperty("--text-xl", `${base + 4}px`);
+  root.style.setProperty("--text-md", `${base + 2}px`);
+  root.style.setProperty("--text-lg", `${base + 3}px`);
+  root.style.setProperty("--text-xl", `${base + 5}px`);
 
   // UI / chat font
   if (theme.uiFont) {

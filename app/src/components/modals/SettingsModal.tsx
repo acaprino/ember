@@ -192,8 +192,11 @@ export default memo(function SettingsModal({ settings, onClose, onUpdate }: Sett
             fontFamily: `'${fontFamily}', 'Consolas', monospace`,
             fontSize: `${fontSize}px`,
           }}>
-            The quick brown fox jumps over the lazy dog<br/>
-            {"0123456789 !@#$%^&*() {}[]|\\/<>"}
+            {"fn main() {"}<br/>
+            {'    let result = fetch_data().await?;'}<br/>
+            {'    println!("{result:?}");'}<br/>
+            {"}"}<br/>
+            {"// 0O Il1| {}()[]<>"}
           </div>
         </div>
 
@@ -232,8 +235,8 @@ export default memo(function SettingsModal({ settings, onClose, onUpdate }: Sett
             fontFamily: `'${chatFontFamily}', 'Segoe UI', system-ui, sans-serif`,
             fontSize: `${chatFontSize}px`,
           }}>
-            The quick brown fox jumps over the lazy dog<br/>
-            {"0123456789 !@#$%^&*() {}[]|\\/<>"}
+            The quick brown fox jumps over the lazy dog.<br/>
+            {"0123456789 — \"quoted\" — 'apostrophe'"}
           </div>
         </div>
 

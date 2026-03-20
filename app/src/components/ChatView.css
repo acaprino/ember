@@ -45,7 +45,7 @@
   padding: var(--space-1) var(--space-3);
   background: var(--surface);
   border-bottom: 1px solid color-mix(in srgb, var(--overlay0) 30%, transparent);
-  max-width: 680px;
+  max-width: 900px;
   margin-inline: auto;
   width: 100%;
 }
@@ -89,12 +89,12 @@
 /* Constrain message width, centered in the scroll area */
 .chat-messages-inner {
   width: 100%;
-  max-width: 680px;
+  max-width: 900px;
   margin-inline: auto;
 }
 
 /* Thin, subtle scrollbar */
-.chat-messages::-webkit-scrollbar { width: 3px; }
+.chat-messages::-webkit-scrollbar { width: 4px; }
 .chat-messages::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--overlay0) 40%, transparent);
 }
@@ -112,7 +112,7 @@
 /* User messages: left-aligned, no bubble, prompt prefix style */
 .chat-msg--user {
   color: var(--text);
-  padding: var(--space-1) 0;
+  padding: var(--space-3) 0 var(--space-1) 0;
   border-radius: 0;
   max-width: 100%;
   white-space: pre-wrap;
@@ -213,13 +213,13 @@
 .chat-msg--status {
   color: var(--text-dim);
   font-size: var(--text-xs);
-  opacity: 0.35;
+  opacity: 0.45;
   padding: 1px 0;
 }
 
 /* ── History (previous session context) ─────────────────────────── */
 .chat-msg--history {
-  opacity: 0.45;
+  opacity: 0.55;
 }
 
 .history-separator {
@@ -272,7 +272,7 @@
 .msg-bubble p:last-child { margin-bottom: 0; }
 
 .msg-bubble code {
-  background: color-mix(in srgb, var(--crust) 60%, transparent);
+  background: color-mix(in srgb, var(--crust) 80%, transparent);
   padding: 1px 4px;
   border-radius: 0;
   font-size: 0.9em;
@@ -417,7 +417,7 @@
   overflow-y: auto;
 }
 
-.tool-card-output::-webkit-scrollbar { width: 2px; }
+.tool-card-output::-webkit-scrollbar { width: 4px; }
 .tool-card-output::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--overlay0) 30%, transparent);
 }
@@ -749,7 +749,7 @@
   transition: opacity 0.3s ease-out;
 }
 
-.thinking-block.ended { opacity: 0.5; }
+.thinking-block.ended { opacity: 0.6; }
 
 .thinking-block-header {
   display: flex;
@@ -785,14 +785,14 @@
   color: var(--text-dim);
   font-size: var(--text-sm);
   line-height: 1.5;
-  opacity: 0.4;
+  opacity: 0.55;
 }
 
 /* ── ThinkingIndicator: static text ──────────────────────────────── */
 .thinking-indicator {
   color: var(--text-dim);
   font-size: var(--text-sm);
-  opacity: 0.5;
+  opacity: 0.6;
   padding: var(--space-1) 0;
 }
 
@@ -855,26 +855,31 @@
   gap: var(--space-2);
   color: var(--text-dim);
   font-size: var(--text-xs);
-  opacity: 0.35;
+  opacity: 0.5;
   padding: var(--space-0) 0;
 }
 
 .result-bar .rule {
   flex: 1;
   height: 1px;
-  background: color-mix(in srgb, var(--overlay0) 20%, transparent);
+  background: color-mix(in srgb, var(--overlay0) 35%, transparent);
   min-width: 20px;
 }
 
-.result-sep { opacity: 0.3; }
+.result-sep { opacity: 0.45; }
 
 /* ── Code Block: no header bar, minimal wrapper ──────────────────── */
 .code-block-wrapper {
   border-radius: 0;
   overflow: hidden;
-  margin: var(--space-1) 0;
   border: none;
-  border-left: 2px solid color-mix(in srgb, var(--overlay0) 25%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--overlay0) 40%, transparent);
+  background: color-mix(in srgb, var(--crust) 40%, transparent);
+  margin: var(--space-2) 0;
+}
+
+.code-block-wrapper .react-syntax-highlighter-line-number {
+  opacity: 0.4;
 }
 
 .code-block-header {
@@ -884,14 +889,14 @@
   padding: 1px var(--space-2);
   background: none;
   font-size: var(--text-xs);
-  border-bottom: 1px dashed color-mix(in srgb, var(--overlay0) 15%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--overlay0) 25%, transparent);
 }
 
 .code-block-lang {
   color: var(--text-dim);
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  opacity: 0.4;
+  opacity: 0.5;
 }
 
 .code-block-copy {
@@ -904,7 +909,7 @@
   padding: 0 var(--space-1);
   cursor: pointer;
   transition: color 0.1s, opacity 0.1s;
-  opacity: 0.3;
+  opacity: 0.4;
 }
 
 .code-block-copy:hover {

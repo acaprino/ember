@@ -154,7 +154,7 @@ const CodeBlock = ({ className, children }: { className?: string; children?: Rea
           borderRadius: "0 0 var(--radius-sm) var(--radius-sm)",
           fontSize: "var(--text-sm)",
         }}
-        lineNumberStyle={{ opacity: 0.3, minWidth: "2em" }}
+        lineNumberStyle={{ minWidth: "2.5em" }}
       >
         {code}
       </SyntaxHighlighter>
