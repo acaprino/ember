@@ -38,10 +38,10 @@
 
 /* ── Lines ────────────────────────────────────────────────────── */
 .tv-line {
-  padding: var(--space-0) 0;
+  padding: var(--space-1) 0;
 }
 
-.tv-line--history { opacity: 0.4; }
+.tv-line--history { opacity: 0.55; }
 
 /* ── Activity spinner (visible feedback while agent works) ────── */
 .tv-activity {
@@ -79,13 +79,16 @@
   white-space: pre-wrap;
   word-break: break-word;
   padding: var(--tv-block-gap) 0;
-  margin-top: var(--space-2);
+  padding-left: var(--space-3);
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-1);
+  border-left: 2px solid color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 .tv-user-prompt {
   color: var(--accent);
   font-weight: 700;
-  margin-right: var(--space-1);
+  margin-right: var(--space-2);
 }
 
 /* ── Assistant message (plain pre-wrap, no markdown parser) ───── */
@@ -94,10 +97,13 @@
   white-space: pre-wrap;
   word-break: break-word;
   margin: 0;
-  padding: var(--space-0) 0;
+  padding: var(--space-2) var(--space-3);
   font-family: inherit;
   font-size: inherit;
   line-height: inherit;
+  background: color-mix(in srgb, var(--surface) 25%, transparent);
+  border-radius: var(--radius-sm);
+  border-left: 2px solid color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 .tv-assistant strong {
@@ -128,7 +134,10 @@
 @keyframes tv-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
 /* ── Tool call (single-line expandable) ──────────────────────── */
-.tv-tool { margin: var(--space-0) 0; }
+.tv-tool {
+  margin: var(--space-0) 0;
+  padding: var(--space-1) 0;
+}
 
 .tv-tool-header {
   display: flex;
@@ -137,6 +146,9 @@
   cursor: pointer;
   color: var(--text-dim);
   user-select: none;
+  padding: var(--space-1) var(--space-2);
+  background: color-mix(in srgb, var(--surface) 20%, transparent);
+  border-radius: var(--radius-sm);
 }
 
 .tv-tool-header:hover { color: var(--overlay1); }
@@ -158,7 +170,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  opacity: 0.35;
+  opacity: 0.5;
   font-size: var(--tv-font-size);
 }
 
@@ -171,6 +183,8 @@
 
 .tv-tool-body {
   padding-left: var(--tv-indent);
+  padding-top: var(--space-1);
+  padding-bottom: var(--space-1);
 }
 
 .tv-tool-input {
@@ -218,7 +232,10 @@
   color: var(--accent);
 }
 
-.tv-tool-group { margin: var(--space-0) 0; }
+.tv-tool-group {
+  margin: var(--space-0) 0;
+  padding: var(--space-1) 0;
+}
 
 .tv-toolgrp-header {
   display: flex;
@@ -227,6 +244,9 @@
   cursor: pointer;
   color: var(--text-dim);
   user-select: none;
+  padding: var(--space-1) var(--space-2);
+  background: color-mix(in srgb, var(--surface) 20%, transparent);
+  border-radius: var(--radius-sm);
 }
 
 .tv-toolgrp-header:hover { color: var(--overlay1); }
@@ -251,6 +271,10 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--space-2);
+  padding: var(--space-2);
+  background: color-mix(in srgb, var(--yellow) 5%, transparent);
+  border-radius: var(--radius-sm);
+  border-left: 2px solid color-mix(in srgb, var(--yellow) 30%, transparent);
 }
 
 .tv-perm-q {
@@ -267,12 +291,13 @@
 
 .tv-perm-btn {
   background: none;
-  border: none;
+  border: 1px solid color-mix(in srgb, var(--overlay0) 25%, transparent);
   color: var(--text-dim);
   font-family: inherit;
   font-size: var(--tv-font-size);
   cursor: pointer;
-  padding: 0 var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
 }
 
 .tv-perm-btn:hover { color: var(--text); }
@@ -285,7 +310,7 @@
   align-items: center;
   gap: var(--space-1);
   color: var(--text-dim);
-  opacity: 0.4;
+  opacity: 0.55;
 }
 
 .tv-perm--allowed .tv-perm-icon { color: var(--green); }
@@ -293,7 +318,7 @@
 
 /* ── Thinking ─────────────────────────────────────────────────── */
 .tv-thinking { padding: var(--space-0) 0; }
-.tv-thinking--ended { opacity: 0.4; }
+.tv-thinking--ended { opacity: 0.55; }
 
 .tv-thinking-header {
   display: inline-flex;
@@ -328,7 +353,7 @@
   white-space: pre-wrap;
   font-style: italic;
   color: var(--text-dim);
-  opacity: 0.4;
+  opacity: 0.55;
   font-family: inherit;
   font-size: inherit;
   background: none;
@@ -346,7 +371,7 @@
   align-items: center;
   gap: var(--space-1);
   color: var(--text-dim);
-  opacity: 0.3;
+  opacity: 0.45;
   padding: var(--space-0) 0;
 }
 
@@ -364,8 +389,11 @@
   display: flex;
   align-items: baseline;
   gap: var(--space-1);
-  padding: var(--space-0) 0;
+  padding: var(--space-2);
   color: var(--red);
+  background: color-mix(in srgb, var(--red) 6%, transparent);
+  border-radius: var(--radius-sm);
+  border-left: 2px solid color-mix(in srgb, var(--red) 30%, transparent);
 }
 
 .tv-error-label { font-weight: 600; }
@@ -375,7 +403,7 @@
 /* ── Status ───────────────────────────────────────────────────── */
 .tv-status {
   color: var(--text-dim);
-  opacity: 0.35;
+  opacity: 0.5;
 }
 
 /* ── History separator ────────────────────────────────────────── */
@@ -384,9 +412,10 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--tv-block-gap) 0;
+  margin: var(--space-2) 0;
   color: var(--text-dim);
   font-size: var(--tv-font-size);
-  opacity: 0.5;
+  opacity: 0.6;
 }
 
 .tv-sep-rule {
