@@ -129,7 +129,7 @@ const ActivitySpinner = memo(function ActivitySpinner({ label }: { label: string
 export default memo(function TerminalView(props: SessionViewProps) {
   const {
     modelIdx, effortIdx, permModeIdx, isActive,
-    hideThinking,
+    hideThinking: _hideThinking,
     controller: ctrl,
     onConfigChange,
   } = props;
@@ -139,7 +139,7 @@ export default memo(function TerminalView(props: SessionViewProps) {
     inputState, stats, agentTasks, sdkCommands, sdkAgents,
     hasUnresolvedPermission,
     streamingTextRef, streamingIdRef, streamingTick,
-    thinkingTextRef, thinkingIdRef, thinkingTick,
+    thinkingTextRef: _thinkingTextRef, thinkingIdRef, thinkingTick,
     messagesEndRef,
     handleSubmit, handlePermissionRespond, handleAskUserRespond,
     handleCommand, handleInterrupt, handleBackground,
@@ -361,17 +361,6 @@ export default memo(function TerminalView(props: SessionViewProps) {
             );
           })}
         </div>
-        {/* Live thinking outside virtualizer */}
-        {thinkingIdRef.current && !hideThinking && (
-          <div className="tv-line">
-            <TermThinkingLine text={thinkingTextRef.current} ended={false} />
-          </div>
-        )}
-        {thinkingIdRef.current && hideThinking && (
-          <div className="tv-line">
-            <div className="tv-activity"><span className="tv-activity-spinner">{"\u2026"}</span><span className="tv-activity-label">Thinking...</span></div>
-          </div>
-        )}
         {/* Live streaming outside virtualizer */}
         {streamingIdRef.current && (
           <div className="tv-line">
