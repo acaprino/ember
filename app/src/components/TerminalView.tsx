@@ -211,17 +211,6 @@ export default memo(function TerminalView(props: SessionViewProps) {
     return () => window.removeEventListener("focus", handleWindowFocus);
   }, [isActive]);
 
-  // Derive a descriptive label for the activity spinner from the last tool message
-  const activityLabel = useMemo(() => {
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const msg = messages[i];
-      if (msg.role === "tool" && !msg.output) return msg.tool;
-      if (msg.role === "tool" && msg.output) break;
-      if (msg.role === "assistant") break;
-    }
-    return "Working...";
-  }, [messages]);
-
   // Keyboard shortcuts — Ctrl+C copies selection or interrupts agent
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.ctrlKey && e.key === "c") {
@@ -396,7 +385,7 @@ export default memo(function TerminalView(props: SessionViewProps) {
         {/* Activity spinner when processing — replaces input field */}
         {inputState === "processing" && !streamingIdRef.current && !thinkingIdRef.current && !hasUnresolvedPermission && messages.length > 0 && (
           <div className="tv-line">
-            <ActivitySpinner label={activityLabel} />
+            <ActivitySpinner label="Working..." />
           </div>
         )}
         {/* Input — always visible when session is active */}
