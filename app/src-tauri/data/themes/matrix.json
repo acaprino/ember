@@ -1,6 +1,6 @@
 {
   "name": "Matrix [retro]",
-  "order": 7,
+  "order": 50,
   "retro": true,
   "termFont": "Cascadia Mono",
   "termFontSize": 14,

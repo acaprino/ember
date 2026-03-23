@@ -1,0 +1,20 @@
+{
+  "name": "Polar Ice Light",
+  "order": 11,
+  "colors": {
+    "bg": "#DBF7FF",
+    "surface": "#C5DDE6",
+    "mantle": "#D1EDFB",
+    "crust": "#C5DDE6",
+    "text": "#3E444F",
+    "textDim": "#6B7782",
+    "overlay0": "#AEC4CD",
+    "overlay1": "#98AAB4",
+    "accent": "#34A4E7",
+    "red": "#E11418",
+    "green": "#61AB16",
+    "yellow": "#D2A623",
+    "cursor": "#3E444F",
+    "selection": "#C5DDE6"
+  }
+}

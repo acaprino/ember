@@ -1,0 +1,20 @@
+{
+  "name": "Polar Ice",
+  "order": 10,
+  "colors": {
+    "bg": "#44484F",
+    "surface": "#576068",
+    "mantle": "#3A3E45",
+    "crust": "#30343B",
+    "text": "#C7F3FF",
+    "textDim": "#A2C2CD",
+    "overlay0": "#697982",
+    "overlay1": "#7C919B",
+    "accent": "#94CEF2",
+    "red": "#F59597",
+    "green": "#C8F29D",
+    "yellow": "#F2DB94",
+    "cursor": "#C7F3FF",
+    "selection": "#576068"
+  }
+}

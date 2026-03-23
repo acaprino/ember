@@ -1,0 +1,20 @@
+{
+  "name": "Green as a Whistle",
+  "order": 5,
+  "colors": {
+    "bg": "#1F1913",
+    "surface": "#3F3A30",
+    "mantle": "#150F09",
+    "crust": "#0B0500",
+    "text": "#FEFEDD",
+    "textDim": "#BFBDA3",
+    "overlay0": "#5F5B4D",
+    "overlay1": "#7F7B6A",
+    "accent": "#639587",
+    "red": "#994643",
+    "green": "#4B8075",
+    "yellow": "#FFCF86",
+    "cursor": "#FEFEDD",
+    "selection": "#3F3A30"
+  }
+}

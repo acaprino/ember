@@ -1,0 +1,20 @@
+{
+  "name": "Rivet Light",
+  "order": 30,
+  "colors": {
+    "bg": "#FFFFFF",
+    "surface": "#E0DDE6",
+    "mantle": "#F5F3FA",
+    "crust": "#E0DDE6",
+    "text": "#0A0216",
+    "textDim": "#4A3E66",
+    "overlay0": "#C1BCD0",
+    "overlay1": "#A29BB6",
+    "accent": "#0029BB",
+    "red": "#B20718",
+    "green": "#4BAD00",
+    "yellow": "#938C00",
+    "cursor": "#0A0216",
+    "selection": "#E0DDE6"
+  }
+}

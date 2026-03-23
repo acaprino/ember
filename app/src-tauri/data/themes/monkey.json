@@ -1,0 +1,20 @@
+{
+  "name": "Monkey",
+  "order": 7,
+  "colors": {
+    "bg": "#48463E",
+    "surface": "#5E5C55",
+    "mantle": "#3E3C34",
+    "crust": "#34322A",
+    "text": "#E0E2DD",
+    "textDim": "#B5B5B0",
+    "overlay0": "#73736B",
+    "overlay1": "#898982",
+    "accent": "#7EB9D0",
+    "red": "#E29288",
+    "green": "#A4CC78",
+    "yellow": "#DBB66D",
+    "cursor": "#E0E2DD",
+    "selection": "#5E5C55"
+  }
+}

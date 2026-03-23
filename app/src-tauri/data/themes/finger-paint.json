@@ -1,0 +1,20 @@
+{
+  "name": "Finger Paint",
+  "order": 3,
+  "colors": {
+    "bg": "#2A2021",
+    "surface": "#463D3E",
+    "mantle": "#201617",
+    "crust": "#160C0D",
+    "text": "#EDEBEE",
+    "textDim": "#B5B1B4",
+    "overlay0": "#625A5C",
+    "overlay1": "#7E7779",
+    "accent": "#6484B5",
+    "red": "#C65967",
+    "green": "#97B55A",
+    "yellow": "#E5BE31",
+    "cursor": "#EDEBEE",
+    "selection": "#463D3E"
+  }
+}

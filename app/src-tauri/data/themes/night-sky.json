@@ -1,0 +1,20 @@
+{
+  "name": "Night Sky",
+  "order": 9,
+  "colors": {
+    "bg": "#13222E",
+    "surface": "#293845",
+    "mantle": "#091824",
+    "crust": "#000E1A",
+    "text": "#ACBECC",
+    "textDim": "#80919F",
+    "overlay0": "#3F4F5B",
+    "overlay1": "#556572",
+    "accent": "#4496CD",
+    "red": "#CA3E5A",
+    "green": "#81A559",
+    "yellow": "#EBB062",
+    "cursor": "#ACBECC",
+    "selection": "#293845"
+  }
+}

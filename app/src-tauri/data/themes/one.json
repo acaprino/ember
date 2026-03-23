@@ -1,0 +1,20 @@
+{
+  "name": "One",
+  "order": 27,
+  "colors": {
+    "bg": "#282c34",
+    "surface": "#393e48",
+    "mantle": "#1e222a",
+    "crust": "#141820",
+    "text": "#abb2bf",
+    "textDim": "#828997",
+    "overlay0": "#4b515c",
+    "overlay1": "#5c6370",
+    "accent": "#61afef",
+    "red": "#e06c75",
+    "green": "#98c379",
+    "yellow": "#e5c07b",
+    "cursor": "#abb2bf",
+    "selection": "#393e48"
+  }
+}

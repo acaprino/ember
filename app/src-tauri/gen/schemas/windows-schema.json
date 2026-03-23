@@ -477,6 +477,12 @@
           "markdownDescription": "Allows retrieving messages from a past agent session"
         },
         {
+          "description": "Allows getting hook metadata from marketplace plugins",
+          "type": "string",
+          "const": "allow-get-hooks-info",
+          "markdownDescription": "Allows getting hook metadata from marketplace plugins"
+        },
+        {
           "description": "Allows getting bundled marketplace plugin paths",
           "type": "string",
           "const": "allow-get-marketplace-plugins",

@@ -1,0 +1,20 @@
+{
+  "name": "Shoulder Pads Light",
+  "order": 15,
+  "colors": {
+    "bg": "#e9edf0",
+    "surface": "#C9CED2",
+    "mantle": "#DFE3E6",
+    "crust": "#C9CED2",
+    "text": "#0b131e",
+    "textDim": "#4B515A",
+    "overlay0": "#AAAFB4",
+    "overlay1": "#8A9096",
+    "accent": "#26308f",
+    "red": "#d55578",
+    "green": "#0f915b",
+    "yellow": "#e4a308",
+    "cursor": "#0b131e",
+    "selection": "#C9CED2"
+  }
+}

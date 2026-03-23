@@ -1,0 +1,20 @@
+{
+  "name": "Mojave Light",
+  "order": 25,
+  "colors": {
+    "bg": "#FFFFFF",
+    "surface": "#E0E0E0",
+    "mantle": "#F5F5F5",
+    "crust": "#E0E0E0",
+    "text": "#272727",
+    "textDim": "#656565",
+    "overlay0": "#C1C1C1",
+    "overlay1": "#A2A2A2",
+    "accent": "#007AFF",
+    "red": "#E0383E",
+    "green": "#62BA46",
+    "yellow": "#FBB927",
+    "cursor": "#272727",
+    "selection": "#E0E0E0"
+  }
+}

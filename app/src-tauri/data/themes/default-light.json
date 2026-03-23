@@ -1,0 +1,20 @@
+{
+  "name": "Default Light",
+  "order": 2,
+  "colors": {
+    "bg": "#FFFCFF",
+    "surface": "#E0DCE0",
+    "mantle": "#F5F2F5",
+    "crust": "#E0DCE0",
+    "text": "#282629",
+    "textDim": "#656066",
+    "overlay0": "#C1BCC2",
+    "overlay1": "#A29DA3",
+    "accent": "#53A6E1",
+    "red": "#F03E4D",
+    "green": "#97BD2D",
+    "yellow": "#EEBA21",
+    "cursor": "#282629",
+    "selection": "#E0DCE0"
+  }
+}

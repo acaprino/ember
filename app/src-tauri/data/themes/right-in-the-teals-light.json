@@ -1,0 +1,20 @@
+{
+  "name": "Right in the Teals Light",
+  "order": 13,
+  "colors": {
+    "bg": "#F8FDFE",
+    "surface": "#D5DEE0",
+    "mantle": "#EEF3F4",
+    "crust": "#D5DEE0",
+    "text": "#05262D",
+    "textDim": "#4B6469",
+    "overlay0": "#B3C0C2",
+    "overlay1": "#90A1A4",
+    "accent": "#0E7481",
+    "red": "#D75971",
+    "green": "#1D7E66",
+    "yellow": "#AA582D",
+    "cursor": "#05262D",
+    "selection": "#D5DEE0"
+  }
+}

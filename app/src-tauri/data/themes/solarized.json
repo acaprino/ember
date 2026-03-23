@@ -1,0 +1,20 @@
+{
+  "name": "Solarized",
+  "order": 32,
+  "colors": {
+    "bg": "#002B36",
+    "surface": "#073642",
+    "mantle": "#00212C",
+    "crust": "#001722",
+    "text": "#FDF6E3",
+    "textDim": "#93A1A1",
+    "overlay0": "#586E75",
+    "overlay1": "#657B83",
+    "accent": "#268BD2",
+    "red": "#DC322F",
+    "green": "#859900",
+    "yellow": "#B58900",
+    "cursor": "#FDF6E3",
+    "selection": "#073642"
+  }
+}

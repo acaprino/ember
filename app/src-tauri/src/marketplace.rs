@@ -167,7 +167,9 @@ pub struct HookInfo {
 /// Read hooks.json from each plugin directory and return structured hook metadata.
 pub fn get_hooks() -> Vec<HookInfo> {
     let plugins_dir = marketplace_dir().join("plugins");
+    log_info!("hooks: scanning {}", plugins_dir.display());
     if !plugins_dir.is_dir() {
+        log_warn!("hooks: plugins dir not found: {}", plugins_dir.display());
         return Vec::new();
     }
 
@@ -212,5 +214,6 @@ pub fn get_hooks() -> Vec<HookInfo> {
             }
         }
     }
+    log_info!("hooks: found {} hooks", hooks.len());
     hooks
 }

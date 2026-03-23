@@ -489,7 +489,7 @@ export default memo(function SettingsPage({ tabId, onRequestClose, isActive, set
                       </div>
                       <div className="plugin-list">
                         {hooksInfo.length === 0 ? (
-                          <p className="modal-hint">Hooks will appear after rebuilding the Rust backend.</p>
+                          <p className="modal-hint">No hooks configured.</p>
                         ) : hooksInfo.map((hook) => {
                           const isEnabled = !disabledHooks.includes(hook.handler);
                           return (

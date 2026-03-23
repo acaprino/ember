@@ -1,0 +1,20 @@
+{
+  "name": "Lucid Light",
+  "order": 23,
+  "colors": {
+    "bg": "#FFFFFF",
+    "surface": "#E6E6E6",
+    "mantle": "#F5F5F5",
+    "crust": "#E6E6E6",
+    "text": "#3D4752",
+    "textDim": "#77818D",
+    "overlay0": "#CDCED1",
+    "overlay1": "#AFB1B3",
+    "accent": "#007DBC",
+    "red": "#CB2735",
+    "green": "#79B63F",
+    "yellow": "#FEC31D",
+    "cursor": "#3D4752",
+    "selection": "#E6E6E6"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "Finger Paint Light",
+  "order": 4,
+  "colors": {
+    "bg": "#EDEBEE",
+    "surface": "#D1CED1",
+    "mantle": "#E3E1E4",
+    "crust": "#D1CED1",
+    "text": "#2A2021",
+    "textDim": "#625A5C",
+    "overlay0": "#B5B1B4",
+    "overlay1": "#9A9496",
+    "accent": "#485A9F",
+    "red": "#BA394A",
+    "green": "#78992A",
+    "yellow": "#BA991A",
+    "cursor": "#2A2021",
+    "selection": "#D1CED1"
+  }
+}

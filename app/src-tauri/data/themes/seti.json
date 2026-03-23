@@ -1,0 +1,20 @@
+{
+  "name": "Seti",
+  "order": 31,
+  "colors": {
+    "bg": "#0e1112",
+    "surface": "#2A2D2E",
+    "mantle": "#040708",
+    "crust": "#000000",
+    "text": "#d4d7d6",
+    "textDim": "#9B9F9E",
+    "overlay0": "#474A4A",
+    "overlay1": "#636666",
+    "accent": "#519aba",
+    "red": "#cc3e44",
+    "green": "#8dc149",
+    "yellow": "#cbcb41",
+    "cursor": "#d4d7d6",
+    "selection": "#2A2D2E"
+  }
+}

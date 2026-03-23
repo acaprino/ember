@@ -58,6 +58,7 @@
     "core:window:allow-request-user-attention",
     "core:window:allow-set-focus",
     "allow-agent-ask-response",
-    "allow-agent-set-perm-mode"
+    "allow-agent-set-perm-mode",
+    "allow-get-hooks-info"
   ]
 }

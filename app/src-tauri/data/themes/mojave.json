@@ -1,0 +1,20 @@
+{
+  "name": "Mojave",
+  "order": 24,
+  "colors": {
+    "bg": "#222323",
+    "surface": "#3D3D3D",
+    "mantle": "#181919",
+    "crust": "#0E0F0F",
+    "text": "#DDDDDD",
+    "textDim": "#A7A7A7",
+    "overlay0": "#575757",
+    "overlay1": "#727272",
+    "accent": "#007AFF",
+    "red": "#FF5257",
+    "green": "#62BA46",
+    "yellow": "#FBB927",
+    "cursor": "#DDDDDD",
+    "selection": "#3D3D3D"
+  }
+}

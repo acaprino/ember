@@ -1,0 +1,20 @@
+{
+  "name": "Rivet",
+  "order": 29,
+  "colors": {
+    "bg": "#0A0216",
+    "surface": "#241636",
+    "mantle": "#00000C",
+    "crust": "#000002",
+    "text": "#FAF9FC",
+    "textDim": "#B8B4C4",
+    "overlay0": "#3E3056",
+    "overlay1": "#584A76",
+    "accent": "#305DFB",
+    "red": "#F54456",
+    "green": "#91E827",
+    "yellow": "#D6CD00",
+    "cursor": "#FAF9FC",
+    "selection": "#241636"
+  }
+}

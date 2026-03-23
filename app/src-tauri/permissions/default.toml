@@ -214,3 +214,8 @@ commands.allow = ["get_marketplace_plugins"]
 identifier = "allow-set-marketplace-global"
 description = "Allows enabling/disabling marketplace plugins globally"
 commands.allow = ["set_marketplace_global"]
+
+[[permission]]
+identifier = "allow-get-hooks-info"
+description = "Allows getting hook metadata from marketplace plugins"
+commands.allow = ["get_hooks_info"]

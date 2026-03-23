@@ -1,0 +1,20 @@
+{
+  "name": "Lucid",
+  "order": 22,
+  "colors": {
+    "bg": "#3D4752",
+    "surface": "#505C6A",
+    "mantle": "#333D48",
+    "crust": "#29333E",
+    "text": "#FFFFFF",
+    "textDim": "#CDCED1",
+    "overlay0": "#77818D",
+    "overlay1": "#A5A5A5",
+    "accent": "#80BBE7",
+    "red": "#FF8E7D",
+    "green": "#A3D971",
+    "yellow": "#FFDF67",
+    "cursor": "#FFFFFF",
+    "selection": "#505C6A"
+  }
+}

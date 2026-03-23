@@ -1,0 +1,20 @@
+{
+  "name": "Shoulder Pads",
+  "order": 14,
+  "colors": {
+    "bg": "#0a121d",
+    "surface": "#2A313B",
+    "mantle": "#000813",
+    "crust": "#000009",
+    "text": "#eaeef1",
+    "textDim": "#AAAFB5",
+    "overlay0": "#4A515A",
+    "overlay1": "#6A7078",
+    "accent": "#4860cf",
+    "red": "#a12643",
+    "green": "#1bb375",
+    "yellow": "#efda5d",
+    "cursor": "#eaeef1",
+    "selection": "#2A313B"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "Right in the Teals",
+  "order": 12,
+  "colors": {
+    "bg": "#171D1D",
+    "surface": "#313939",
+    "mantle": "#0D1313",
+    "crust": "#030909",
+    "text": "#CDDEDE",
+    "textDim": "#99A7A7",
+    "overlay0": "#4B5555",
+    "overlay1": "#657070",
+    "accent": "#1A9BA6",
+    "red": "#F18CB1",
+    "green": "#00ACBD",
+    "yellow": "#C57B67",
+    "cursor": "#CDDEDE",
+    "selection": "#313939"
+  }
+}

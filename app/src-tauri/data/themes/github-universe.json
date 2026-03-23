@@ -1,0 +1,20 @@
+{
+  "name": "GitHub Universe",
+  "order": 21,
+  "colors": {
+    "bg": "#23292D",
+    "surface": "#42474B",
+    "mantle": "#191F23",
+    "crust": "#0F1519",
+    "text": "#FDFDFD",
+    "textDim": "#BFC1C1",
+    "overlay0": "#616669",
+    "overlay1": "#808486",
+    "accent": "#5073B8",
+    "red": "#EF4E7C",
+    "green": "#6EBB82",
+    "yellow": "#F79532",
+    "cursor": "#FDFDFD",
+    "selection": "#42474B"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "One Light",
+  "order": 28,
+  "colors": {
+    "bg": "#fafafa",
+    "surface": "#CDCED1",
+    "mantle": "#F0F0F0",
+    "crust": "#CDCED1",
+    "text": "#383a42",
+    "textDim": "#696c77",
+    "overlay0": "#a0a1a7",
+    "overlay1": "#9d9d9f",
+    "accent": "#4078f2",
+    "red": "#e45649",
+    "green": "#50a14f",
+    "yellow": "#c18401",
+    "cursor": "#383a42",
+    "selection": "#CDCED1"
+  }
+}

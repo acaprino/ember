@@ -1,0 +1,20 @@
+{
+  "name": "Monkey Light",
+  "order": 8,
+  "colors": {
+    "bg": "#EDEBE8",
+    "surface": "#D5D4D0",
+    "mantle": "#E3E1DE",
+    "crust": "#D5D4D0",
+    "text": "#42483E",
+    "textDim": "#73766F",
+    "overlay0": "#BCBCB7",
+    "overlay1": "#A4A59F",
+    "accent": "#70A4B9",
+    "red": "#AB5B51",
+    "green": "#82AB55",
+    "yellow": "#C49F47",
+    "cursor": "#42483E",
+    "selection": "#D5D4D0"
+  }
+}

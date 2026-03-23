@@ -1,0 +1,20 @@
+{
+  "name": "Nova",
+  "order": 26,
+  "colors": {
+    "bg": "#3C4C55",
+    "surface": "#495A64",
+    "mantle": "#32424B",
+    "crust": "#283841",
+    "text": "#E6EEF3",
+    "textDim": "#A7B8C2",
+    "overlay0": "#556873",
+    "overlay1": "#6A7D89",
+    "accent": "#83AFE5",
+    "red": "#DF8C8C",
+    "green": "#A8CE93",
+    "yellow": "#DADA93",
+    "cursor": "#E6EEF3",
+    "selection": "#495A64"
+  }
+}
