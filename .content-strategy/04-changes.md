@@ -2,14 +2,14 @@
 
 ## Change 1: Fix H1 link to wrong repo
 - Category: Content
-- Before: `<h1><a href="https://github.com/acaprino/anvil-toolset">Anvil</a></h1>`
-- After: `<h1>Anvil</h1>` (no link)
+- Before: `<h1><a href="https://github.com/acaprino/figtree-toolset">Figtree</a></h1>`
+- After: `<h1>Figtree</h1>` (no link)
 - Expected impact: Eliminates trust-breaking navigation to wrong repo
 
 ## Change 2: Fix placeholder clone URL
 - Category: Content
-- Before: `git clone https://github.com/user/anvil.git`
-- After: `git clone https://github.com/acaprino/anvil.git`
+- Before: `git clone https://github.com/user/figtree.git`
+- After: `git clone https://github.com/acaprino/figtree.git`
 - Expected impact: Fixes broken onboarding path
 
 ## Change 3: Replace "blazing-fast" tagline
@@ -20,7 +20,7 @@
 
 ## Change 4: Promote "Pick a project..." tagline to subtitle
 - Category: UX
-- Before: Buried in "What is Anvil?" body text
+- Before: Buried in "What is Figtree?" body text
 - After: `<sub>Pick a project. Pick a model. Hit Enter. Code.</sub>` as hero subtitle
 - Expected impact: Best copy in the README now front-and-center
 
@@ -42,13 +42,13 @@
 - After: 8-item anchor-linked ToC
 - Expected impact: Visitors can jump to Getting Started, Features, etc.
 
-## Change 8: Rewrite "Why Anvil?" as objection-handling
+## Change 8: Rewrite "Why Figtree?" as objection-handling
 - Category: Content
-- Before: "Why Anvil?" with attribute bullets (zero friction, session persistence, etc.)
+- Before: "Why Figtree?" with attribute bullets (zero friction, session persistence, etc.)
 - After: "Why not just run `claude` in a terminal?" with status-quo contrast and concrete workflow descriptions
 - Expected impact: Addresses the real objection, shows specific value
 
-## Change 9: Rewrite "What is Anvil?" section
+## Change 9: Rewrite "What is Figtree?" section
 - Category: Content
 - Before: "Think of it as a project-aware terminal multiplexer..." with tagline buried in body
 - After: Leads with tagline, concrete description (scans directories, configure settings, tabs persist), no jargon
@@ -57,7 +57,7 @@
 ## Change 10: Move Getting Started from position 7 to position 2
 - Category: UX
 - Before: Getting Started was after Features, Shortcuts, and Tech Stack (line 190)
-- After: Getting Started is the second major section, right after "What is Anvil?"
+- After: Getting Started is the second major section, right after "What is Figtree?"
 - Expected impact: Developers can try the app within one scroll
 
 ## Change 11: Rewrite feature bullets as benefits

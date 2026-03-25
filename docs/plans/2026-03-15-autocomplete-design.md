@@ -6,7 +6,7 @@
 
 ## Overview
 
-An intelligent autocomplete system for Anvil's agent mode that provides ghost text suggestions as users type messages to Claude/Gemini. Combines instant file path completions (via Rust backend) with context-aware LLM suggestions (via Haiku). Tab cycles through alternatives, Right Arrow accepts.
+An intelligent autocomplete system for Figtree's agent mode that provides ghost text suggestions as users type messages to Claude/Gemini. Combines instant file path completions (via Rust backend) with context-aware LLM suggestions (via Haiku). Tab cycles through alternatives, Right Arrow accepts.
 
 ## Architecture
 

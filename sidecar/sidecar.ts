@@ -1,4 +1,4 @@
-// Anvil Sidecar — bridges Rust backend with @anthropic-ai/claude-agent-sdk
+// Figtree Sidecar — bridges Rust backend with @anthropic-ai/claude-agent-sdk
 // Protocol: JSON-lines over stdin (commands) / stdout (events) / stderr (logs)
 
 import {
@@ -35,8 +35,8 @@ import { join } from "path";
 
 // ── Type definitions ────────────────────────────────────────────────
 
-/** Permission mode values accepted by Anvil */
-type AnvilPermMode = "plan" | "acceptEdits" | "bypassPermissions";
+/** Permission mode values accepted by Figtree */
+type FigtreePermMode = "plan" | "acceptEdits" | "bypassPermissions";
 
 /** Stored per-session config for interrupt-resume */
 interface SessionConfig {
@@ -57,7 +57,7 @@ interface Session {
   inputQueue: (string | null)[];
   pendingPermissions: Map<string, PendingPermission>;
   pendingAskUser: PendingAskUser | null;
-  permState: { mode: AnvilPermMode | null };
+  permState: { mode: FigtreePermMode | null };
   _config: SessionConfig;
   _sessionId: string;
   _interrupted: boolean;
@@ -542,7 +542,7 @@ function log(...args: unknown[]): void {
 // ── Constants ───────────────────────────────────────────────────────
 
 let _askIdCounter = 0;
-const VALID_PERM_MODES = new Set<AnvilPermMode>(["plan", "acceptEdits", "bypassPermissions"]);
+const VALID_PERM_MODES = new Set<FigtreePermMode>(["plan", "acceptEdits", "bypassPermissions"]);
 const ACCEPT_EDITS_TOOLS = new Set<string>(["Write", "Edit", "Read", "Glob", "Grep"]);
 
 // ── Command handlers ────────────────────────────────────────────────
@@ -605,8 +605,8 @@ async function handleCreate(cmd: CreateCommand | ResumeCommand | ForkCommand): P
   // Resolve permission mode from the new permMode string or legacy skipPerms boolean
   // Stored as mutable object so it can be updated mid-session via set_perm_mode command
   const rawPermMode = permMode || (skipPerms ? "bypassPermissions" : null);
-  const permState: { mode: AnvilPermMode | null } = {
-    mode: rawPermMode && VALID_PERM_MODES.has(rawPermMode as AnvilPermMode) ? rawPermMode as AnvilPermMode : null,
+  const permState: { mode: FigtreePermMode | null } = {
+    mode: rawPermMode && VALID_PERM_MODES.has(rawPermMode as FigtreePermMode) ? rawPermMode as FigtreePermMode : null,
   };
 
   if (permState.mode === "bypassPermissions") {
@@ -617,7 +617,7 @@ async function handleCreate(cmd: CreateCommand | ResumeCommand | ForkCommand): P
   }
   // else: no explicit permissionMode — SDK uses its default
 
-  // Always register canUseTool to route permission decisions through Anvil UI.
+  // Always register canUseTool to route permission decisions through Figtree UI.
   // For bypassPermissions, auto-allow everything without prompting.
   // For acceptEdits, auto-allow file-editing tools and prompt for the rest.
   // For plan/default, prompt for everything.
@@ -702,7 +702,7 @@ async function handleCreate(cmd: CreateCommand | ResumeCommand | ForkCommand): P
     options.plugins = plugins.map(p => ({ type: 'local' as const, path: p }));
   }
 
-  // Intercept AskUserQuestion tool to route to Anvil UI
+  // Intercept AskUserQuestion tool to route to Figtree UI
   options.hooks = {
     ...(options.hooks || {}),
     PreToolUse: [
@@ -1151,7 +1151,7 @@ function handleAskUserResponse(cmd: AskUserResponseCommand): void {
   // with the user's answers so Claude sees them as if the tool succeeded.
   resolve({
     behavior: "deny",
-    message: `User answered the questions via Anvil UI:\n${answerLines.join("\n")}`,
+    message: `User answered the questions via Figtree UI:\n${answerLines.join("\n")}`,
   });
 }
 
@@ -1203,7 +1203,7 @@ async function handleInterrupt(cmd: InterruptCommand): Promise<void> {
 
     // Resume same session with validated config
     if (sessionId) {
-      const safePerm = VALID_PERM_MODES.has(config.permMode as AnvilPermMode) ? config.permMode : "plan";
+      const safePerm = VALID_PERM_MODES.has(config.permMode as FigtreePermMode) ? config.permMode : "plan";
       await handleCreate({ cmd: "create", tabId, sessionId, ...config, permMode: safePerm });
     }
   } finally {
@@ -1231,7 +1231,7 @@ function handleSetPermMode(cmd: SetPermModeCommand): void {
     emit({ evt: "error", tabId: cmd.tabId, code: "not_found", message: "Session not found" });
     return;
   }
-  const newMode: AnvilPermMode = VALID_PERM_MODES.has(cmd.permMode as AnvilPermMode) ? cmd.permMode as AnvilPermMode : "plan";
+  const newMode: FigtreePermMode = VALID_PERM_MODES.has(cmd.permMode as FigtreePermMode) ? cmd.permMode as FigtreePermMode : "plan";
   session.permState.mode = newMode;
   if (session._config) session._config.permMode = newMode;
   emit({ evt: "status", tabId: cmd.tabId, status: "perm_mode_changed", permMode: newMode });
@@ -1564,5 +1564,5 @@ process.on("unhandledRejection", (reason: unknown) => {
   }
 });
 
-log("Anvil sidecar started");
+log("Figtree sidecar started");
 emit({ evt: "ready", tabId: "_control" });

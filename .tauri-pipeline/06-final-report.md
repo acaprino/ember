@@ -1,10 +1,10 @@
 # Tauri Desktop Pipeline Report
 
 ## Target
-Full Tauri 2 desktop application -- Anvil (Windows-only Claude Code Agent SDK launcher with tabbed interface)
+Full Tauri 2 desktop application -- Figtree (Windows-only Claude Code Agent SDK launcher with tabbed interface)
 
 ## Executive Summary
-Anvil is a well-engineered desktop application with strong fundamentals across all layers. The Rust backend demonstrates thoughtful patterns (Job Object process cleanup, atomic file writes, spawn_blocking discipline), the IPC architecture correctly uses Channel API for streaming, the React frontend has best-in-class streaming optimization (RAF-throttled, ref-based accumulation), and the visual polish is remarkably mature (theme crossfade, retro mode overrides, prefers-reduced-motion). The main risk areas are sidecar crash recovery (no health check, orphaned oneshots, missing timeouts) and a few hot-path performance issues in the React layer.
+Figtree is a well-engineered desktop application with strong fundamentals across all layers. The Rust backend demonstrates thoughtful patterns (Job Object process cleanup, atomic file writes, spawn_blocking discipline), the IPC architecture correctly uses Channel API for streaming, the React frontend has best-in-class streaming optimization (RAF-throttled, ref-based accumulation), and the visual polish is remarkably mature (theme crossfade, retro mode overrides, prefers-reduced-motion). The main risk areas are sidecar crash recovery (no health check, orphaned oneshots, missing timeouts) and a few hot-path performance issues in the React layer.
 
 ## Score Summary
 
@@ -170,7 +170,7 @@ Anvil is a well-engineered desktop application with strong fundamentals across a
 17. Add expand/collapse animations to collapsible content
 18. Replace raw pixel values with spacing tokens
 19. Add entrance animations to ShortcutsOverlay and SessionPanel
-20. Debounce theme cache invalidation in anvilTheme()
+20. Debounce theme cache invalidation in figtreeTheme()
 21. Add copy button success feedback
 22. Persist right sidebar width to settings
 

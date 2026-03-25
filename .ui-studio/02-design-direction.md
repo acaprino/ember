@@ -557,7 +557,7 @@ All 10 themes use the same token names with different values. The sidebar design
 | `--hover-overlay` | Close button hover, tab pressed state |
 | `--radius-sm` | Tab border-radius, button border-radius |
 
-No theme requires special-case overrides. The retro themes (`Anvil Forge`, `Guybrush`) are handled by the existing `.retro` class which zeroes out radii and kills transitions globally.
+No theme requires special-case overrides. The retro themes (`Figtree Forge`, `Guybrush`) are handled by the existing `.retro` class which zeroes out radii and kills transitions globally.
 
 ### Retro themes specifics
 

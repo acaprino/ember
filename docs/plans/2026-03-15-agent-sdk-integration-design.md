@@ -2,11 +2,11 @@
 
 ## Goal
 
-Integrate `@anthropic-ai/claude-agent-sdk` into Anvil via a Node.js sidecar to replace direct PTY-based Claude CLI spawning with structured SDK-driven sessions. This enables: session history browser (list/resume/fork), enhanced usage tracking with real-time cost data, and full control over terminal rendering.
+Integrate `@anthropic-ai/claude-agent-sdk` into Figtree via a Node.js sidecar to replace direct PTY-based Claude CLI spawning with structured SDK-driven sessions. This enables: session history browser (list/resume/fork), enhanced usage tracking with real-time cost data, and full control over terminal rendering.
 
 ## Architecture
 
-Anvil adds a Node.js sidecar process that wraps the claude-agent-sdk. The Rust backend communicates with the sidecar via JSON-lines over stdin/stdout (stderr is captured for logging). The frontend receives structured `AgentEvent` objects via Tauri IPC (same channel pattern as current PTY events), formats them as ANSI text, and renders in xterm.js.
+Figtree adds a Node.js sidecar process that wraps the claude-agent-sdk. The Rust backend communicates with the sidecar via JSON-lines over stdin/stdout (stderr is captured for logging). The frontend receives structured `AgentEvent` objects via Tauri IPC (same channel pattern as current PTY events), formats them as ANSI text, and renders in xterm.js.
 
 Gemini tabs remain on the existing PTY path. Claude tabs migrate to the SDK path. The PTY path is kept as fallback (toggle in settings) during the transition period.
 
@@ -14,7 +14,7 @@ Gemini tabs remain on the existing PTY path. Claude tabs migrate to the SDK path
 
 The sidecar requires Node.js at runtime. Strategy:
 
-- **Node.js location**: Anvil looks for `node.exe` on PATH. If not found, checks `%LOCALAPPDATA%\anvil\node\node.exe` (user can install there manually).
+- **Node.js location**: Figtree looks for `node.exe` on PATH. If not found, checks `%LOCALAPPDATA%\figtree\node\node.exe` (user can install there manually).
 - **Sidecar script + node_modules**: Bundled as Tauri resources in `sidecar/`. At build time, `npm install --production` in `sidecar/` produces the `node_modules`. Tauri bundles the entire `sidecar/` directory via `tauri.conf.json` `bundle.resources`.
 - **Runtime**: Rust spawns `node.exe sidecar/sidecar.js` (not a Tauri sidecar binary — a regular child process managed by `SidecarManager`).
 - **Fallback**: If Node.js is not available, Claude tabs silently use PTY mode (existing path). A warning appears in the status bar: "Node.js not found — using CLI mode".
@@ -23,7 +23,7 @@ The sidecar requires Node.js at runtime. Strategy:
 
 ### 1. Node.js Sidecar (`sidecar/`)
 
-A standalone Node.js script bundled with Anvil that:
+A standalone Node.js script bundled with Figtree that:
 - Imports `@anthropic-ai/claude-agent-sdk`
 - Reads JSON-line commands from stdin, writes JSON-line events to stdout
 - Logs errors/diagnostics to stderr (captured by Rust for logging)
@@ -170,7 +170,7 @@ Terminal.tsx uses the tab's `type` field to branch behavior:
 
 **For `type="agent"` tabs:**
 - Skip: PTY spawn, ConPTY resize, banner detection (`BANNER_END_RE`), logo injection via PTY write
-- Instead: show Anvil logo via direct xterm.write, then wait for SDK events
+- Instead: show Figtree logo via direct xterm.write, then wait for SDK events
 - Minimap: works the same (reads xterm buffer content, which contains rendered ANSI)
 - Resize: terminal resize only affects xterm.js viewport (no PTY to resize)
 - Input: managed by input state machine (line-buffered), not forwarded to PTY

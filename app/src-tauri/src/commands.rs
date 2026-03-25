@@ -147,7 +147,7 @@ pub async fn save_clipboard_image() -> Result<String, String> {
             return Err(format!("Image dimensions {width}x{height} out of range (max {MAX_DIM})"));
         }
 
-        let temp_dir = std::env::temp_dir().join("anvil_clipboard");
+        let temp_dir = std::env::temp_dir().join("figtree_clipboard");
         std::fs::create_dir_all(&temp_dir)
             .map_err(|e| format!("Failed to create temp dir: {e}"))?;
 

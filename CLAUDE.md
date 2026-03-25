@@ -1,4 +1,4 @@
-# Anvil
+# Figtree
 
 A Windows-only Tauri 2 desktop app for selecting and launching Claude Code Agent SDK sessions in a tabbed interface.
 
@@ -112,7 +112,7 @@ CSS custom properties in `App.css` `:root`:
 - Agent sessions are killed on tab close via `killAgent()`.
 - Hidden directories (starting with `.`) are excluded from project scanning.
 - Default project directory is `D:\Projects`, overridable via settings (multiple directories supported).
-- Environment variable `ANVIL_PROJECTS_DIR` overrides the default project directory.
+- Environment variable `FIGTREE_PROJECTS_DIR` overrides the default project directory.
 
 ## ASCII Logo
 

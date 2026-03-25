@@ -1,11 +1,11 @@
 # Content Strategy Audit Report
 
-## Target: GitHub Repository README — https://github.com/acaprino/anvil
+## Target: GitHub Repository README — https://github.com/acaprino/figtree
 ## Date: 2026-03-14
 
 ## Executive Summary
 
-Anvil's README was technically thorough but structured as implementation documentation rather than a product landing page. The copy quality was generally strong — particularly the "Pick a project. Pick a model. Hit Enter. Code." tagline — but was undermined by two critical bugs (wrong repo link, placeholder clone URL), a cliche headline ("blazing-fast"), and a content order that buried the "try it now" path under 190 lines of feature and architecture details. The complete absence of screenshots for a rich visual application was the single biggest conversion gap.
+Figtree's README was technically thorough but structured as implementation documentation rather than a product landing page. The copy quality was generally strong — particularly the "Pick a project. Pick a model. Hit Enter. Code." tagline — but was undermined by two critical bugs (wrong repo link, placeholder clone URL), a cliche headline ("blazing-fast"), and a content order that buried the "try it now" path under 190 lines of feature and architecture details. The complete absence of screenshots for a rich visual application was the single biggest conversion gap.
 
 ## Findings by Category
 
@@ -21,8 +21,8 @@ Anvil's README was technically thorough but structured as implementation documen
 19 changes across 4 categories:
 
 ### Copy Fixes (Critical)
-- Removed broken H1 link to `anvil-toolset` repo
-- Fixed placeholder clone URL (`user/anvil` -> `acaprino/anvil`)
+- Removed broken H1 link to `figtree-toolset` repo
+- Fixed placeholder clone URL (`user/figtree` -> `acaprino/figtree`)
 - Replaced "blazing-fast" with benefit-driven tagline
 - Promoted best copy ("Pick a project...") to hero subtitle
 
@@ -34,8 +34,8 @@ Anvil's README was technically thorough but structured as implementation documen
 - Merged Models table into AI Tool Integration section
 
 ### Content Rewrites (Medium Impact)
-- Rewrote "Why Anvil?" as objection-handling ("Why not just run claude in a terminal?")
-- Rewrote "What is Anvil?" — concrete, no jargon, SEO-friendly
+- Rewrote "Why Figtree?" as objection-handling ("Why not just run claude in a terminal?")
+- Rewrote "What is Figtree?" — concrete, no jargon, SEO-friendly
 - Rewrote feature bullets as benefits (user-facing, not technical)
 - Condensed theme table to prose summary + collapsible detail
 - Added Contributing section with issue link

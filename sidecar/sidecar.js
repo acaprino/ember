@@ -1,4 +1,4 @@
-// Anvil Sidecar — bridges Rust backend with @anthropic-ai/claude-agent-sdk
+// Figtree Sidecar — bridges Rust backend with @anthropic-ai/claude-agent-sdk
 // Protocol: JSON-lines over stdin (commands) / stdout (events) / stderr (logs)
 import { query, listSessions, getSessionMessages, } from "@anthropic-ai/claude-agent-sdk";
 import Anthropic from "@anthropic-ai/sdk";
@@ -146,7 +146,7 @@ async function handleCreate(cmd) {
         options.permissionMode = permState.mode;
     }
     // else: no explicit permissionMode — SDK uses its default
-    // Always register canUseTool to route permission decisions through Anvil UI.
+    // Always register canUseTool to route permission decisions through Figtree UI.
     // For bypassPermissions, auto-allow everything without prompting.
     // For acceptEdits, auto-allow file-editing tools and prompt for the rest.
     // For plan/default, prompt for everything.
@@ -227,20 +227,20 @@ async function handleCreate(cmd) {
     if (plugins && plugins.length > 0) {
         options.plugins = plugins.map(p => ({ type: 'local', path: p }));
     }
-    // Only load anvil-toolset marketplace plugins — block all other marketplaces
+    // Only load figtree-toolset marketplace plugins — block all other marketplaces
     let filteredPlugins = {};
     try {
         const settingsPath = join(process.env.HOME || process.env.USERPROFILE || "", ".claude", "settings.json");
         const raw = JSON.parse(readFileSync(settingsPath, "utf-8"));
         filteredPlugins = Object.fromEntries(
-            Object.entries(raw.enabledPlugins || {}).filter(([key]) => /^[a-zA-Z0-9_-]+@anvil-toolset$/.test(key))
+            Object.entries(raw.enabledPlugins || {}).filter(([key]) => /^[a-zA-Z0-9_-]+@figtree-toolset$/.test(key))
         );
     } catch { /* settings missing or malformed — no marketplace plugins */ }
     options.settings = { ...(options.settings || {}), enabledPlugins: filteredPlugins };
     // Per-session hook filtering: if hooks are disabled, create a temp copy of the
-    // anvil-hooks plugin with a filtered hooks.json that omits disabled entries.
+    // figtree-hooks plugin with a filtered hooks.json that omits disabled entries.
     // This avoids the race condition of using a global process.env across concurrent sessions.
-    const KNOWN_HOOKS = new Set(["anvil-logo", "skill-awareness", "cleanup-builtins", "security-gate", "autocompact"]);
+    const KNOWN_HOOKS = new Set(["figtree-logo", "skill-awareness", "cleanup-builtins", "security-gate", "autocompact"]);
     const validated = (disabledHooks || []).filter(h => KNOWN_HOOKS.has(h));
     if (validated.length > 0 && options.plugins) {
         const disabledSet = new Set(validated);
@@ -264,14 +264,14 @@ async function handleCreate(cmd) {
                     if (filteredGroups.length > 0) filtered.hooks[event] = filteredGroups;
                 }
                 // Write filtered copy to temp dir
-                const tmpPlugin = join(tmpdir(), `anvil-hooks-${tabId}`);
+                const tmpPlugin = join(tmpdir(), `figtree-hooks-${tabId}`);
                 cpSync(p.path, tmpPlugin, { recursive: true, force: true });
                 writeFileSync(join(tmpPlugin, "hooks", "hooks.json"), JSON.stringify(filtered, null, 2));
                 return { ...p, path: tmpPlugin };
             } catch { return p; }
         });
     }
-    // Intercept AskUserQuestion tool to route to Anvil UI
+    // Intercept AskUserQuestion tool to route to Figtree UI
     options.hooks = {
         ...(options.hooks || {}),
         PreToolUse: [
@@ -655,7 +655,7 @@ function handleKill(cmd, silent = false) {
     autocompleteTimestamps.delete(cmd.tabId);
     // Clean up per-session filtered hooks temp dir
     try {
-        const tmpPlugin = join(tmpdir(), `anvil-hooks-${cmd.tabId}`);
+        const tmpPlugin = join(tmpdir(), `figtree-hooks-${cmd.tabId}`);
         if (existsSync(tmpPlugin)) rmSync(tmpPlugin, { recursive: true, force: true });
     } catch { /* ignore */ }
     // Silent mode: don't emit exit (used when replacing a session in handleCreate,
@@ -712,7 +712,7 @@ function handleAskUserResponse(cmd) {
     // with the user's answers so Claude sees them as if the tool succeeded.
     resolve({
         behavior: "deny",
-        message: `User answered the questions via Anvil UI:\n${answerLines.join("\n")}`,
+        message: `User answered the questions via Figtree UI:\n${answerLines.join("\n")}`,
     });
 }
 // Guard against re-entrant interrupts (rapid Ctrl+C)
@@ -1100,5 +1100,5 @@ process.on("unhandledRejection", (reason) => {
         process.exit(1);
     }
 });
-log("Anvil sidecar started");
+log("Figtree sidecar started");
 emit({ evt: "ready", tabId: "_control" });

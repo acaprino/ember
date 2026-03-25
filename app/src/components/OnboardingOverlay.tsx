@@ -7,12 +7,12 @@ interface Props {
 
 const SLIDES = [
   {
-    title: "Welcome to Anvil",
+    title: "Welcome to Figtree",
     body: "A tabbed interface for launching and managing Claude Code Agent SDK sessions.\nSelect a project, pick your model, and start coding with AI.",
   },
   {
     title: "Keyboard-First",
-    body: "Anvil is designed for speed. Key shortcuts:\n\n  Tab      Cycle permission mode\n  F2       Cycle effort level\n  F4       Cycle model\n  Enter    Launch selected project\n  Ctrl+T   New tab\n  Ctrl+F4  Close tab\n  F1       Show all shortcuts",
+    body: "Figtree is designed for speed. Key shortcuts:\n\n  Tab      Cycle permission mode\n  F2       Cycle effort level\n  F4       Cycle model\n  Enter    Launch selected project\n  Ctrl+T   New tab\n  Ctrl+F4  Close tab\n  F1       Show all shortcuts",
   },
   {
     title: "Dual View Modes",

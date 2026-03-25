@@ -1,7 +1,7 @@
 # Pipeline Scope
 
 ## Target
-Full Tauri 2 desktop application - Anvil (Claude Code Agent SDK launcher with tabbed interface)
+Full Tauri 2 desktop application - Figtree (Claude Code Agent SDK launcher with tabbed interface)
 
 ## Rust Backend Files
 - app/src-tauri/src/main.rs

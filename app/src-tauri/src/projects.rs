@@ -73,7 +73,7 @@ fn default_sidebar_width() -> u32 {
 }
 
 fn default_project_dirs() -> Vec<String> {
-    let dir = std::env::var("ANVIL_PROJECTS_DIR")
+    let dir = std::env::var("FIGTREE_PROJECTS_DIR")
         .unwrap_or_else(|_| DEFAULT_PROJECTS_DIR.to_string());
     vec![dir]
 }
@@ -124,7 +124,7 @@ pub struct ProjectInfo {
 
 pub(crate) fn data_dir() -> PathBuf {
     let dir = dirs::data_local_dir()
-        .map(|p| p.join("anvil"))
+        .map(|p| p.join("figtree"))
         .unwrap_or_else(|| {
             let fallback = std::env::current_exe()
                 .ok()
@@ -138,19 +138,19 @@ pub(crate) fn data_dir() -> PathBuf {
 }
 
 fn settings_path() -> PathBuf {
-    data_dir().join("anvil-settings.json")
+    data_dir().join("figtree-settings.json")
 }
 
 fn settings_bak_path() -> PathBuf {
-    data_dir().join("anvil-settings.json.bak")
+    data_dir().join("figtree-settings.json.bak")
 }
 
 fn usage_path() -> PathBuf {
-    data_dir().join("anvil-usage.json")
+    data_dir().join("figtree-usage.json")
 }
 
 fn session_path() -> PathBuf {
-    data_dir().join("anvil-session.json")
+    data_dir().join("figtree-session.json")
 }
 
 pub fn load_session() -> Option<serde_json::Value> {
@@ -227,7 +227,7 @@ pub fn save_settings(settings: &Settings) -> io::Result<()> {
     fs::rename(&tmp, &path)?;
     log_info!("projects: settings saved ({} bytes)", data.len());
 
-    // Sync security_gate to ~/.claude/anvil-config.json
+    // Sync security_gate to ~/.claude/figtree-config.json
     sync_security_gate(settings.security_gate);
 
     Ok(())
@@ -239,7 +239,7 @@ fn sync_security_gate(enabled: bool) {
         log_warn!("projects: cannot sync security_gate — no home dir");
         return;
     };
-    let config_path = home.join(".claude").join("anvil-config.json");
+    let config_path = home.join(".claude").join("figtree-config.json");
 
     // Read existing config or create new
     let mut config: serde_json::Value = fs::read_to_string(&config_path)

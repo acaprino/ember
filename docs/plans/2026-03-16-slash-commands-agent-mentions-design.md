@@ -5,8 +5,8 @@
 
 ## Goal
 
-Implement Claude Code CLI-like behavior in Anvil's chat UI:
-- `/` triggers a unified command menu (local Anvil commands + SDK skills)
+Implement Claude Code CLI-like behavior in Figtree's chat UI:
+- `/` triggers a unified command menu (local Figtree commands + SDK skills)
 - `@` triggers an agent mention menu (SDK agents, not models)
 
 ## Architecture
@@ -44,7 +44,7 @@ type AgentInfo = {
   model?: string;      // Model alias, inherits parent if omitted
 };
 
-// Anvil internal — extended Command interface
+// Figtree internal — extended Command interface
 type Command = {
   name: string;          // e.g. "/clear", "/commit"
   description: string;
@@ -53,7 +53,7 @@ type Command = {
 };
 ```
 
-### Local Commands (hardcoded in Anvil)
+### Local Commands (hardcoded in Figtree)
 
 These execute locally in the UI, not sent to the agent:
 
@@ -120,7 +120,7 @@ CommandsInit { commands: serde_json::Value, agents: serde_json::Value },
 - **Name collision**: SDK commands whose `name` matches a local command name are filtered out
 - Layout with section headers:
   ```
-  ── Anvil ──────────────
+  ── Figtree ──────────────
   /clear       Clear chat messages
   /compact     Summarize conversation
   /sidebar     Toggle right sidebar

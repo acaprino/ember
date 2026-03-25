@@ -2,7 +2,7 @@
 setlocal
 
 echo ============================================
-echo   Anvil - Production Build (full optimize)
+echo   Figtree - Production Build (full optimize)
 echo ============================================
 echo.
 
@@ -45,11 +45,11 @@ if exist "%DIST_DIR%" rd /s /q "%DIST_DIR%"
 mkdir "%DIST_DIR%"
 
 :: Copy standalone exe
-if exist "%RELEASE_DIR%\anvil.exe" (
-    copy /Y "%RELEASE_DIR%\anvil.exe" "%DIST_DIR%\" >nul
-    echo   - anvil.exe
+if exist "%RELEASE_DIR%\figtree.exe" (
+    copy /Y "%RELEASE_DIR%\figtree.exe" "%DIST_DIR%\" >nul
+    echo   - figtree.exe
 ) else (
-    echo ERROR: anvil.exe not found in %RELEASE_DIR%
+    echo ERROR: figtree.exe not found in %RELEASE_DIR%
     exit /b 1
 )
 

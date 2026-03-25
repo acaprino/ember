@@ -189,7 +189,7 @@ components={{
     return match ? (
       <SyntaxHighlighter
         language={match[1]}
-        style={anvilTheme}
+        style={figtreeTheme}
         showLineNumbers={lineCount > 5}
       >
         {String(children).replace(/\n$/, '')}
@@ -201,7 +201,7 @@ components={{
 }}
 ```
 
-**Theme:** Custom theme object mapping Anvil CSS variables:
+**Theme:** Custom theme object mapping Figtree CSS variables:
 - Background: `--crust`
 - Text: `--text`
 - Keywords: `--accent`

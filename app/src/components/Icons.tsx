@@ -1,5 +1,5 @@
 /**
- * Icons — single-file icon set for Anvil.
+ * Icons — single-file icon set for Figtree.
  * All icons use currentColor, size defaults to 16×16, and accept standard SVG props.
  */
 import type { SVGProps } from "react";

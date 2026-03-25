@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="app/public/icon.png" width="120" alt="Anvil">
+  <img src="app/public/icon.png" width="120" alt="Figtree">
 </p>
 
-<h1 align="center">Anvil</h1>
+<h1 align="center">Figtree</h1>
 
 <p align="center">
   <strong>A native Windows app for managing Claude Code sessions in a tabbed interface.</strong><br>
@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/acaprino/anvil/stargazers"><img src="https://img.shields.io/github/stars/acaprino/anvil?style=flat-square" alt="Stars"></a>
+  <a href="https://github.com/acaprino/figtree/stargazers"><img src="https://img.shields.io/github/stars/acaprino/figtree?style=flat-square" alt="Stars"></a>
   <img src="https://img.shields.io/badge/version-1.0.0-blue?style=flat-square" alt="Version">
   <img src="https://img.shields.io/badge/platform-Windows-0078D6?style=flat-square&logo=windows" alt="Platform">
   <img src="https://img.shields.io/badge/tauri-v2-24C8D8?style=flat-square&logo=tauri" alt="Tauri 2">
@@ -19,17 +19,17 @@
 
 <!-- TODO: Add hero screenshot here once captured
 <p align="center">
-  <img src="docs/screenshots/hero.png" width="800" alt="Anvil - tabbed interface with project picker">
+  <img src="docs/screenshots/hero.png" width="800" alt="Figtree - tabbed interface with project picker">
 </p>
 -->
 
 ---
 
-## Why Anvil?
+## Why Figtree?
 
 I run a lot of Claude Code sessions across different projects. Terminal windows pile up, I lose track of which session is where, and when I close them I lose everything.
 
-Anvil fixes that. It wraps the Claude Code Agent SDK in a native desktop app with tabs, so you can run multiple agents side by side, switch between projects instantly, and pick up right where you left off tomorrow.
+Figtree fixes that. It wraps the Claude Code Agent SDK in a native desktop app with tabs, so you can run multiple agents side by side, switch between projects instantly, and pick up right where you left off tomorrow.
 
 - **No more juggling terminals** &mdash; all your sessions live in tabs, with output indicators so you know which ones need attention
 - **No more `cd`-ing around** &mdash; your project directories are scanned automatically, type to filter, Enter to launch
@@ -48,7 +48,7 @@ Run multiple concurrent AI coding sessions side by side. Tabs light up when agen
 
 ### Project Discovery
 
-Anvil scans your project directories automatically. You see every project at a glance &mdash; which branch it's on, whether it has uncommitted changes, whether it has a `CLAUDE.md`. Add labels, sort by name or usage, type to filter. Create new projects or quick-launch any directory with F10.
+Figtree scans your project directories automatically. You see every project at a glance &mdash; which branch it's on, whether it has uncommitted changes, whether it has a `CLAUDE.md`. Add labels, sort by name or usage, type to filter. Create new projects or quick-launch any directory with F10.
 
 <!-- TODO: screenshot -->
 
@@ -60,7 +60,7 @@ Switch between a **rich chat view** with markdown rendering, syntax highlighting
 
 ### Session Persistence
 
-Close Anvil, reopen it tomorrow. Your tabs and sessions are exactly where you left them. Resume or fork past sessions from the session panel (Ctrl+Shift+S). Browse all history in the session browser (Ctrl+Shift+H). Dead sessions are cleaned up automatically &mdash; no orphaned processes.
+Close Figtree, reopen it tomorrow. Your tabs and sessions are exactly where you left them. Resume or fork past sessions from the session panel (Ctrl+Shift+S). Browse all history in the session browser (Ctrl+Shift+H). Dead sessions are cleaned up automatically &mdash; no orphaned processes.
 
 ### Keyboard-First
 
@@ -174,8 +174,8 @@ Custom themes can be added by placing a JSON file in `data/themes/`.
 ### Build & Run
 
 ```bash
-git clone https://github.com/acaprino/anvil.git
-cd anvil/app
+git clone https://github.com/acaprino/figtree.git
+cd figtree/app
 
 npm install
 
@@ -239,7 +239,7 @@ For detailed architecture, module reference, and IPC protocol, see [`docs/TECHNI
 
 ## Contributing
 
-Contributions welcome. [Open an issue](https://github.com/acaprino/anvil/issues) first to discuss what you'd like to change.
+Contributions welcome. [Open an issue](https://github.com/acaprino/figtree/issues) first to discuss what you'd like to change.
 
 ---
 
@@ -251,5 +251,5 @@ Contributions welcome. [Open an issue](https://github.com/acaprino/anvil/issues)
 
 <p align="center">
   <sub>Windows native. Keyboard-first. Built with Tauri 2, React 19, and Rust.</sub><br>
-  <sub>Anvil &mdash; where code meets the hammer.</sub>
+  <sub>Figtree &mdash; where ideas take root.</sub>
 </p>

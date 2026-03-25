@@ -1,6 +1,6 @@
-# Anvil -- Competitive Intelligence Report
+# Figtree -- Competitive Intelligence Report
 
-**App**: Anvil -- AI Code Session Launcher
+**App**: Figtree -- AI Code Session Launcher
 **Platform**: Windows (Tauri 2 desktop application)
 **Version**: Development build
 **Analysis Date**: 2026-03-18
@@ -10,7 +10,7 @@
 
 ## 1. Executive Summary
 
-Anvil is a Windows-only Tauri 2 desktop application that provides a tabbed interface for launching and managing Claude Code Agent SDK sessions. It serves as a local project manager and AI coding assistant launcher, similar to an IDE's project picker merged with a terminal-based AI chat interface.
+Figtree is a Windows-only Tauri 2 desktop application that provides a tabbed interface for launching and managing Claude Code Agent SDK sessions. It serves as a local project manager and AI coding assistant launcher, similar to an IDE's project picker merged with a terminal-based AI chat interface.
 
 **Key differentiators**:
 - Native desktop performance via Rust + Tauri 2 (not Electron)
@@ -87,8 +87,8 @@ The app uses a **12-token semantic color system** applied via CSS custom propert
 ### 2.5 Themes (14 total)
 
 **Dark themes (10)**:
-1. Anvil [retro] -- Warm earth tones, Consolas font, retro aesthetic
-2. Anvil Forge [retro] -- Similar retro style, different palette
+1. Figtree [retro] -- Warm earth tones, Consolas font, retro aesthetic
+2. Figtree Forge [retro] -- Similar retro style, different palette
 3. Dracula -- Purple accent (#bd93f9), Fira Code
 4. Tokyo Night -- Blue-tinted dark, JetBrains Mono at 13px
 5. Nord -- Cool blue palette
@@ -104,7 +104,7 @@ The app uses a **12-token semantic color system** applied via CSS custom propert
 13. Sakura -- Pink-tinted light
 14. Solarized Light -- Classic Solarized adaptation
 
-**Retro mode** (Anvil, Anvil Forge, Matrix): Disables all transitions, removes border-radius, uses 2px borders, forces monospace font everywhere, adds CRT-like text-shadow and blinking cursor effects.
+**Retro mode** (Figtree, Figtree Forge, Matrix): Disables all transitions, removes border-radius, uses 2px borders, forces monospace font everywhere, adds CRT-like text-shadow and blinking cursor effects.
 
 ---
 
@@ -278,7 +278,7 @@ Radix ContextMenu is used on:
 ### 5.3 Power User Identity
 
 - **Keyboard-first**: 40+ shortcuts signal "this is for pros"
-- **Retro themes**: Matrix, Anvil -- appeal to hacker/developer identity
+- **Retro themes**: Matrix, Figtree -- appeal to hacker/developer identity
 - **Terminal mode**: Raw, unformatted output for users who prefer it
 - **No onboarding**: Zero hand-holding, assumes competent user
 
@@ -301,7 +301,7 @@ Radix ContextMenu is used on:
 
 ### 6.1 Monetization Strategy
 
-Anvil itself is a **free, open-source desktop application**. It acts as a frontend for the Anthropic Claude Code Agent SDK. Revenue flows to Anthropic via:
+Figtree itself is a **free, open-source desktop application**. It acts as a frontend for the Anthropic Claude Code Agent SDK. Revenue flows to Anthropic via:
 
 - **API usage**: All token consumption is billed through the user's Anthropic account
 - **Model tiers**: Users can select between sonnet (cheaper), opus (premium), and haiku (budget) models
@@ -319,12 +319,12 @@ The app provides excellent cost visibility:
 
 - **Session data**: All sessions stored in Claude's native format
 - **System prompts**: Stored as local .md files (portable)
-- **Plugin ecosystem**: Marketplace skills bundled with Anvil
+- **Plugin ecosystem**: Marketplace skills bundled with Figtree
 - **OAuth integration**: Uses ~/.claude/.credentials.json
 
 ### 6.4 No Paywall
 
-There is no paywall within Anvil. The app is free. Cost is purely API usage through the user's existing Anthropic subscription.
+There is no paywall within Figtree. The app is free. Cost is purely API usage through the user's existing Anthropic subscription.
 
 ---
 

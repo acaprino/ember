@@ -23,8 +23,8 @@ pub fn log_path() -> PathBuf {
     // Place log file next to the executable for easy access.
     std::env::current_exe()
         .ok()
-        .and_then(|p| p.parent().map(|d| d.join("anvil.log")))
-        .unwrap_or_else(|| std::env::temp_dir().join("anvil.log"))
+        .and_then(|p| p.parent().map(|d| d.join("figtree.log")))
+        .unwrap_or_else(|| std::env::temp_dir().join("figtree.log"))
 }
 
 /// Rotate log files: .log → .log.1 → .log.2 → .log.3, deleting the oldest.
@@ -72,7 +72,7 @@ pub fn init() {
 
     match file {
         Ok(mut f) => {
-            let _ = writeln!(f, "[{}] === Anvil started ===", timestamp());
+            let _ = writeln!(f, "[{}] === Figtree started ===", timestamp());
             let _ = writeln!(f, "[{}] Log file: {}", timestamp(), path.display());
             state.path = Some(path);
             state.file = Some(f);

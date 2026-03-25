@@ -2,7 +2,7 @@
 
 > **For agentic workers:** Use subagent-driven execution (if subagents available) or ai-tooling:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Integrate Agent SDK's `supportedCommands()` and `supportedAgents()` into Anvil's chat UI, so `/` shows a unified command menu (local + SDK skills) and `@` shows available agents.
+**Goal:** Integrate Agent SDK's `supportedCommands()` and `supportedAgents()` into Figtree's chat UI, so `/` shows a unified command menu (local + SDK skills) and `@` shows available agents.
 
 **Architecture:** The sidecar emits commands/agents on session init and responds to a `refreshCommands` request. Rust forwards these via channel events and oneshot responses. The frontend stores them in ChatView state and passes them to the refactored CommandMenu and MentionMenu components.
 
@@ -395,7 +395,7 @@ export default memo(function CommandMenu({ filter, sdkCommands = [], onSelect, o
     <div className="command-menu" ref={listRef}>
       {filteredLocal.length > 0 && (
         <>
-          <div className="command-section-header">Anvil</div>
+          <div className="command-section-header">Figtree</div>
           {filteredLocal.map((cmd) => {
             const idx = globalIdx++;
             return (
@@ -758,10 +758,10 @@ const handleCommand = (command: Command) => {
       break;
     case "/theme":
       // Theme is handled via Ctrl+, in App.tsx — emit a custom event
-      window.dispatchEvent(new CustomEvent("anvil:open-settings"));
+      window.dispatchEvent(new CustomEvent("figtree:open-settings"));
       break;
     case "/sessions":
-      window.dispatchEvent(new CustomEvent("anvil:open-sessions"));
+      window.dispatchEvent(new CustomEvent("figtree:open-sessions"));
       break;
   }
 };
@@ -813,10 +813,10 @@ Expected: Compiles and launches without errors.
 
 - [ ] **Step 2: Manual test — slash commands**
 
-1. Open Anvil, launch a project tab
+1. Open Figtree, launch a project tab
 2. Wait for session to initialize (agent starts)
 3. Type `/` in the input
-4. Expected: Menu appears with "Anvil" section (clear, compact, sidebar, theme, sessions, help) and "Skills" section (SDK commands from Agent SDK)
+4. Expected: Menu appears with "Figtree" section (clear, compact, sidebar, theme, sessions, help) and "Skills" section (SDK commands from Agent SDK)
 5. Type `/com` — both sections should filter
 6. Select `/clear` — messages should clear
 7. Select an SDK skill (e.g., `/commit`) — text should be sent to agent

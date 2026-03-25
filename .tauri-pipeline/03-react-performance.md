@@ -44,7 +44,7 @@ The frontend is well-optimized for its scale, with strong patterns already in pl
 |----|------|-------|-----|
 | M1 | tauri.conf.json:13 | `withGlobalTauri: true` exposes IPC surface | Set to false; app uses ESM imports |
 | M2 | vite.config.ts:18-22 | TanStack Virtual and Radix UI not in vendor chunks | Add manual chunks |
-| M3 | MessageBubble.tsx:58-90 | `getAnvilTheme()` cache invalidated on every style property change | Debounce via rAF |
+| M3 | MessageBubble.tsx:58-90 | `getFigtreeTheme()` cache invalidated on every style property change | Debounce via rAF |
 | M4 | MessageBubble.tsx:111-155 | `CodeBlock` calls hooks after early return -- violates Rules of Hooks | Move hooks above early return or split into two components |
 | M5 | SessionBrowser.tsx:66-86 | `filtered` computed twice (render + keyboard handler) -- can diverge | Use ref from render in handler |
 | M6 | ChatView.tsx:225-235 | Scroll event sets state synchronously on every frame | Guard with ref before setState |

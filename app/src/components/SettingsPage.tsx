@@ -410,7 +410,7 @@ export default memo(function SettingsPage({ tabId, onRequestClose, isActive, set
                       <Switch.Thumb className="settings-switch-thumb" />
                     </Switch.Root>
                   </div>
-                  <p className="modal-hint">When ON, anvil-toolset plugins are also available in standalone Claude Code CLI sessions.</p>
+                  <p className="modal-hint">When ON, figtree-toolset plugins are also available in standalone Claude Code CLI sessions.</p>
         </div>
           )}
 

@@ -625,10 +625,10 @@ export function useSessionController(props: SessionControllerProps): SessionCont
         setInputState("processing");
         break;
       case "/theme":
-        window.dispatchEvent(new CustomEvent("anvil:open-settings"));
+        window.dispatchEvent(new CustomEvent("figtree:open-settings"));
         break;
       case "/sessions":
-        window.dispatchEvent(new CustomEvent("anvil:open-sessions"));
+        window.dispatchEvent(new CustomEvent("figtree:open-sessions"));
         break;
       case "/login":
       case "/logout":

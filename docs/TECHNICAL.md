@@ -1,4 +1,4 @@
-# Anvil -- Technical Documentation
+# Figtree -- Technical Documentation
 
 **Version:** 1.0.0
 **Platform:** Windows only
@@ -24,7 +24,7 @@
 
 ## 1. Project Overview
 
-Anvil is a Windows-only Tauri 2 desktop application for selecting and launching Claude Code Agent SDK sessions in a tabbed interface. Users select a project from a scanned directory list, choose a model and settings, then launch an interactive agent session rendered in a React-based dual-view architecture (chat view or terminal view).
+Figtree is a Windows-only Tauri 2 desktop application for selecting and launching Claude Code Agent SDK sessions in a tabbed interface. Users select a project from a scanned directory list, choose a model and settings, then launch an interactive agent session rendered in a React-based dual-view architecture (chat view or terminal view).
 
 ### Tech Stack
 
@@ -70,7 +70,7 @@ Anvil is a Windows-only Tauri 2 desktop application for selecting and launching 
 ### Prerequisites
 
 - **Windows 11** (or Windows 10)
-- **Node.js** (for frontend build and sidecar runtime -- resolved via PATH, `%LOCALAPPDATA%\anvil\node\`, or `%ProgramFiles%\nodejs\`)
+- **Node.js** (for frontend build and sidecar runtime -- resolved via PATH, `%LOCALAPPDATA%\figtree\node\`, or `%ProgramFiles%\nodejs\`)
 - **Rust toolchain** (for Tauri backend)
 - **Claude Agent SDK** -- installed automatically by the sidecar (`npm install --production` in `sidecar/`)
 
@@ -106,7 +106,7 @@ The app launches a single frameless window:
 | Property | Value |
 |----------|-------|
 | Label | `main` |
-| Title | `Anvil` |
+| Title | `Figtree` |
 | Default size | 1200 x 800 |
 | Minimum size | 800 x 500 |
 | Decorations | `false` (custom title bar) |
@@ -227,7 +227,7 @@ graph TB
 | `usage_stats` | `usage_stats.rs` | Token usage statistics from Claude Code JSONL logs |
 | `logging` | `logging.rs` | File + stderr logging with macros |
 | `watcher` | `watcher.rs` | Filesystem watcher for project directory changes |
-| `marketplace` | `marketplace.rs` | Anvil marketplace sync |
+| `marketplace` | `marketplace.rs` | Figtree marketplace sync |
 | `autocomplete` | `autocomplete.rs` | File path autocomplete for agent input |
 
 ### main.rs
@@ -239,7 +239,7 @@ Entry point. Hides the console window in release builds via `#![cfg_attr(not(deb
 **Setup phase:**
 1. Loads initial settings.
 2. Creates a `ProjectWatcher` for filesystem monitoring.
-3. Syncs the anvil-toolset marketplace (synchronous to avoid race conditions).
+3. Syncs the figtree-toolset marketplace (synchronous to avoid race conditions).
 4. Auto-grants clipboard read permission via WebView2 COM API to suppress the permission dialog.
 
 ### SidecarManager
@@ -262,7 +262,7 @@ The `SidecarManager` manages a single long-lived Node.js child process that wrap
 
 **Initialization** (`SidecarManager::new()`):
 
-1. Finds Node.js via `find_node()`: checks PATH, then `%LOCALAPPDATA%\anvil\node\node.exe`, then `%ProgramFiles%\nodejs\node.exe`.
+1. Finds Node.js via `find_node()`: checks PATH, then `%LOCALAPPDATA%\figtree\node\node.exe`, then `%ProgramFiles%\nodejs\node.exe`.
 2. Ensures sidecar dependencies are installed (`ensure_deps()`): checks for `node_modules` directory, runs `npm install --production` if missing.
 3. Resolves the sidecar directory (`resolve_sidecar_dir()`): production mode looks for `sidecar/` next to the exe; dev mode traverses up from `target/debug/` to find the project root.
 4. Starts the sidecar process (`start_sidecar()`): spawns `node sidecar.js` with `CREATE_NO_WINDOW` flag, then creates a Win32 Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE` and assigns the child process to it. This ensures all descendant processes (Agent SDK subprocesses) are terminated when the job handle is closed.
@@ -270,7 +270,7 @@ The `SidecarManager` manages a single long-lived Node.js child process that wrap
 **Reader threads:**
 
 - **stdout reader:** Reads JSON-lines from sidecar stdout using `BufReader`. Deserializes each line into a `SidecarEvent` (tagged enum with `#[serde(tag = "evt")]`), converts to `AgentEvent`, and sends to the matching tab's Tauri Channel. Handles special `sessions`, `messages`, and `commands` events via oneshot channels. Removes the channel on `exit` events.
-- **stderr reader:** Logs all sidecar stderr output to the Anvil log file.
+- **stderr reader:** Logs all sidecar stderr output to the Figtree log file.
 
 **AgentEvent enum** (`sidecar.rs`):
 
@@ -363,15 +363,15 @@ Validates the project name (no path separators, no `..`, no ANSI escape sequence
 
 **Source:** `app/src-tauri/src/projects.rs`
 
-All data files are stored in `dirs::data_local_dir() / "anvil"` (typically `%LOCALAPPDATA%\anvil`).
+All data files are stored in `dirs::data_local_dir() / "figtree"` (typically `%LOCALAPPDATA%\figtree`).
 
 | File | Path | Purpose |
 |------|------|---------|
-| Settings | `anvil-settings.json` | User preferences |
-| Settings backup | `anvil-settings.json.bak` | Previous settings |
-| Usage data | `anvil-usage.json` | Project usage tracking |
-| Session data | `anvil-session.json` | Tab restore state |
-| Log file | `anvil.log` | Application log (next to exe) |
+| Settings | `figtree-settings.json` | User preferences |
+| Settings backup | `figtree-settings.json.bak` | Previous settings |
+| Usage data | `figtree-usage.json` | Project usage tracking |
+| Session data | `figtree-session.json` | Tab restore state |
+| Log file | `figtree.log` | Application log (next to exe) |
 
 #### Settings struct (`projects.rs`)
 
@@ -388,7 +388,7 @@ All data files are stored in `dirs::data_local_dir() / "anvil"` (typically `%LOC
 | `autocompact` | `bool` | `false` |
 | `active_prompt_ids` | `Vec<String>` | `[]` |
 | `security_gate` | `bool` | `true` |
-| `project_dirs` | `Vec<String>` | `["D:\\Projects"]` or `ANVIL_PROJECTS_DIR` env var |
+| `project_dirs` | `Vec<String>` | `["D:\\Projects"]` or `FIGTREE_PROJECTS_DIR` env var |
 | `single_project_dirs` | `Vec<String>` | `[]` |
 | `project_labels` | `HashMap<String, String>` | `{}` |
 | `vertical_tabs` | `bool` | `false` |
@@ -1511,7 +1511,7 @@ The `spawn_agent` (and `agent_resume`, `agent_fork`) commands accept a Tauri `Ch
 
 ### Settings Schema
 
-**Storage:** `%LOCALAPPDATA%\anvil\anvil-settings.json`
+**Storage:** `%LOCALAPPDATA%\figtree\figtree-settings.json`
 
 ```json
 {
@@ -1597,7 +1597,7 @@ Themes are loaded dynamically from JSON files in `data/themes/`. See [Theme Syst
 
 | Variable | Used In | Purpose |
 |----------|---------|---------|
-| `ANVIL_PROJECTS_DIR` | `projects.rs` | Override default project directory |
+| `FIGTREE_PROJECTS_DIR` | `projects.rs` | Override default project directory |
 | `ANTHROPIC_API_KEY` | `sidecar.js` | API key for autocomplete (falls back to Claude OAuth token from `~/.claude/.credentials.json`) |
 
 ---
@@ -1610,7 +1610,7 @@ Themes are loaded dynamically from JSON files in `data/themes/`. See [Theme Syst
 - **Three-state input machine:** The session controller manages a three-state machine (idle / awaiting_input / processing) that controls which user input is accepted and how it's routed. Permissions are handled as inline cards in the message stream, not as a separate state.
 - **Streaming via refs:** Streaming assistant text and thinking content are stored in refs (not state) with tick counters for efficient re-renders. This avoids creating new React state on every streaming chunk.
 - **Permission routing:** The `permMode` setting controls SDK permission behavior. When not bypassing, the sidecar's `canUseTool` callback emits a permission event (with optional `permissionSuggestions`) and blocks on a Promise. The frontend renders an interactive `PermissionCard` with session-allow options, and the response (with `toolUseId` and optional `updatedPermissions`) resolves the Promise in the sidecar.
-- **Process tree cleanup:** The sidecar child process is assigned to a Win32 Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`. When Anvil exits, terminating the job object kills all descendant processes (Agent SDK subprocesses), preventing orphaned `node.exe` processes.
+- **Process tree cleanup:** The sidecar child process is assigned to a Win32 Job Object with `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`. When Figtree exits, terminating the job object kills all descendant processes (Agent SDK subprocesses), preventing orphaned `node.exe` processes.
 - **Tool grouping:** Consecutive tool use/result messages are grouped into collapsible `ToolGroup` / `TermToolGroup` components to reduce visual noise.
 - **Theme crossfade:** Structural CSS containers transition `background-color` and `color` on theme switch (150ms ease-out).
 - **Tab taglines:** The session controller updates `tagline` on each agent state change (thinking, tool use, permission request), giving users a quick summary of what the agent is doing without switching tabs.
@@ -1835,7 +1835,7 @@ app/
       usage_stats.rs            # Token usage statistics
       logging.rs                # File + stderr logging
       watcher.rs                # Filesystem watcher for project dirs
-      marketplace.rs            # Anvil marketplace sync
+      marketplace.rs            # Figtree marketplace sync
       autocomplete.rs           # File path autocomplete
     data/
       themes/                   # Theme JSON files

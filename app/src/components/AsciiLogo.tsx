@@ -93,7 +93,7 @@ const AsciiLogo = memo(function AsciiLogo({ cols = 60 }: { cols?: number }) {
 
   return (
     <div className="ascii-logo-wrap">
-      <pre className="ascii-logo" aria-label="Anvil logo">
+      <pre className="ascii-logo" aria-label="Figtree logo">
         {grid.map((row, ri) => (
           <span key={ri}>
             {row.map((cell, ci) => {

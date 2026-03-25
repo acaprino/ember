@@ -2,13 +2,13 @@
 
 ## Target
 - **Type:** GitHub Repository README + public-facing content
-- **URL:** https://github.com/acaprino/anvil
+- **URL:** https://github.com/acaprino/figtree
 - **Primary Content:** `README.md` (322 lines)
 - **Supporting Docs:** `docs/TECHNICAL.md`, `CLAUDE.md`
 - **Public Assets:** `app/public/icon.png`
 
 ## Business Context
-- **Product:** Anvil — a native Windows desktop app for launching AI coding tool sessions (Claude Code, Gemini CLI) in tabbed terminals
+- **Product:** Figtree — a native Windows desktop app for launching AI coding tool sessions (Claude Code, Gemini CLI) in tabbed terminals
 - **Value Proposition:** Zero-friction, keyboard-first terminal multiplexer purpose-built for AI coding tools
 - **Target Audience:** Developers who use Claude Code and/or Gemini CLI regularly, primarily on Windows
 - **Offering:** Free/open-source desktop application
@@ -22,7 +22,7 @@
 
 ## Baseline Metrics
 - **README length:** 322 lines (substantial)
-- **Sections:** 11 (What is Anvil, Features, Keyboard Shortcuts, Tech Stack, Getting Started, Architecture, Project Structure, Configuration, Models)
+- **Sections:** 11 (What is Figtree, Features, Keyboard Shortcuts, Tech Stack, Getting Started, Architecture, Project Structure, Configuration, Models)
 - **CTAs:** 0 explicit CTAs (no "Download", "Try it", "Star this repo" prompts)
 - **Screenshots/GIFs:** 0 (no visual demos)
 - **Badges:** 6 (version, platform, tauri, react, rust, license)

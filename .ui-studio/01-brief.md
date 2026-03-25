@@ -6,7 +6,7 @@
 PRODUCT BRIEF
 ---
 Goal:        Add a toggleable vertical tabs mode that moves tabs from a horizontal bar to a resizable left sidebar
-Audience:    Power users of the Anvil terminal manager who prefer vertical tab layouts (VS Code/Firefox style)
+Audience:    Power users of the Figtree terminal manager who prefer vertical tab layouts (VS Code/Firefox style)
 Aesthetic:   Consistent with existing dark theme system (Catppuccin default) — same design tokens, hover states, animations
 Stack:       React 19 + vanilla CSS custom properties (no new dependencies)
 Perf budget: None (desktop Tauri app)

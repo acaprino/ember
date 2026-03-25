@@ -8,7 +8,7 @@
 
 **Tech Stack:** React 19, TypeScript 5, Tauri 2 (dialog plugin), react-syntax-highlighter (already installed), CSS custom properties.
 
-**Note:** Anvil has no test framework — verification is manual via `cargo tauri dev`.
+**Note:** Figtree has no test framework — verification is manual via `cargo tauri dev`.
 
 ---
 
@@ -445,7 +445,7 @@ git commit -m "feat: add confirmation dialogs for destructive actions"
 - [ ] **Step 1: Create OnboardingOverlay**
 
 A modal overlay with 3-4 slides:
-1. "Welcome to Anvil" — what it does
+1. "Welcome to Figtree" — what it does
 2. "Keyboard-first" — key shortcuts (Tab, F2-F4, Enter, Ctrl+T)
 3. "Choose your style" — theme picker preview
 4. "Ready" — dismiss

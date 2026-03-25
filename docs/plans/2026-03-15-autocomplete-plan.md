@@ -260,7 +260,7 @@ Edit `sidecar/package.json` to add `@anthropic-ai/sdk`:
 
 ```json
 {
-  "name": "anvil-sidecar",
+  "name": "figtree-sidecar",
   "version": "1.0.0",
   "private": true,
   "type": "module",

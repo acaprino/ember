@@ -1,5 +1,5 @@
 {
-  "target": "Make the Anvil chat UI look as terminal-like as possible while keeping React component architecture",
+  "target": "Make the Figtree chat UI look as terminal-like as possible while keeping React component architecture",
   "status": "in_progress",
   "flags": {
     "skip_brainstorm": true,

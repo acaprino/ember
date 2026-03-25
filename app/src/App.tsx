@@ -96,7 +96,7 @@ function AppContent() {
     }
   }, [closeTab]);
 
-  // Load bundled marketplace plugin paths (Anvil-exclusive by default)
+  // Load bundled marketplace plugin paths (Figtree-exclusive by default)
   const [allPluginPaths, setAllPluginPaths] = useState<string[]>([]);
   const [pluginsLoaded, setPluginsLoaded] = useState(false);
   useEffect(() => {
@@ -131,9 +131,9 @@ function AppContent() {
   useEffect(() => {
     if (activeTab.type === "agent" && activeTab.projectName) {
       const suffix = terminalCount > 1 ? ` (+${terminalCount - 1} tabs)` : "";
-      appWindow.setTitle(`Anvil \u2014 ${activeTab.projectName}${suffix}`);
+      appWindow.setTitle(`Figtree \u2014 ${activeTab.projectName}${suffix}`);
     } else {
-      appWindow.setTitle("Anvil");
+      appWindow.setTitle("Figtree");
     }
   }, [activeTab.type, activeTab.projectName, terminalCount]);
 

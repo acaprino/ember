@@ -21,14 +21,14 @@
 - [ ] **Step 1: Create sidecar directory and package.json**
 
 ```bash
-cd D:/Projects/anvil
+cd D:/Projects/figtree
 mkdir -p sidecar
 ```
 
 ```json
 // sidecar/package.json
 {
-  "name": "anvil-sidecar",
+  "name": "figtree-sidecar",
   "version": "1.0.0",
   "private": true,
   "type": "module",
@@ -52,13 +52,13 @@ The sidecar reads JSON-line commands from stdin, manages SDK sessions, and write
 - [ ] **Step 3: Install dependencies**
 
 ```bash
-cd D:/Projects/anvil/sidecar && npm install
+cd D:/Projects/figtree/sidecar && npm install
 ```
 
 - [ ] **Step 4: Test sidecar manually**
 
 ```bash
-echo '{"cmd":"list_sessions","tabId":"_control","cwd":"D:/Projects/anvil"}' | node sidecar/sidecar.js
+echo '{"cmd":"list_sessions","tabId":"_control","cwd":"D:/Projects/figtree"}' | node sidecar/sidecar.js
 ```
 
 Verify it outputs a JSON-line with `{"evt":"sessions","tabId":"_control","list":[...]}` and exits cleanly.
@@ -113,7 +113,7 @@ Add all new commands to the `.invoke_handler(tauri::generate_handler![...])`.
 - [ ] **Step 5: Build and verify compilation**
 
 ```bash
-cd D:/Projects/anvil/app && cargo build
+cd D:/Projects/figtree/app && cargo build
 ```
 
 - [ ] **Step 6: Commit**
@@ -224,7 +224,7 @@ git commit -m "feat: add ANSI renderer for agent SDK events"
 
 In Terminal.tsx, check `tab.type`:
 - If `"agent"`: use `spawnAgent` instead of `spawnClaude`, skip banner detection, skip PTY resize
-- Write Anvil logo directly to xterm via `terminal.write(ANSI_LOGO)`
+- Write Figtree logo directly to xterm via `terminal.write(ANSI_LOGO)`
 - On events: call `renderAgentEvent()` and write to xterm
 
 - [ ] **Step 2: Implement input state machine**
@@ -339,7 +339,7 @@ Add `buildProjectsTable(projects)` function (same pattern as `buildModelsTable`)
 
 Accept a `liveSessionCosts` prop (from parent, accumulated from agent `Result` events). Render at bottom:
 ```
-● Live: anvil/sonnet — $0.02 (1.2K tokens)
+● Live: figtree/sonnet — $0.02 (1.2K tokens)
 ```
 
 - [ ] **Step 5: Add Avg/session to totals**
@@ -429,7 +429,7 @@ In `build_tauri.bat`, add step to run `npm install --production` in `sidecar/` b
 - [ ] **Step 3: Verify full build**
 
 ```bash
-cd D:/Projects/anvil && build_tauri.bat
+cd D:/Projects/figtree && build_tauri.bat
 ```
 
 - [ ] **Step 4: Commit**
@@ -445,7 +445,7 @@ git commit -m "feat: bundle sidecar in Tauri build"
 
 - [ ] **Step 1: Test agent tab creation**
 
-Launch Anvil, select a project, verify a Claude agent tab opens and shows the Anvil logo + prompt.
+Launch Figtree, select a project, verify a Claude agent tab opens and shows the Figtree logo + prompt.
 
 - [ ] **Step 2: Test basic conversation**
 

@@ -1,8 +1,8 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicerapp/tauri/refs/heads/dev/crates/tauri-cli/config.schema.json",
-  "productName": "Anvil",
+  "productName": "Figtree",
   "version": "1.0.0",
-  "identifier": "com.anvil-app.app",
+  "identifier": "com.figtree-app.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Anvil",
+        "title": "Figtree",
         "width": 1200,
         "height": 800,
         "minWidth": 800,
@@ -26,7 +26,7 @@
       "csp": "default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: https://asset.localhost",
       "assetProtocol": {
         "enable": true,
-        "scope": ["$TEMP/anvil_clipboard/**"]
+        "scope": ["$TEMP/figtree_clipboard/**"]
       }
     }
   },

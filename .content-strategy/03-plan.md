@@ -16,12 +16,12 @@
 These can be applied immediately by editing `README.md`:
 
 ### 1. Fix broken H1 link (Critical)
-- **Before:** `<h1 align="center"><a href="https://github.com/acaprino/anvil-toolset">Anvil</a></h1>`
-- **After:** `<h1 align="center">Anvil</h1>`
+- **Before:** `<h1 align="center"><a href="https://github.com/acaprino/figtree-toolset">Figtree</a></h1>`
+- **After:** `<h1 align="center">Figtree</h1>`
 
 ### 2. Fix placeholder clone URL (Critical)
-- **Before:** `git clone https://github.com/user/anvil.git`
-- **After:** `git clone https://github.com/acaprino/anvil.git`
+- **Before:** `git clone https://github.com/user/figtree.git`
+- **After:** `git clone https://github.com/acaprino/figtree.git`
 
 ### 3. Replace "blazing-fast" tagline (Important)
 - **Before:** "A blazing-fast terminal launcher for Claude Code & Gemini CLI"
@@ -36,7 +36,7 @@ These can be applied immediately by editing `README.md`:
 - **After:** "Windows native, keyboard-first"  (tech stack covered in Tech Stack section)
 
 ### 6. Add GitHub Stars badge (Important)
-- Add `https://img.shields.io/github/stars/acaprino/anvil?style=flat-square`
+- Add `https://img.shields.io/github/stars/acaprino/figtree?style=flat-square`
 - Remove redundant React 19 and Rust 2021 badges
 
 ### 7. Collapse Keyboard Shortcuts into `<details>` (Important)
@@ -57,7 +57,7 @@ These can be applied immediately by editing `README.md`:
 
 ## Medium Effort
 
-### 11. Rewrite "Why Anvil?" as objection-handling (Important)
+### 11. Rewrite "Why Figtree?" as objection-handling (Important)
 - Change heading to "Why not just run `claude` in a terminal?"
 - Add 2-sentence "status quo pain" intro
 - Rewrite bullets with explicit contrast against manual CLI workflow
@@ -67,7 +67,7 @@ These can be applied immediately by editing `README.md`:
 - Transform "Smart clipboard paste (sanitizes smart quotes)" → "Paste from Slack or Notion without broken smart quotes"
 - Apply to all bullet points in Features section
 
-### 13. Rewrite "What is Anvil?" section (Important)
+### 13. Rewrite "What is Figtree?" section (Important)
 - Lead with the tagline, follow with concrete description
 - Drop "terminal multiplexer" jargon
 - Add SEO keywords naturally: "Claude Code GUI", "Claude Code desktop app"
@@ -135,7 +135,7 @@ Ordered by expected impact on converting GitHub visitors to users:
 | 4 | Rewrite hero tagline + promote "Pick a project..." | **High** — first impression determines bounce rate |
 | 5 | Reorder README sections | **High** — Getting Started accessible in first scroll |
 | 6 | Collapse reference sections | **Medium-High** — reduces scroll fatigue, keeps focus on value |
-| 7 | Rewrite "Why Anvil?" as objection-handling | **Medium** — addresses the core "why should I care" question |
+| 7 | Rewrite "Why Figtree?" as objection-handling | **Medium** — addresses the core "why should I care" question |
 | 8 | Add GitHub Topics + social preview | **Medium** — improves discoverability and share appearance |
 | 9 | Rewrite feature bullets as benefits | **Medium** — improves perceived value for those who read deeply |
 | 10 | Add Contributing section + `.github/` infra | **Low-Medium** — attracts contributors, signals active project |
@@ -147,7 +147,7 @@ Ordered by expected impact on converting GitHub visitors to users:
 ```
 1. Hero: Logo + Title + Tagline + Download Badge + Stars Badge + Platform Badge
 2. Hero Screenshot
-3. What is Anvil? (brief, benefit-focused, with SEO keywords)
+3. What is Figtree? (brief, benefit-focused, with SEO keywords)
 4. Why not just run claude in a terminal? (objection-handling)
 5. Getting Started (download binary OR build from source)
 6. Features (benefit-focused bullets, AI tool comparison table)

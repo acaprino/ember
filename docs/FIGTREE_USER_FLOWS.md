@@ -1,4 +1,4 @@
-# Anvil -- User Flows
+# Figtree -- User Flows
 
 ## 1. Core Flow: Launch Agent Session
 

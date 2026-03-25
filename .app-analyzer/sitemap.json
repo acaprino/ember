@@ -1,8 +1,8 @@
 {
   "meta": {
     "platform": "desktop",
-    "app_name": "Anvil",
-    "app_path": "D:\\Projects\\anvil",
+    "app_name": "Figtree",
+    "app_path": "D:\\Projects\\figtree",
     "framework": "Tauri 2 + React 19 + TypeScript 5",
     "explored_at": "2026-03-18T00:00:00Z",
     "exploration_method": "static-source-analysis",

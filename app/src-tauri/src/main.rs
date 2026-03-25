@@ -39,7 +39,7 @@ fn main() {
         log_error!("PANIC at {location}: {payload}");
     }));
 
-    log_info!("Anvil version: {}", env!("CARGO_PKG_VERSION"));
+    log_info!("Figtree version: {}", env!("CARGO_PKG_VERSION"));
     log_info!("Data directory: {}", crate::projects::data_dir().display());
 
     log_info!("Initializing sidecar manager");
