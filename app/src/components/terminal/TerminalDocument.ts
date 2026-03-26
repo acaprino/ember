@@ -14,7 +14,6 @@ import { PermissionBlock } from "./blocks/PermissionBlock";
 import { AskBlock } from "./blocks/AskBlock";
 import { ThinkingBlock } from "./blocks/ThinkingBlock";
 import { ErrorBlock } from "./blocks/ErrorBlock";
-import { ResultBlock } from "./blocks/ResultBlock";
 import { StatusBlock } from "./blocks/StatusBlock";
 
 // ── Event types emitted by the document ──────────────────────────
@@ -277,23 +276,22 @@ export class TerminalDocument {
   }
 
   handleThinking(text: string): void {
+    // Thinking is shown in the sidebar panel — no terminal block needed
     if (!this.thinkingBlock) {
       this.thinkingBlock = new ThinkingBlock(this.nextId(), "");
-      this.addBlock(this.thinkingBlock);
     }
     this.thinkingBlock.append(text);
     this.emit({ type: "thinkingAppend", block: this.thinkingBlock, text });
   }
 
   handleResult(
-    cost: number, inputTokens: number, outputTokens: number,
-    cacheReadTokens: number, cacheWriteTokens: number,
-    turns: number, durationMs: number, sessionId: string,
+    _cost: number, _inputTokens: number, _outputTokens: number,
+    _cacheReadTokens: number, _cacheWriteTokens: number,
+    _turns: number, _durationMs: number, _sessionId: string,
   ): void {
+    // Stats already shown in bottom bar — no need for inline result block
     this.finalizeStreaming();
     this.finalizeThinking();
-    const block = new ResultBlock(this.nextId(), cost, inputTokens, outputTokens, cacheReadTokens, cacheWriteTokens, turns, durationMs, sessionId);
-    this.addBlock(block);
   }
 
   handleError(code: string, message: string): void {
@@ -301,10 +299,12 @@ export class TerminalDocument {
     this.addBlock(block);
   }
 
-  handleStatus(status: string, model: string): void {
-    if (!status || status === "null" || status === "started") return;
-    const block = new StatusBlock(this.nextId(),status, model);
-    this.addBlock(block);
+  handleStatus(status: string, _model: string): void {
+    // Status messages (init, etc.) are noise in xterm — suppress them
+    if (status === "Interrupted") {
+      const block = new StatusBlock(this.nextId(), "Interrupted", "");
+      this.addBlock(block);
+    }
   }
 
   handleInterrupted(): void {
@@ -314,8 +314,8 @@ export class TerminalDocument {
     this.addBlock(block);
   }
 
-  handleUserMessage(text: string): void {
-    const block = new UserBlock(this.nextId(), text);
+  handleUserMessage(text: string, fromHistory = false): void {
+    const block = new UserBlock(this.nextId(), text, fromHistory);
     this.addBlock(block);
   }
 
@@ -404,28 +404,9 @@ export class TerminalDocument {
             timestamp: ts,
           });
           break;
-        case "thinking":
-          msgs.push({
-            id, role: "thinking", text: (block as ThinkingBlock).text,
-            ended: (block as ThinkingBlock).ended,
-            timestamp: ts,
-          });
-          break;
         case "error":
           msgs.push({ id, role: "error", code: (block as ErrorBlock).code, message: (block as ErrorBlock).message, timestamp: ts });
           break;
-        case "result": {
-          const rb = block as ResultBlock;
-          msgs.push({
-            id, role: "result", cost: rb.cost,
-            inputTokens: rb.inputTokens, outputTokens: rb.outputTokens,
-            cacheReadTokens: rb.cacheReadTokens, cacheWriteTokens: rb.cacheWriteTokens,
-            turns: rb.turns, durationMs: rb.durationMs,
-            isError: false, sessionId: rb.sessionId, contextWindow: 0,
-            timestamp: ts,
-          });
-          break;
-        }
         case "status":
           msgs.push({ id, role: "status", status: (block as StatusBlock).status, model: (block as StatusBlock).model, timestamp: ts });
           break;

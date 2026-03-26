@@ -12,6 +12,7 @@ import { SearchAddon } from "@xterm/addon-search";
 import { Unicode11Addon } from "@xterm/addon-unicode11";
 import { invoke } from "@tauri-apps/api/core";
 import "@xterm/xterm/css/xterm.css";
+import "./TerminalView.css";
 
 import { MODELS, EFFORTS, PERM_MODES } from "../types";
 import type { SessionViewProps } from "./SessionViewProps";
@@ -202,7 +203,10 @@ export default memo(function XTermView(props: SessionViewProps) {
     if (inputState === "awaiting_input") {
       im.setMode("normal");
     } else if (inputState === "processing" || inputState === "idle") {
-      im.setMode("processing");
+      // Don't re-enter processing mode — avoids resetting spinner/pause state
+      if (im.getMode() !== "processing") {
+        im.setMode("processing");
+      }
     }
   }, [inputState]);
 
@@ -237,6 +241,13 @@ export default memo(function XTermView(props: SessionViewProps) {
 
   // ── Sidebar toggle ──
   const toggleSidebar = useCallback(() => setSidebarOpen(prev => !prev), []);
+
+  // ── Auto-focus xterm when tab becomes active ──
+  useEffect(() => {
+    if (isActive && termRef.current) {
+      termRef.current.focus();
+    }
+  }, [isActive]);
 
   // ── Keyboard shortcuts (global, not captured by xterm) ──
   useEffect(() => {

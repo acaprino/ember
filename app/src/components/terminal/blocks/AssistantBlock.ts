@@ -1,6 +1,6 @@
 import type { Block } from "./Block";
 import type { TerminalPalette } from "../themes";
-import { RESET, wordWrap, inlineMarkdown, fg } from "../AnsiUtils";
+import { RESET, wordWrap, inlineMarkdown, fg, sanitizeAgentText } from "../AnsiUtils";
 
 export class AssistantBlock implements Block {
   readonly type = "assistant";
@@ -23,7 +23,7 @@ export class AssistantBlock implements Block {
   }
 
   render(cols: number, palette: TerminalPalette): string {
-    const formatted = inlineMarkdown(this.text, palette);
+    const formatted = inlineMarkdown(sanitizeAgentText(this.text), palette);
     const lines: string[] = [];
     let inCodeBlock = false;
     let codeLang = "";

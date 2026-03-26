@@ -1,6 +1,6 @@
 import type { Block } from "./Block";
 import type { TerminalPalette } from "../themes";
-import { fg, DIM, RESET, ICON, boxDraw, wordWrap } from "../AnsiUtils";
+import { fg, DIM, RESET, ICON, boxDraw, wordWrap, sanitizeAgentText } from "../AnsiUtils";
 
 export class ToolBlock implements Block {
   readonly type = "tool";
@@ -38,7 +38,8 @@ export class ToolBlock implements Block {
   private inputPreview(): string {
     if (!this.input) return "";
     const str = typeof this.input === "string" ? this.input : JSON.stringify(this.input);
-    return str.length > 80 ? str.slice(0, 77) + "..." : str;
+    const truncated = str.length > 80 ? str.slice(0, 77) + "..." : str;
+    return sanitizeAgentText(truncated);
   }
 
   render(cols: number, palette: TerminalPalette): string {
@@ -56,7 +57,8 @@ export class ToolBlock implements Block {
 
     if (this.output) {
       content.push("");
-      const outputLines = this.output.split("\n").slice(0, 20);
+      const sanitizedOutput = sanitizeAgentText(this.output);
+      const outputLines = sanitizedOutput.split("\n").slice(0, 20);
       for (const line of outputLines) {
         const truncated = line.length > cols - 6 ? line.slice(0, cols - 9) + "..." : line;
         content.push(truncated);

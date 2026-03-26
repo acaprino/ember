@@ -14,6 +14,17 @@
   line-height: var(--tv-line-height);
 }
 
+/* ── XTermView wrapper (mirrors .terminal-view layout) ───────── */
+.tv-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  padding-top: var(--space-1);
+  padding-left: var(--space-2);
+}
+
 /* ── Main row (scroll + optional sidebar) ────────────────────── */
 .tv-main-row {
   flex: 1;

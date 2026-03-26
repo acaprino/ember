@@ -9,19 +9,11 @@
 
 import type { Terminal } from "@xterm/xterm";
 import type { Block } from "./blocks/Block";
+import type { UserBlock } from "./blocks/UserBlock";
 import type { TerminalDocument, DocumentEvent } from "./TerminalDocument";
 import type { TerminalPalette } from "./themes";
 import type { InputManager } from "./InputManager";
-import { CURSOR_SAVE, CURSOR_RESTORE, cursorUp, ERASE_LINE } from "./AnsiUtils";
-
-/** Strip terminal control sequences from agent-sourced text (security) */
-function sanitizeAgentText(str: string): string {
-  return str
-    .replace(/\x1b\[[0-9;]*[A-Za-z]/g, "")    // CSI sequences
-    .replace(/\x1b\][^\x07]*\x07/g, "")         // OSC sequences (title, etc.)
-    .replace(/\x1b[78]/g, "")                    // cursor save/restore
-    .replace(/\x1b/g, "");                       // any remaining ESC
-}
+import { CURSOR_SAVE, CURSOR_RESTORE, cursorUp, ERASE_LINE, sanitizeAgentText } from "./AnsiUtils";
 
 export class TerminalRenderer {
   private cols: number;
@@ -90,6 +82,15 @@ export class TerminalRenderer {
   // ── Block rendering ─────────────────────────────────────────────
 
   private onBlockAdded(block: Block): void {
+    // Live user input already echoed by InputManager — just track it, no output written
+    if (block.type === "user" && !(block as UserBlock).fromHistory) {
+      // Use render() + count \r\n for correct line count (handles wide chars, wrapping)
+      const content = block.render(this.cols, this.palette);
+      const visualLines = (content.match(/\r\n/g) || []).length || 1;
+      this.document.commitBlockLines(block, visualLines);
+      return;
+    }
+
     this.inputManager?.notifyOutput();
 
     // Streaming assistant block: don't render yet, text comes via streamAppend

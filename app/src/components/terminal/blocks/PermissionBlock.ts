@@ -1,7 +1,7 @@
 import type { Block } from "./Block";
 import type { TerminalPalette } from "../themes";
 import type { PermissionSuggestion } from "../../../types";
-import { fg, BOLD, RESET, ICON } from "../AnsiUtils";
+import { fg, BOLD, RESET, ICON, sanitizeAgentText } from "../AnsiUtils";
 
 export class PermissionBlock implements Block {
   readonly type = "permission";
@@ -36,7 +36,7 @@ export class PermissionBlock implements Block {
     }
 
     const warn = `${fg(palette.yellow)}${ICON.warning}${RESET}`;
-    const prompt = `${BOLD}Allow ${this.tool}${RESET}: ${this.description}`;
+    const prompt = `${BOLD}Allow ${this.tool}${RESET}: ${sanitizeAgentText(this.description)}`;
     const keys = this.suggestions?.length
       ? `  ${fg(palette.green)}[Y]${RESET}es  ${fg(palette.accent)}[A]${RESET}llow session  ${fg(palette.red)}[N]${RESET}o`
       : `  ${fg(palette.green)}[Y]${RESET}es  ${fg(palette.red)}[N]${RESET}o`;

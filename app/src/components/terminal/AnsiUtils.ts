@@ -64,6 +64,19 @@ export const ERASE_LINE = `${CSI}2K`;
 export const ERASE_TO_END = `${CSI}0K`;
 export const ERASE_SCREEN = `${CSI}2J`;
 
+// ── Sanitization ──────────────────────────────────────────────────
+
+/** Strip terminal control sequences from agent-sourced text (security) */
+export function sanitizeAgentText(str: string): string {
+  return str
+    .replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "")    // CSI sequences (including private mode)
+    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, "")  // OSC sequences
+    .replace(/\x1b[PX^_][^\x1b]*\x1b\\/g, "")  // DCS, SOS, PM, APC
+    .replace(/\x1b[78]/g, "")                    // cursor save/restore
+    .replace(/[\x80-\x9f]/g, "")                 // C1 control codes
+    .replace(/\x1b/g, "");                       // any remaining ESC
+}
+
 // ── Word wrapping ──────────────────────────────────────────────────
 
 /** Strip ANSI escape sequences for length calculation */
@@ -147,7 +160,7 @@ export function boxDraw(
 
   // Top border: ╭─ Title ─────────╮
   const titleStr = title ? ` ${title} ` : "";
-  const topFill = Math.max(0, innerWidth - titleStr.length);
+  const topFill = Math.max(0, innerWidth - stripAnsi(titleStr).length);
   lines.push(
     `${bc}${BOX.topLeft}${BOX.horizontal}${RESET}${tc}${titleStr}${RESET}${bc}${BOX.horizontal.repeat(topFill)}${BOX.topRight}${RESET}`
   );

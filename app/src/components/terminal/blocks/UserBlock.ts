@@ -8,8 +8,12 @@ export class UserBlock implements Block {
   startLine = 0;
   lineCount = 0;
   frozen = false;
+  /** True when loaded from history — false for live input (already echoed by InputManager) */
+  fromHistory = false;
 
-  constructor(public readonly id: string, public text: string) {}
+  constructor(public readonly id: string, public text: string, fromHistory = false) {
+    this.fromHistory = fromHistory;
+  }
 
   render(cols: number, palette: TerminalPalette): string {
     const prefix = `${fg(palette.accent)}${BOLD}${ICON.prompt}${RESET} `;

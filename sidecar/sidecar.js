@@ -445,7 +445,7 @@ async function consumeQuery(tabId, q, sessionRef) {
                     hasStreamedText = false;
                     // Check for errors
                     if (msg.error) {
-                        emit({ evt: "error", tabId, code: msg.error, message: msg.error || msg.error });
+                        emit({ evt: "error", tabId, code: msg.error, message: msg.error_message || msg.error });
                     }
                     break;
                 }
@@ -1080,11 +1080,17 @@ rl.on("close", () => {
     sessions.clear();
     process.exit(0);
 });
+let zodErrorCount = 0;
 process.on("uncaughtException", (err) => {
     log(`uncaughtException: ${err.message}\n${err.stack}`);
     if (err.name === "ZodError" || err.message?.includes("Zod")) {
-        log(`ZodError details (non-fatal): ${JSON.stringify(err.issues || err.errors || err, null, 2)}`);
-        return; // ZodErrors are non-fatal SDK schema issues — safe to continue
+        zodErrorCount++;
+        log(`ZodError #${zodErrorCount} (non-fatal): ${JSON.stringify(err.issues || err.errors || err, null, 2)}`);
+        if (zodErrorCount > 3) {
+            log("Too many ZodErrors — exiting for clean restart");
+            process.exit(1);
+        }
+        return;
     }
     // Unknown exceptions may corrupt shared state — exit for clean restart via try_restart
     log("Exiting due to unrecoverable exception");

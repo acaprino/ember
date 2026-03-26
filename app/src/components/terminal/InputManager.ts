@@ -68,6 +68,12 @@ export class InputManager {
 
   setMode(mode: InputMode): void {
     this.stopSpinner();
+    // Clear any pending restart timer
+    if (this.spinnerPauseTimer) {
+      clearTimeout(this.spinnerPauseTimer);
+      this.spinnerPauseTimer = null;
+    }
+    this.spinnerPaused = false;
     this.mode = mode;
     if (mode === "normal") {
       this.renderPrompt();
@@ -117,15 +123,16 @@ export class InputManager {
    */
   notifyOutput(): void {
     if (this.mode !== "processing") return;
-    if (!this.spinnerPaused && this.spinnerInterval) {
-      this.spinnerPaused = true;
+    // Always stop the spinner if it's running — clear the line for incoming output
+    if (this.spinnerInterval) {
       this.stopSpinner();
     }
+    this.spinnerPaused = true;
     if (this.spinnerPauseTimer) clearTimeout(this.spinnerPauseTimer);
     this.spinnerPauseTimer = setTimeout(() => {
       this.spinnerPauseTimer = null;
-      // Don't restart spinner if streaming is active
-      if (this.mode === "processing" && !this.streamingActive) {
+      // Don't restart spinner if streaming is active or user is typing
+      if (this.mode === "processing" && !this.streamingActive && this.buffer.length === 0) {
         this.spinnerPaused = false;
         this.startSpinner();
       }
@@ -150,7 +157,8 @@ export class InputManager {
         this.handleNormalData(data);
         break;
       case "processing":
-        // Only Ctrl+C handled via handleKeyEvent
+        // Allow typing to queue messages while agent is working
+        this.handleNormalData(data);
         break;
       case "permission":
         this.handlePermissionData(data);
@@ -166,12 +174,18 @@ export class InputManager {
     // Ctrl+C in any mode
     if (e.ctrlKey && e.key === "c") {
       e.preventDefault();
-      if (this.mode === "normal" && this.buffer.length > 0) {
+      if ((this.mode === "normal" || this.mode === "processing") && this.buffer.length > 0) {
         // Clear the current line
         this.buffer = "";
         this.cursorPos = 0;
-        this.terminal.write("\r\n");
-        this.renderPrompt();
+        if (this.mode === "processing") {
+          // Go back to spinner
+          this.terminal.write(`\r${ERASE_LINE}`);
+          this.startSpinner();
+        } else {
+          this.terminal.write("\r\n");
+          this.renderPrompt();
+        }
       } else if (this.mode === "processing" || (this.mode === "normal" && this.buffer.length === 0)) {
         this.callbacks.onInterrupt();
       }
@@ -240,6 +254,11 @@ export class InputManager {
     if (data === "\x0b") {
       // Ctrl+K — kill to end of line
       this.buffer = this.buffer.slice(0, this.cursorPos);
+      if (this.mode === "processing" && this.buffer.length === 0) {
+        this.terminal.write(`\r${ERASE_LINE}`);
+        this.startSpinner();
+        return;
+      }
       this.redrawLine();
       return;
     }
@@ -248,6 +267,11 @@ export class InputManager {
       // Ctrl+U — clear line
       this.buffer = "";
       this.cursorPos = 0;
+      if (this.mode === "processing") {
+        this.terminal.write(`\r${ERASE_LINE}`);
+        this.startSpinner();
+        return;
+      }
       this.redrawLine();
       return;
     }
@@ -290,27 +314,55 @@ export class InputManager {
         this.history.push(text);
         if (this.history.length > 100) this.history.shift();
       }
-      this.setMode("processing"); // Immediately switch — don't wait for React effect
+      const wasProcessing = this.mode === "processing";
+      if (!wasProcessing) {
+        this.setMode("processing");
+      } else {
+        // Queuing while agent is working — restart spinner
+        this.startSpinner();
+      }
       this.callbacks.onSubmit(text);
     }
   }
 
   private insertText(text: string): void {
+    // If typing while processing, pause spinner and show prompt.
+    // Batch the newline + redraw into a single terminal.write to prevent
+    // interleaving with concurrent streaming writes from TerminalRenderer.
+    let prefix = "";
+    if (this.mode === "processing" && this.buffer.length === 0) {
+      this.stopSpinner();
+      prefix = "\r\n"; // new line below output — batched with redraw
+    }
     this.buffer = this.buffer.slice(0, this.cursorPos) + text + this.buffer.slice(this.cursorPos);
     this.cursorPos += text.length;
-    this.redrawLine();
+    const prompt = `${fg(this.palette.accent)}${BOLD}${ICON.prompt}${RESET} `;
+    const line = `\r${ERASE_LINE}${prompt}${this.buffer}`;
+    const cursor = this.cursorPos < this.buffer.length ? cursorColumn(this.cursorPos + 3) : "";
+    this.terminal.write(prefix + line + cursor);
   }
 
   private backspace(): void {
     if (this.cursorPos <= 0) return;
     this.buffer = this.buffer.slice(0, this.cursorPos - 1) + this.buffer.slice(this.cursorPos);
     this.cursorPos--;
+    if (this.mode === "processing" && this.buffer.length === 0) {
+      // Cleared all text while processing — erase prompt line, restart spinner
+      this.terminal.write(`\r${ERASE_LINE}`);
+      this.startSpinner();
+      return;
+    }
     this.redrawLine();
   }
 
   private deleteChar(): void {
     if (this.cursorPos >= this.buffer.length) return;
     this.buffer = this.buffer.slice(0, this.cursorPos) + this.buffer.slice(this.cursorPos + 1);
+    if (this.mode === "processing" && this.buffer.length === 0) {
+      this.terminal.write(`\r${ERASE_LINE}`);
+      this.startSpinner();
+      return;
+    }
     this.redrawLine();
   }
 
@@ -323,6 +375,11 @@ export class InputManager {
     while (pos > 0 && this.buffer[pos - 1] !== " ") pos--;
     this.buffer = this.buffer.slice(0, pos) + this.buffer.slice(this.cursorPos);
     this.cursorPos = pos;
+    if (this.mode === "processing" && this.buffer.length === 0) {
+      this.terminal.write(`\r${ERASE_LINE}`);
+      this.startSpinner();
+      return;
+    }
     this.redrawLine();
   }
 
@@ -377,9 +434,15 @@ export class InputManager {
     const token = lastSpace >= 0 ? input.slice(lastSpace + 1) : input;
     if (!token) return;
 
+    // Snapshot buffer state to detect changes during async await
+    const snapshotBuffer = this.buffer;
+    const snapshotCursor = this.cursorPos;
+
     this.completionInFlight = true;
     try {
       const suggestions = await this.callbacks.onAutocomplete(token);
+      // Bail if buffer changed while waiting (user typed during autocomplete)
+      if (this.buffer !== snapshotBuffer || this.cursorPos !== snapshotCursor) return;
       if (suggestions.length === 0) return;
       if (suggestions.length === 1) {
         // Single match — complete inline
@@ -434,6 +497,17 @@ export class InputManager {
   // ── Processing mode (spinner) ───────────────────────────────────
 
   private startSpinner(): void {
+    // Clear any existing spinner to prevent stacking
+    if (this.spinnerInterval) {
+      clearInterval(this.spinnerInterval);
+      this.spinnerInterval = null;
+    }
+    // Reset pause state so notifyOutput() can stop us
+    this.spinnerPaused = false;
+    if (this.spinnerPauseTimer) {
+      clearTimeout(this.spinnerPauseTimer);
+      this.spinnerPauseTimer = null;
+    }
     this.spinnerFrame = 0;
     this.spinnerStartTime = Date.now();
     this.renderSpinner();
