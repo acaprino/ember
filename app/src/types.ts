@@ -130,6 +130,35 @@ export interface ThemeColors {
   userMsgBorder?: string;
 }
 
+export interface ThemeLayout {
+  /** Border radius small (default: "4px") */
+  radiusSm?: string;
+  /** Border radius medium (default: "6px") */
+  radiusMd?: string;
+  /** Border radius large — modals, cards (default: "6px") */
+  radiusLg?: string;
+  /** Tab bar height (default: "42px") */
+  tabHeight?: string;
+  /** Info strip height (default: "32px") */
+  infoStripHeight?: string;
+  /** Title bar height (default: "32px") */
+  titleBarHeight?: string;
+  /** Sidebar width (default: "200px") */
+  sidebarWidth?: string;
+  /** Base spacing unit — space-1 is 1x, space-2 is 2x, etc. (default: 4) */
+  spacingUnit?: number;
+  /** Padding for containers/cards (default: "16px") */
+  padding?: string;
+  /** Modal box shadow */
+  shadowModal?: string;
+  /** Hover overlay opacity as 0-100 (default: 10) */
+  hoverOpacity?: number;
+  /** Floating window style — adds outer border-radius and shadow to the app frame */
+  floating?: boolean;
+  /** Outer border radius for floating windows (default: "10px") */
+  floatingRadius?: string;
+}
+
 export interface Theme {
   name: string;
   colors: ThemeColors;
@@ -140,6 +169,8 @@ export interface Theme {
   /** UI / chat font */
   uiFont?: string;
   uiFontSize?: number;
+  /** Layout tokens — dimensions, radii, spacing, shadows */
+  layout?: ThemeLayout;
 }
 
 // Themes are loaded at runtime from the filesystem via load_themes command

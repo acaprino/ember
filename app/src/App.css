@@ -14,6 +14,9 @@
   --tab-height: 42px;
   --radius-sm: 4px;
   --radius-md: 6px;
+  --radius-lg: 6px;
+  --padding-container: 16px;
+  --floating-radius: 10px;
   --space-0: 2px;
   --space-1: 4px;
   --space-2: 8px;
@@ -205,6 +208,15 @@ button, input, select {
 .resize-handle.top-right    { top: 0; right: 0; width: 8px; height: 8px; cursor: ne-resize; }
 .resize-handle.bottom-left  { bottom: 0; left: 0; width: 8px; height: 8px; cursor: sw-resize; }
 .resize-handle.bottom-right { bottom: 0; right: 0; width: 8px; height: 8px; cursor: se-resize; }
+
+/* ── Floating window style ── */
+.floating {
+  border-radius: var(--floating-radius);
+  overflow: hidden;
+  box-shadow: 0 12px 48px color-mix(in srgb, black 40%, transparent),
+              0 0 0 1px color-mix(in srgb, var(--overlay0) 30%, transparent);
+}
+.floating .app-grid { border-radius: var(--floating-radius); overflow: hidden; }
 
 /* ── Retro mode: 90s console / adventure game aesthetic ── */
 .retro {

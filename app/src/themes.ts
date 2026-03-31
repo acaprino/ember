@@ -15,6 +15,20 @@ export function sanitizeColor(value: string): string {
   return "#000000";
 }
 
+/** Validate a CSS dimension value — allows px, rem, em, %, vh, vw, 0 */
+function sanitizeDimension(value: string, fallback: string): string {
+  if (/^-?\d+(\.\d+)?(px|rem|em|%|vh|vw|pt)$/.test(value)) return value;
+  if (value === "0") return value;
+  return fallback;
+}
+
+/** Validate a CSS box-shadow value — blocks url(), expression(), etc. */
+function sanitizeShadow(value: string, fallback: string): string {
+  if (/url\s*\(|expression\s*\(/i.test(value)) return fallback;
+  if (/[;{}]/.test(value)) return fallback;
+  return value;
+}
+
 /** Incremented on every theme application — consumers can compare to detect changes */
 export let themeVersion = 0;
 
@@ -80,6 +94,66 @@ export function applyTheme(themes: Theme[], themeIdx: number): void {
   const isRetro = !!theme.retro;
   root.classList.toggle("retro", isRetro);
   invoke("set_window_corner_preference", { retro: isRetro }).catch((err) => console.debug("[themes] set_window_corner_preference failed:", err));
+
+  // Layout tokens — all optional, fall back to CSS :root defaults when absent
+  const layout = theme.layout;
+  const setOrRemove = (prop: string, val: string | undefined, sanitize: (v: string, f: string) => string, fallback: string) => {
+    if (val) root.style.setProperty(prop, sanitize(val, fallback));
+    else root.style.removeProperty(prop);
+  };
+  setOrRemove("--radius-sm", layout?.radiusSm, sanitizeDimension, "4px");
+  setOrRemove("--radius-md", layout?.radiusMd, sanitizeDimension, "6px");
+  setOrRemove("--radius-lg", layout?.radiusLg, sanitizeDimension, "6px");
+  setOrRemove("--tab-height", layout?.tabHeight, sanitizeDimension, "42px");
+  setOrRemove("--info-strip-height", layout?.infoStripHeight, sanitizeDimension, "32px");
+  setOrRemove("--title-bar-height", layout?.titleBarHeight, sanitizeDimension, "32px");
+  setOrRemove("--sidebar-width", layout?.sidebarWidth, sanitizeDimension, "200px");
+  setOrRemove("--padding-container", layout?.padding, sanitizeDimension, "16px");
+
+  // Spacing scale derived from spacingUnit (default 4px)
+  if (layout?.spacingUnit) {
+    const u = Math.max(1, Math.min(16, layout.spacingUnit));
+    root.style.setProperty("--space-0", `${Math.round(u * 0.5)}px`);
+    root.style.setProperty("--space-1", `${u}px`);
+    root.style.setProperty("--space-2", `${u * 2}px`);
+    root.style.setProperty("--space-3", `${u * 3}px`);
+    root.style.setProperty("--space-4", `${u * 4}px`);
+    root.style.setProperty("--space-6", `${u * 6}px`);
+    root.style.setProperty("--space-8", `${u * 8}px`);
+    root.style.setProperty("--space-12", `${u * 12}px`);
+  } else {
+    // Reset to defaults
+    for (const k of ["--space-0", "--space-1", "--space-2", "--space-3", "--space-4", "--space-6", "--space-8", "--space-12"]) {
+      root.style.removeProperty(k);
+    }
+  }
+
+  // Hover overlay opacity
+  if (layout?.hoverOpacity !== undefined) {
+    const opacity = Math.max(0, Math.min(100, layout.hoverOpacity));
+    root.style.setProperty("--hover-overlay", `color-mix(in srgb, var(--text) ${opacity}%, transparent)`);
+    root.style.setProperty("--hover-overlay-subtle", `color-mix(in srgb, var(--text) ${Math.round(opacity / 2)}%, transparent)`);
+  } else {
+    root.style.removeProperty("--hover-overlay");
+    root.style.removeProperty("--hover-overlay-subtle");
+  }
+
+  // Modal shadow
+  if (layout?.shadowModal) {
+    root.style.setProperty("--shadow-modal", sanitizeShadow(layout.shadowModal, "0 8px 32px color-mix(in srgb, var(--crust) 80%, transparent)"));
+  } else {
+    root.style.removeProperty("--shadow-modal");
+  }
+
+  // Floating window style
+  const isFloating = !!layout?.floating;
+  root.classList.toggle("floating", isFloating);
+  if (isFloating && layout?.floatingRadius) {
+    root.style.setProperty("--floating-radius", sanitizeDimension(layout.floatingRadius, "10px"));
+  } else {
+    root.style.removeProperty("--floating-radius");
+  }
+
   themeVersion++;
 }
 
