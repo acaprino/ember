@@ -238,6 +238,17 @@ export const ICON = {
   bullet: "\u25cf",    // ●
 } as const;
 
+/** Random spinner verbs — context-aware processing indicators */
+const SPINNER_VERBS = [
+  "Thinking...", "Analyzing...", "Reasoning...", "Considering...",
+  "Processing...", "Evaluating...", "Working...", "Examining...",
+  "Reviewing...", "Computing...", "Investigating...", "Figuring out...",
+  "Pondering...", "Exploring...", "Mapping out...", "Connecting dots...",
+];
+export function randomSpinnerVerb(): string {
+  return SPINNER_VERBS[Math.floor(Math.random() * SPINNER_VERBS.length)];
+}
+
 /** Interpolate between two hex colors. t=0 → hex1, t=1 → hex2. */
 export function interpolateColor(hex1: string, hex2: string, t: number): string {
   const [r1, g1, b1] = hexToRgb(hex1);

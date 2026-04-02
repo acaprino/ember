@@ -29,6 +29,8 @@ export class TerminalRenderer {
   private lastStreamedEndedWithNewline = false;
   /** Whether ephemeral content was suspended at streaming start */
   private suspendedForStreaming = false;
+  /** Approximate response length for token estimation (responseLength / 4 ≈ tokens) */
+  private responseLength = 0;
 
   constructor(
     private terminal: Terminal,
@@ -112,6 +114,7 @@ export class TerminalRenderer {
     // Streaming assistant block: don't render yet, text comes via streamAppend
     if (block.type === "assistant" && (block as { streaming?: boolean }).streaming) {
       this.streamingActive = true;
+      this.responseLength = 0;
       this.inputManager?.setStreamingActive(true);
       this.inputManager?.setSpinnerVerb("Responding...");
       this.document.commitBlockLines(block, 0);
@@ -248,6 +251,9 @@ export class TerminalRenderer {
     const xtermText = trimmed.replace(/\n/g, "\r\n");
     this.terminal.write(xtermText);
     this.lastStreamedEndedWithNewline = trimmed.endsWith("\n");
+    // Track response length for token estimation (length/4 ≈ tokens)
+    this.responseLength += text.length;
+    this.inputManager?.setTokenCount(Math.round(this.responseLength / 4));
   }
 
   /** Called when streaming ends */

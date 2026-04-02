@@ -241,6 +241,18 @@ export class TerminalDocument {
     }
   }
 
+  handleProgress(tool: string, message: string): void {
+    // Update the last pending tool block with progress info
+    for (let i = this.blocks.length - 1; i >= 0; i--) {
+      const b = this.blocks[i];
+      if ((b.type === "tool" || b.type === "diff") && (b as ToolBlock).status === "pending") {
+        (b as ToolBlock).setProgress(message);
+        this.updateBlock(b);
+        return;
+      }
+    }
+  }
+
   handlePermission(tool: string, description: string, toolUseId: string, suggestions?: PermissionSuggestion[]): void {
     const block = new PermissionBlock(this.nextId(), tool, description, toolUseId, suggestions);
     this.addBlock(block);

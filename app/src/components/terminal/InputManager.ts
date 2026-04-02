@@ -6,7 +6,7 @@
 import type { Terminal } from "@xterm/xterm";
 import type { TerminalPalette } from "./themes";
 import type { PermissionSuggestion, AskQuestionItem } from "../../types";
-import { fg, BOLD, DIM, RESET, ICON, ERASE_LINE, ERASE_BELOW, ERASE_TO_END, cursorColumn, cursorUp, cursorDown, cursorBack, CURSOR_SAVE, CURSOR_RESTORE, SPINNER_FRAMES, interpolateColor } from "./AnsiUtils";
+import { fg, BOLD, DIM, RESET, ICON, ERASE_LINE, ERASE_BELOW, ERASE_TO_END, cursorColumn, cursorUp, cursorDown, cursorBack, CURSOR_SAVE, CURSOR_RESTORE, SPINNER_FRAMES, interpolateColor, randomSpinnerVerb } from "./AnsiUtils";
 
 export type InputMode = "normal" | "processing" | "ask" | "permission";
 
@@ -41,6 +41,7 @@ export class InputManager {
   private spinnerFrame = 0;
   private spinnerStartTime = 0;
   private spinnerVerb = "Thinking...";
+  private spinnerTokenCount = 0;
   private static readonly STALL_THRESHOLD = 30_000; // 30s → color shift to red
 
   // Autocomplete state
@@ -89,6 +90,7 @@ export class InputManager {
       this.spinnerPauseTimer = null;
     }
     this.spinnerVerb = "Thinking...";
+    this.spinnerTokenCount = 0;
     this.inputLineOnScreen = false;
     this.inputRows = 1;
     this.inputCursorRow = 0;
@@ -151,6 +153,11 @@ export class InputManager {
   /** Called by TerminalRenderer to update the spinner verb */
   setSpinnerVerb(verb: string): void {
     this.spinnerVerb = verb;
+  }
+
+  /** Called by TerminalRenderer to update token count for spinner display */
+  setTokenCount(count: number): void {
+    this.spinnerTokenCount = count;
   }
 
   /**
@@ -754,6 +761,10 @@ export class InputManager {
     }
     this.spinnerFrame = 0;
     this.spinnerStartTime = Date.now();
+    // Pick a random verb if we don't have a specific one set by the renderer
+    if (this.spinnerVerb === "Thinking..." || this.spinnerVerb === "") {
+      this.spinnerVerb = randomSpinnerVerb();
+    }
     this.renderSpinner();
     this.spinnerInterval = setInterval(() => {
       if (this.spinnerInterval === null) return; // stale callback guard
@@ -775,8 +786,20 @@ export class InputManager {
       ? interpolateColor(this.palette.accent, this.palette.red, stallT)
       : this.palette.accent;
 
-    const timeStr = elapsed > 0 ? ` ${DIM}· ${elapsed}s${RESET}` : "";
-    const spinnerLine = `\r${ERASE_LINE}  ${fg(color)}${frame}${RESET} ${DIM}${this.spinnerVerb}${RESET}${timeStr}`;
+    // Format elapsed time: use h/m/s for long durations
+    let timeStr = "";
+    if (elapsed > 0) {
+      const h = Math.floor(elapsed / 3600);
+      const m = Math.floor((elapsed % 3600) / 60);
+      const s = elapsed % 60;
+      const formatted = h > 0 ? `${h}h ${m}m ${s}s` : m > 0 ? `${m}m ${s}s` : `${s}s`;
+      timeStr = ` ${DIM}· ${formatted}${RESET}`;
+    }
+    // Token count after 30s
+    const tokenStr = elapsedMs > InputManager.STALL_THRESHOLD && this.spinnerTokenCount > 0
+      ? ` ${DIM}· \u2193 ${(this.spinnerTokenCount / 1000).toFixed(1)}k${RESET}`
+      : "";
+    const spinnerLine = `\r${ERASE_LINE}  ${fg(color)}${frame}${RESET} ${DIM}${this.spinnerVerb}${RESET}${timeStr}${tokenStr}`;
 
     if (this.spinnerOnScreen) {
       // Cursor is on the line BELOW the spinner — go up, update, come back

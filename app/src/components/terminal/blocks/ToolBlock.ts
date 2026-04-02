@@ -10,6 +10,7 @@ export class ToolBlock implements Block {
   frozen = false;
   status: "pending" | "success" | "fail" = "pending";
   output?: string;
+  progress?: string;
   readonly toolUseId?: string;
 
   constructor(
@@ -23,8 +24,15 @@ export class ToolBlock implements Block {
 
   update(data: { output?: string; success?: boolean }): boolean {
     if (data.output !== undefined) this.output = data.output;
-    if (data.success !== undefined) this.status = data.success ? "success" : "fail";
+    if (data.success !== undefined) {
+      this.status = data.success ? "success" : "fail";
+      this.progress = undefined; // clear progress on completion
+    }
     return true;
+  }
+
+  setProgress(message: string): void {
+    this.progress = message;
   }
 
   private statusIcon(palette: TerminalPalette): string {
@@ -56,6 +64,11 @@ export class ToolBlock implements Block {
     const toolLabel = summary ? `${this.tool} ${DIM}${summary}${RESET}` : this.tool;
 
     const lines: string[] = [`  ${icon} ${toolLabel}`];
+
+    // Show progress message when pending (e.g., "Running... (21s · timeout 1m)")
+    if (this.status === "pending" && this.progress) {
+      lines.push(`    ${DIM}${sanitizeAgentText(this.progress)}${RESET}`);
+    }
 
     // Show output only on error (max 5 lines)
     if (this.status === "fail" && this.output) {
