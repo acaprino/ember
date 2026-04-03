@@ -64,7 +64,7 @@ export default memo(function XTermView(props: SessionViewProps) {
   const [menuType, setMenuType] = useState<"command" | "mention">("command");
   const [menuFilter, setMenuFilter] = useState("");
   const [menuSelectedIdx, setMenuSelectedIdx] = useState(0);
-  const [menuTop, setMenuTop] = useState(0);
+  const menuTopRef = useRef(0);
 
   // ── Refs ──
   const containerRef = useRef<HTMLDivElement>(null);
@@ -179,7 +179,7 @@ export default memo(function XTermView(props: SessionViewProps) {
       onMenuOpen: (type, filter, cursorY) => {
         setMenuType(type);
         setMenuFilter(filter);
-        setMenuTop(cursorY);
+        menuTopRef.current = cursorY;
         setMenuOpen(true);
         setMenuSelectedIdx(0);
       },
@@ -275,7 +275,11 @@ export default memo(function XTermView(props: SessionViewProps) {
   // ── Resize handling ──
   useEffect(() => {
     if (!containerRef.current || !fitAddonRef.current) return;
-    const ro = new ResizeObserver(() => fitAddonRef.current?.fit());
+    const ro = new ResizeObserver(() => {
+      fitAddonRef.current?.fit();
+      // Close menu on resize — menuTop position would be stale
+      inputManagerRef.current?.closeMenu();
+    });
     ro.observe(containerRef.current);
     return () => ro.disconnect();
   }, []);
@@ -411,11 +415,12 @@ export default memo(function XTermView(props: SessionViewProps) {
           {menuOpen && menuItems.length > 0 && (() => {
             const containerH = containerRef.current?.clientHeight ?? 600;
             const maxH = 280;
-            const spaceBelow = containerH - menuTop;
+            const top = menuTopRef.current;
+            const spaceBelow = containerH - top;
             const flipAbove = spaceBelow < Math.min(maxH, 120);
             const menuStyle: React.CSSProperties = flipAbove
-              ? { bottom: containerH - menuTop + 4, maxHeight: Math.min(maxH, menuTop - 8) }
-              : { top: menuTop + 4, maxHeight: Math.min(maxH, spaceBelow - 8) };
+              ? { bottom: containerH - top + 4, maxHeight: Math.min(maxH, top - 8) }
+              : { top: top + 4, maxHeight: Math.min(maxH, spaceBelow - 8) };
             return (
             <div className="terminal-menu" role="listbox" style={menuStyle}>
               {menuSections.map((section) => {

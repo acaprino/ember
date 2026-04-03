@@ -332,9 +332,14 @@ export class TerminalRenderer {
       }
       if (partialRows > 1) this.terminal.write(cursorUp(partialRows - 1));
       this.terminal.write("\r");
-      const formatted = this.streamInCodeBlock
-        ? `  ${highlightCode(this.streamLineBuffer, this.palette)}`
-        : formatMarkdownLine(this.streamLineBuffer, this.palette);
+      let formatted: string;
+      if (this.streamLineBuffer.startsWith("```")) {
+        formatted = `  ${fg(this.palette.textDim)}${"─".repeat(Math.min(this.cols - 4, 38))}${RESET}`;
+      } else if (this.streamInCodeBlock) {
+        formatted = `  ${highlightCode(this.streamLineBuffer, this.palette)}`;
+      } else {
+        formatted = formatMarkdownLine(this.streamLineBuffer, this.palette);
+      }
       this.terminal.write(formatted);
       this.streamLineBuffer = "";
       this.streamPartialCols = 0;
@@ -379,6 +384,9 @@ export class TerminalRenderer {
       this.suspendedForStreaming = false;
       this.inputManager?.setStreamingActive(false);
       this.deferredUpdates = [];
+      this.streamInCodeBlock = false;
+      this.streamLineBuffer = "";
+      this.streamPartialCols = 0;
     }
 
     // Stop spinner interval to prevent writes during redraw

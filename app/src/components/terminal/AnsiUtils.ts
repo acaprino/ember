@@ -82,6 +82,19 @@ export function sanitizeAgentText(str: string): string {
     .replace(/\x1b/g, "");                       // any remaining ESC
 }
 
+/** Sanitize pasted text: strip escape sequences (like sanitizeAgentText) + flatten newlines */
+export function sanitizePastedText(str: string): string {
+  return str
+    .replace(/\x1b\[[0-9;?]*[A-Za-z]/g, "")         // CSI sequences
+    .replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g, "")  // OSC sequences
+    .replace(/\x1b[PX^_][^\x1b]*\x1b\\/g, "")        // DCS, SOS, PM, APC
+    .replace(/\x1b[78]/g, "")                          // cursor save/restore
+    .replace(/[\x80-\x9f]/g, "")                       // C1 control codes
+    .replace(/\x1b/g, "")                              // remaining ESC
+    .replace(/\r\n|\r|\n/g, " ")                       // flatten multiline
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "");   // strip control chars
+}
+
 // ── Word wrapping ──────────────────────────────────────────────────
 
 /** Strip ANSI escape sequences for length calculation */

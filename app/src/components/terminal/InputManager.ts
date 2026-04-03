@@ -6,7 +6,7 @@
 import type { Terminal } from "@xterm/xterm";
 import type { TerminalPalette } from "./themes";
 import type { PermissionSuggestion, AskQuestionItem } from "../../types";
-import { fg, BOLD, DIM, RESET, ERASE_LINE, ERASE_TO_END, cursorColumn, cursorUp, cursorDown, cursorBack, CURSOR_SAVE, CURSOR_RESTORE, buildSpinnerFrames, interpolateColor, randomSpinnerVerb } from "./AnsiUtils";
+import { fg, BOLD, DIM, RESET, ERASE_LINE, ERASE_TO_END, cursorColumn, cursorUp, cursorDown, cursorBack, CURSOR_SAVE, CURSOR_RESTORE, buildSpinnerFrames, interpolateColor, randomSpinnerVerb, sanitizePastedText } from "./AnsiUtils";
 
 export type InputMode = "normal" | "processing" | "ask" | "permission";
 
@@ -88,6 +88,8 @@ export class InputManager {
         if (e.key === "Tab") { e.preventDefault(); this.callbacks.onMenuSelect?.(); return false; }
         if (e.key === "Escape") { e.preventDefault(); this.closeMenu(); return false; }
       }
+      // Prevent xterm from processing Ctrl+V — we handle paste via clipboard API
+      if (e.ctrlKey && e.key === "v") return false;
       return true;
     });
     // Capture keyboard input
@@ -383,8 +385,9 @@ export class InputManager {
     if (e.ctrlKey && e.key === "c") {
       const selection = this.terminal.getSelection();
       if (selection) {
-        navigator.clipboard.writeText(selection).catch(() => {});
-        this.terminal.clearSelection();
+        navigator.clipboard.writeText(selection).then(() => {
+          this.terminal.clearSelection();
+        }).catch((err) => console.warn("Clipboard write failed:", err));
         return;
       }
       e.preventDefault();
@@ -425,14 +428,15 @@ export class InputManager {
     // Ctrl+V: paste from clipboard
     if (e.ctrlKey && e.key === "v") {
       e.preventDefault();
+      const snapshotMode = this.mode;
+      const snapshotBuffer = this.buffer;
       navigator.clipboard.readText().then((text) => {
         if (!text) return;
-        const clean = text
-          .replace(/\x1b\[[0-9;]*[A-Za-z]|\x1b\][^\x07]*\x07|\x1b[78]|\x1b/g, "")
-          .replace(/\r\n|\r|\n/g, " ")
-          .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "");
+        // Bail if state changed during async clipboard read
+        if (this.mode !== snapshotMode || this.buffer !== snapshotBuffer) return;
+        const clean = sanitizePastedText(text);
         if (clean) this.insertText(clean);
-      }).catch(() => {});
+      }).catch((err) => console.warn("Clipboard read failed:", err));
       return;
     }
   }
@@ -561,9 +565,7 @@ export class InputManager {
     if (data.startsWith("\x1b")) return;
 
     // Strip embedded ANSI escapes from pasted text, flatten multiline to single line
-    const clean = data.replace(/\x1b\[[0-9;]*[A-Za-z]|\x1b\][^\x07]*\x07|\x1b[78]|\x1b/g, "")
-      .replace(/\r\n|\r|\n/g, " ") // flatten multiline paste (matches native CLI behavior)
-      .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, ""); // strip non-printable control chars
+    const clean = sanitizePastedText(data);
     if (!clean) return;
 
     this.insertText(clean);
@@ -1057,8 +1059,7 @@ export class InputManager {
       // Filter control chars and escape sequences
       if (data.charCodeAt(0) < 0x20 && data.length === 1) return;
       if (data.startsWith("\x1b")) return;
-      const clean = data.replace(/\x1b\[[0-9;]*[A-Za-z]|\x1b\][^\x07]*\x07|\x1b[78]|\x1b/g, "")
-        .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "");
+      const clean = sanitizePastedText(data);
       if (!clean) return;
       this.insertText(clean);
       return;
