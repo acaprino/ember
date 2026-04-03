@@ -379,8 +379,14 @@ export class InputManager {
       return;
     }
 
-    // Ctrl+C in any mode
+    // Ctrl+C: copy selection if any, otherwise clear input / interrupt
     if (e.ctrlKey && e.key === "c") {
+      const selection = this.terminal.getSelection();
+      if (selection) {
+        navigator.clipboard.writeText(selection).catch(() => {});
+        this.terminal.clearSelection();
+        return;
+      }
       e.preventDefault();
       if ((this.mode === "normal" || this.mode === "processing") && this.buffer.length > 0) {
         // During streaming, only clear buffer — don't touch terminal
@@ -413,6 +419,20 @@ export class InputManager {
       } else if (this.mode === "processing" || (this.mode === "normal" && this.buffer.length === 0)) {
         this.callbacks.onInterrupt();
       }
+      return;
+    }
+
+    // Ctrl+V: paste from clipboard
+    if (e.ctrlKey && e.key === "v") {
+      e.preventDefault();
+      navigator.clipboard.readText().then((text) => {
+        if (!text) return;
+        const clean = text
+          .replace(/\x1b\[[0-9;]*[A-Za-z]|\x1b\][^\x07]*\x07|\x1b[78]|\x1b/g, "")
+          .replace(/\r\n|\r|\n/g, " ")
+          .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "");
+        if (clean) this.insertText(clean);
+      }).catch(() => {});
       return;
     }
   }
