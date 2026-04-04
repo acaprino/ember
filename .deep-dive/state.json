@@ -1,0 +1,24 @@
+{
+  "target": "C:\\Users\\alfio\\Downloads\\aaa\\src",
+  "status": "complete",
+  "flags": {
+    "critical": false,
+    "comments": false,
+    "docs_only": false,
+    "phase": null,
+    "depth": "full"
+  },
+  "current_phase": 7,
+  "completed_phases": [1, 2, 3, 4, 5, 6, 7],
+  "files_created": [
+    "01-structure.md",
+    "02-interfaces.md",
+    "targeted-prompts.md",
+    "targeted-coordinator.md",
+    "targeted-rendering.md",
+    "targeted-context-commands.md",
+    "07-final-report.md"
+  ],
+  "started_at": "2026-04-04T09:00:00Z",
+  "completed_at": "2026-04-04T09:45:00Z"
+}
