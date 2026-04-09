@@ -41,7 +41,7 @@
     "babel-plugin-react-compiler": "^1.0.0",
     "jsdom": "^29.0.1",
     "typescript": "^5.7.0",
-    "vite": "^6.0.0",
+    "vite": "^8.0.3",
     "vitest": "^4.1.0"
   }
 }
